@@ -8,16 +8,6 @@
 </p>
 
 <p align="center">
-  <a href="#sobre-o-projeto">Sobre</a> •
-  <a href="#funcionalidades">Funcionalidades</a> •
-  <a href="#tecnologias">Tecnologias</a> •
-  <a href="#arquitetura">Arquitetura</a> •
-  <a href="#requisitos">Requisitos</a> •
-  <a href="#instalação">Instalação</a> •
-  <a href="#autor">Autor</a>
-</p>
-
-<p align="center">
   <img src="https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java">
   <img src="https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" alt="Spring Boot">
   <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
