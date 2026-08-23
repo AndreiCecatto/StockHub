@@ -15,7 +15,7 @@
 
 ---
 
-## 📌 Sobre o projeto
+##  Sobre o projeto
 
 O **StockHub** é uma aplicação web desenvolvida para gerenciamento de produtos e categorias de um estoque.
 
@@ -25,7 +25,7 @@ A aplicação foi estruturada utilizando diferentes camadas para separar as resp
 
 ---
 
-## ⚙️ Funcionalidades
+##  Funcionalidades
 
 ### 📦 Produtos
 - Cadastro de produtos
@@ -47,7 +47,7 @@ A aplicação foi estruturada utilizando diferentes camadas para separar as resp
 
 ---
 
-## 🚀 Tecnologias
+##  Tecnologias
 
 | Categoria | Tecnologias |
 | :--- | :--- |
@@ -78,7 +78,7 @@ A aplicação foi estruturada utilizando diferentes camadas para separar as resp
 
 ---
 
-## 🏗️ Arquitetura
+##  Arquitetura
 
 O projeto utiliza uma arquitetura baseada na separação de responsabilidades entre diferentes camadas.
 
@@ -114,7 +114,7 @@ README.md
 
 ---
 
-## 🗄️ Banco de Dados
+##  Banco de Dados
 
 O **StockHub** utiliza PostgreSQL para armazenamento e persistência dos dados.
 
@@ -128,7 +128,7 @@ O projeto utiliza JPA e Hibernate para realizar o mapeamento entre as entidades 
 
 ---
 
-## 📋 Requisitos
+##  Requisitos
 
 | Requisito | Versão |
 | :--- | :--- |
@@ -197,7 +197,7 @@ http://localhost:8080
 
 ---
 
-## 💡 Conceitos aplicados
+##  Conceitos aplicados
 
 Durante o desenvolvimento do StockHub foram aplicados conceitos de:
 
@@ -214,7 +214,7 @@ Durante o desenvolvimento do StockHub foram aplicados conceitos de:
 
 ---
 
-## 🎯 Objetivo
+##  Objetivo
 
 O StockHub foi desenvolvido para colocar em prática conhecimentos adquiridos durante a graduação em Sistemas para Internet na Universidade Federal de Santa Maria (UFSM), principalmente nas áreas de:
 
