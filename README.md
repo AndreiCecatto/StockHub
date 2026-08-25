@@ -172,8 +172,6 @@ spring.mvc.view.suffix=.jsp
 server.port=8080
 ```
 
-> ⚠️ **Importante:** Não coloque senhas ou outras credenciais reais no repositório.
-
 ### 3. Instale as dependências
 ```bash
 mvn clean install
