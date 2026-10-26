@@ -26,6 +26,17 @@ class DespachoInternoWebTest extends ControllerTestBase {
                 .andExpect(redirectedUrl(null));
     }
 
+    @ParameterizedTest(name = "include de {0} não é redirecionado ao login")
+    @ValueSource(strings = {"/WEB-INF/includes/sh/head.jsp", "/WEB-INF/includes/sh/alertas.jsp"})
+    @DisplayName("Include de fragmento numa página pública não é bloqueado (senão o <head> sai vazio)")
+    void includeInternoNaoRedirecionaAoLogin(String fragmento) throws Exception {
+        mvc.perform(get(fragmento).with(requisicao -> {
+                    requisicao.setDispatcherType(DispatcherType.INCLUDE);
+                    return requisicao;
+                }))
+                .andExpect(redirectedUrl(null));
+    }
+
     @ParameterizedTest(name = "requisição externa a {0} continua exigindo login")
     @ValueSource(strings = {"/WEB-INF/pages/dashboard.jsp", "/produtos"})
     @DisplayName("Requisição externa (REQUEST) a rota protegida continua redirecionando ao login")

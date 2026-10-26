@@ -22,9 +22,10 @@ public class SecurityConfig {
         http
                 // Rotas publicas: login, cadastro, pagina de erro e recursos estaticos. O resto exige login.
                 .authorizeHttpRequests(auth -> auth
-                        // O forward interno para as JSPs (e para /error) acontece depois de a requisicao
-                        // original ja ter sido autorizada; sem isso o login redireciona para si mesmo.
-                        .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
+                        // O forward interno para as JSPs (e para /error) e os includes de fragmentos (head.jsp etc.)
+                        // acontecem depois de a requisicao original ja ter sido autorizada. Sem isso o login
+                        // redireciona para si mesmo (FORWARD) e a pagina publica sai sem <head>/CSS (INCLUDE).
+                        .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.INCLUDE, DispatcherType.ERROR).permitAll()
                         .requestMatchers("/login", "/cadastro", "/error",
                                 "/css/**", "/js/**", "/vendor/**", "/img/**", "/images/**", "/favicon.ico").permitAll()
                         .anyRequest().authenticated())
