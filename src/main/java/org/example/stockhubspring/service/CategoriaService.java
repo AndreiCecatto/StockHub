@@ -5,6 +5,7 @@ import org.example.stockhubspring.model.Usuario;
 import org.example.stockhubspring.repository.CategoriaRepository;
 import org.example.stockhubspring.repository.ProdutoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -32,19 +33,28 @@ public class CategoriaService {
     }
 
     public Categoria buscarPorId(Integer id, Integer usuarioCodigo) {
-        Categoria categoria = categoriaRepository.findById(id)
+        // Busca ja filtrada pelo dono: nao distingue "inexistente" de "de outro usuario".
+        return categoriaRepository.findByIdAndUsuarioCodigo(id, usuarioCodigo)
                 .orElseThrow(() -> new IllegalArgumentException("Categoria nao encontrada."));
-        if (!categoria.getUsuario().getCodigo().equals(usuarioCodigo)) {
-            throw new IllegalArgumentException("Categoria nao pertence ao usuario atual.");
-        }
-        return categoria;
     }
 
-    public void salvar(Categoria categoria, Usuario usuario) {
-        categoria.setUsuario(usuario);
+    @Transactional
+    public void salvar(Categoria formulario, Usuario usuario) {
+        Categoria categoria;
+        if (formulario.getId() != null) {
+            // Edicao: carrega a categoria DO USUARIO LOGADO e copia so os campos permitidos.
+            categoria = buscarPorId(formulario.getId(), usuario.getCodigo());
+        } else {
+            // Nova: sempre vinculada ao usuario logado (nunca ao que vier do formulario).
+            categoria = new Categoria();
+            categoria.setUsuario(usuario);
+        }
+        categoria.setNome(formulario.getNome() == null ? null : formulario.getNome().trim());
+        categoria.setDescricao(formulario.getDescricao());
         categoriaRepository.save(categoria);
     }
 
+    @Transactional
     public void excluir(Integer id, Integer usuarioCodigo) {
         Categoria categoria = buscarPorId(id, usuarioCodigo);
         categoriaRepository.delete(categoria);

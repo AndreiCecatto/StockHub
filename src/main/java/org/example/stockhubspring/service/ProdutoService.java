@@ -5,6 +5,7 @@ import org.example.stockhubspring.model.Produto;
 import org.example.stockhubspring.model.Usuario;
 import org.example.stockhubspring.repository.ProdutoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
@@ -60,13 +61,38 @@ public class ProdutoService {
                 .orElseThrow(() -> new IllegalArgumentException("Produto nao encontrado."));
     }
 
-    public void salvar(Produto produto, Integer categoriaId, Usuario usuario) {
+    @Transactional
+    public void salvar(Produto formulario, Integer categoriaId, Usuario usuario) {
+        if (formulario.getNome() == null || formulario.getNome().isBlank()) {
+            throw new IllegalArgumentException("O nome do produto e obrigatorio.");
+        }
+        if (formulario.getPreco() == null || formulario.getPreco().signum() < 0
+                || formulario.getQuantidade() < 0 || formulario.getEstoqueMinimo() < 0) {
+            throw new IllegalArgumentException("Preco, quantidade e estoque minimo nao podem ser negativos.");
+        }
+
+        // A categoria tambem precisa pertencer ao usuario logado.
         Categoria categoria = categoriaService.buscarPorId(categoriaId, usuario.getCodigo());
+
+        Produto produto;
+        if (formulario.getId() != null) {
+            // Edicao: carrega o produto DO USUARIO LOGADO (evita IDOR) e copia so os campos permitidos.
+            produto = buscarPorId(formulario.getId(), usuario.getCodigo());
+        } else {
+            // Novo: sempre vinculado ao usuario logado, ignorando qualquer usuario vindo do formulario.
+            produto = new Produto();
+            produto.setUsuario(usuario);
+        }
+        produto.setNome(formulario.getNome().trim());
+        produto.setDescricao(formulario.getDescricao());
+        produto.setPreco(formulario.getPreco());
+        produto.setQuantidade(formulario.getQuantidade());
+        produto.setEstoqueMinimo(formulario.getEstoqueMinimo());
         produto.setCategoria(categoria);
-        produto.setUsuario(usuario);
         produtoRepository.save(produto);
     }
 
+    @Transactional
     public void excluir(Integer id, Integer usuarioCodigo) {
         Produto produto = buscarPorId(id, usuarioCodigo);
         produtoRepository.delete(produto);

@@ -1,20 +1,20 @@
 package org.example.stockhubspring.service;
 
-import jakarta.servlet.http.HttpSession;
+import org.example.stockhubspring.config.UsuarioPrincipal;
 import org.example.stockhubspring.model.Usuario;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+/**
+ * Entrega o usuario logado a partir do SecurityContext. O Usuario devolvido
+ * e leve (codigo, nome, email) e NUNCA contem a senha/hash.
+ */
 @Service
 public class UsuarioAtualService {
 
-    private final HttpSession session;
-
-    public UsuarioAtualService(HttpSession session) {
-        this.session = session;
-    }
-
     public Usuario getUsuarioAtual() {
-        Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
+        Usuario usuario = getUsuarioAtualOuNull();
         if (usuario == null) {
             throw new IllegalStateException("Usuario nao autenticado.");
         }
@@ -22,6 +22,14 @@ public class UsuarioAtualService {
     }
 
     public Usuario getUsuarioAtualOuNull() {
-        return (Usuario) session.getAttribute("usuarioLogado");
+        Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
+        if (autenticacao == null || !(autenticacao.getPrincipal() instanceof UsuarioPrincipal principal)) {
+            return null;
+        }
+        Usuario usuario = new Usuario();
+        usuario.setCodigo(principal.getCodigo());
+        usuario.setNome(principal.getNome());
+        usuario.setEmail(principal.getUsername());
+        return usuario;
     }
 }

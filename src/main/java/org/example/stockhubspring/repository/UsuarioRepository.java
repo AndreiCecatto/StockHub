@@ -7,4 +7,7 @@ import java.util.Optional;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     Optional<Usuario> findByEmailAndAtivoTrue(String email);
+
+    // Inclui usuarios inativos (o e-mail e unico independentemente do status).
+    boolean existsByEmail(String email);
 }
