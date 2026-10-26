@@ -1,105 +1,132 @@
-﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
-<c:set var="activePage" value="dashboard" scope="request" />
-<fmt:setLocale value="pt_BR" />
-<!DOCTYPE html>
-<html lang="pt-BR">
+<%@ taglib prefix="sh" tagdir="/WEB-INF/tags" %>
+<%--
+    Valor do estoque (novo design, lote 5). Rota: GET /valor-estoque?pagina=N (100 por página, ordem de nome).
+    Dados do DashboardController: resumo (valorTotalEstoque), produtos (categoria.nome, preco, quantidade, valorTotal),
+    paginaAtual, totalPaginas, totalProdutosFiltro.
+    Participação no valor = produto.valorTotal / resumo.valorTotalEstoque, calculada aqui (divisão por zero protegida).
+    A largura da barra usa degraus de 5 % (.sh-w-N), sem style inline; o percentual também sai em texto.
+    Exportar CSV: /produtos/exportar.csv sem filtro de nível (todos os produtos, em ordem de nome).
+    Sem script nem style inline; todo dado sai por c:out.
+--%>
+<fmt:setLocale value="pt_BR" scope="request" />
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:set var="valorTotal" value="${empty resumo.valorTotalEstoque ? 0 : resumo.valorTotalEstoque}" />
+<c:url var="urlCsv" value="/produtos/exportar.csv">
+    <c:param name="ordenacao" value="nome" />
+    <c:param name="direcao" value="asc" />
+</c:url>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
-    <title>Valor em estoque - StockHub</title>
-</head>
+<sh:layout titulo="Valor do estoque" ativo="valorEstoque">
+    <jsp:attribute name="scripts">
+        <link rel="stylesheet" href="${ctx}/css/relatorios.css">
+        <script defer src="${ctx}/js/relatorios.js"></script>
+    </jsp:attribute>
+    <jsp:body>
+        <sh:cabecalhoPagina titulo="Valor do estoque" descricao="Quanto cada produto representa em dinheiro: preço vezes quantidade.">
+            <button type="button" class="btn btn-outline-secondary" data-sh-imprimir hidden>
+                <i class="bi bi-printer" aria-hidden="true"></i> Imprimir
+            </button>
+            <a class="btn btn-outline-secondary" href="<c:out value='${urlCsv}'/>">
+                <i class="bi bi-download" aria-hidden="true"></i> Exportar CSV
+            </a>
+        </sh:cabecalhoPagina>
 
-<body>
-    <div class="estrutura-sistema d-flex min-vh-100">
-        <jsp:include page="../includes/sidebar.jsp" />
-        <div class="conteudo-sistema flex-grow-1">
-            <jsp:include page="../includes/navbar.jsp" />
-            <main class="conteudo-pagina">
-                <section class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-4">
-                    <div class="titulo-pagina">
-                        <h1>Valor em estoque</h1>
-                        <p>Visão financeira do estoque com valor unitário, quantidade e total por produto.</p>
-                    </div>
-                    <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/dashboard">
-                        <i class="bi bi-arrow-left" aria-hidden="true"></i> Voltar ao dashboard
-                    </a>
-                </section>
+        <nav class="sh-rel__alternar sh-nao-imprimir" aria-label="Relatórios de estoque">
+            <div class="btn-group">
+                <a class="btn btn-outline-secondary" href="${ctx}/unidades">Unidades</a>
+                <a class="btn btn-primary" href="${ctx}/valor-estoque" aria-current="page">Valor</a>
+            </div>
+        </nav>
 
-                <jsp:include page="../includes/alertas.jsp" />
-
-                <section class="row g-4">
-                    <div class="col-12 col-xl-4">
-                        <article class="cartao-metrica borda-amarela card h-100">
-                            <div class="card-body">
-                                <span class="nome-metrica">Valor total</span>
-                                <strong>R$ <fmt:formatNumber value="${resumo.valorTotalEstoque}" pattern="#,##0.00" /></strong>
-                                <small>preço x quantidade</small>
-                            </div>
-                        </article>
-                    </div>
-                    <div class="col-12 col-xl-8">
-                        <section class="painel card">
-                            <div class="cabecalho-painel card-header d-flex align-items-center justify-content-between gap-3 flex-wrap">
-                                <div>
-                                    <h2><i class="bi bi-cash-coin" aria-hidden="true"></i> Valor por produto</h2>
-                                    <p>Quanto cada item representa dentro do estoque.</p>
-                                </div>
-                                <span class="etiqueta"><c:out value="${totalProdutosFiltro}" /> produto(s)</span>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table tabela-sistema align-middle">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">Produto</th>
-                                            <th scope="col">Categoria</th>
-                                            <th scope="col">Preço</th>
-                                            <th scope="col">Quantidade</th>
-                                            <th scope="col">Total</th>
-                                            <th scope="col">Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <c:forEach var="produto" items="${produtos}">
-                                            <tr>
-                                                <td><strong><c:out value="${produto.nome}" /></strong></td>
-                                                <td><c:out value="${produto.categoria.nome}" /></td>
-                                                <td>R$ <fmt:formatNumber value="${produto.preco}" pattern="#,##0.00" /></td>
-                                                <td><c:out value="${produto.quantidade}" /> un.</td>
-                                                <td><span class="etiqueta">R$ <fmt:formatNumber value="${produto.valorTotal}" pattern="#,##0.00" /></span></td>
-                                                <td>
-                                                    <a class="btn btn-outline-secondary btn-sm"
-                                                        href="${pageContext.request.contextPath}/produtos/<c:out value='${produto.id}'/>"
-                                                        aria-label="Ver produto <c:out value='${produto.nome}'/>">
-                                                        <i class="bi bi-eye" aria-hidden="true"></i> Ver
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        </c:forEach>
-                                        <c:if test="${empty produtos}">
-                                            <tr>
-                                                <td colspan="6"><div class="estado-vazio">Nenhum produto cadastrado.</div></td>
-                                            </tr>
-                                        </c:if>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <jsp:include page="../includes/paginacao.jsp">
-                                <jsp:param name="base" value="/valor-estoque" />
-                                <jsp:param name="rotulo" value="Paginação da lista de valor em estoque" />
-                            </jsp:include>
-                        </section>
-                    </div>
-                </section>
-            </main>
+        <div class="sh-rel__topo">
+            <div class="sh-metric">
+                <span class="sh-metric__topo">
+                    <span class="sh-metric__rotulo">Valor total</span>
+                    <span class="sh-metric__icone" aria-hidden="true"><i class="bi bi-cash-coin"></i></span>
+                </span>
+                <span class="sh-metric__valor">R$ <fmt:formatNumber value="${valorTotal}" pattern="#,##0.00" /></span>
+                <span class="sh-metric__apoio">preço vezes quantidade, em todos os produtos</span>
+            </div>
         </div>
-    </div>
-    <jsp:include page="../includes/scripts.jsp" />
-</body>
 
-</html>
+        <c:choose>
+            <c:when test="${empty produtos and totalProdutosFiltro > 0}">
+                <div class="sh-card">
+                    <sh:estadoVazio icone="journal-x" titulo="Esta página não tem produtos"
+                        texto="A lista tem menos páginas do que a que você pediu."
+                        acaoUrl="/valor-estoque" acaoRotulo="Voltar ao início da lista" />
+                </div>
+            </c:when>
+            <c:when test="${empty produtos}">
+                <div class="sh-card">
+                    <sh:estadoVazio icone="box-seam" titulo="Nenhum produto cadastrado"
+                        texto="Cadastre o primeiro produto para ver quanto o estoque vale."
+                        acaoUrl="/produtos/novo" acaoRotulo="Cadastrar produto" />
+                </div>
+            </c:when>
+            <c:otherwise>
+                <p class="sh-rel__contagem">
+                    <c:out value="${totalProdutosFiltro}" /> <c:out value="${totalProdutosFiltro == 1 ? 'produto' : 'produtos'}" />, em ordem de nome
+                </p>
+                <div class="sh-table-wrap">
+                    <table class="sh-table sh-table--cards" role="table">
+                        <caption class="visually-hidden">Valor em estoque por produto, <c:out value="${totalProdutosFiltro}" /> no total</caption>
+                        <thead role="rowgroup">
+                            <tr role="row">
+                                <th scope="col" role="columnheader">Produto</th>
+                                <th scope="col" role="columnheader">Categoria</th>
+                                <th scope="col" role="columnheader" class="sh-col-num">Preço</th>
+                                <th scope="col" role="columnheader" class="sh-col-num">Quantidade</th>
+                                <th scope="col" role="columnheader" class="sh-col-num">Total</th>
+                                <th scope="col" role="columnheader">Participação no valor</th>
+                                <th scope="col" role="columnheader"><span class="visually-hidden">Ações</span></th>
+                            </tr>
+                        </thead>
+                        <tbody role="rowgroup">
+                            <c:forEach var="produto" items="${produtos}">
+                                <%-- Participação: protege a divisão por zero (estoque sem valor) --%>
+                                <c:set var="pct" value="0" />
+                                <c:if test="${valorTotal > 0}">
+                                    <c:set var="pct" value="${produto.valorTotal * 100 / valorTotal}" />
+                                </c:if>
+                                <c:if test="${pct > 100}"><c:set var="pct" value="100" /></c:if>
+                                <fmt:formatNumber var="passo" value="${pct / 5}" maxFractionDigits="0" groupingUsed="false" />
+                                <c:set var="degrau" value="${passo * 5}" />
+                                <c:if test="${pct > 0 and degrau == 0}"><c:set var="degrau" value="5" /></c:if>
+                                <tr role="row">
+                                    <td role="cell" class="sh-rel__celula-produto">
+                                        <a class="sh-rel__nome" href="<c:out value='${ctx}/produtos/${produto.id}'/>"><c:out value="${produto.nome}" /></a>
+                                    </td>
+                                    <td role="cell" data-label="Categoria"><c:out value="${produto.categoria.nome}" /></td>
+                                    <td role="cell" class="sh-col-num" data-label="Preço">R$ <fmt:formatNumber value="${produto.preco}" pattern="#,##0.00" /></td>
+                                    <td role="cell" class="sh-col-num" data-label="Quantidade"><c:out value="${produto.quantidade}" /> un.</td>
+                                    <td role="cell" class="sh-col-num" data-label="Total"><strong>R$ <fmt:formatNumber value="${produto.valorTotal}" pattern="#,##0.00" /></strong></td>
+                                    <td role="cell" data-label="Participação">
+                                        <div class="sh-rel__parte">
+                                            <span class="sh-meter sh-meter--normal" aria-hidden="true">
+                                                <span class="sh-meter__fill sh-w-<c:out value='${degrau}'/>"></span>
+                                            </span>
+                                            <span class="sh-rel__parte-pct"><fmt:formatNumber value="${pct}" pattern="#,##0.0" />%</span>
+                                        </div>
+                                    </td>
+                                    <td role="cell" class="sh-rel__celula-acoes" data-label="">
+                                        <div class="sh-rel__acoes">
+                                            <a class="btn btn-ghost btn-sm" href="<c:out value='${ctx}/produtos/${produto.id}'/>">
+                                                <i class="bi bi-eye" aria-hidden="true"></i> Ver<span class="visually-hidden"> <c:out value="${produto.nome}" /></span>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                    <sh:paginacao paginaAtual="${paginaAtual}" totalPaginas="${totalPaginas}" totalItens="${totalProdutosFiltro}"
+                        tamanho="100" base="/valor-estoque" rotulo="Paginação da lista de valor em estoque" />
+                </div>
+            </c:otherwise>
+        </c:choose>
+    </jsp:body>
+</sh:layout>

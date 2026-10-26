@@ -10,6 +10,9 @@
  *   [data-sh-regras-senha]           lista de regras da senha (data-campo = id do campo)
  *   [data-sh-contador="id"]          contador de caracteres do campo (usa o maxlength)
  *   data-sh-enviando="Entrando…"     texto do botão de envio enquanto o formulário é enviado
+ *   form="sh-sem-formulario"         (em um input) campo SEM dono: o id não existe de propósito, então o campo não entra
+ *                                    no formulário nem na validação deste arquivo. O seletor de produto com busca da
+ *                                    movimentação (js/combobox-produto.js) usa isso; o valor real segue pelo select.
  *
  * Os atributos nativos (required, min, max, minlength...) continuam no HTML. Com JS o formulário ganha
  * novalidate e as mensagens aparecem ao SAIR do campo e ao enviar. Mensagens de erro entram por textContent.

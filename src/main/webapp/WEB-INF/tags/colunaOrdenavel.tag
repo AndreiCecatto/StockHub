@@ -1,8 +1,8 @@
-<%@ tag description="Cabeçalho de coluna ordenável da lista de produtos: link com aria-sort e seta (lote 3)" body-content="empty" pageEncoding="UTF-8" %>
+<%@ tag description="Cabeçalho de coluna ordenável da lista de produtos: link com aria-sort e seta" body-content="empty" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%--
-    Uso (só em produtos.jsp):
-      <sh:loteProdutosColunaOrdenavel campo="nome" rotulo="Produto" ordenacaoAtual="${ordenacao}"
+    Uso (hoje em produtos.jsp; serve a qualquer tabela ordenável por link):
+      <sh:colunaOrdenavel campo="nome" rotulo="Produto" ordenacaoAtual="${ordenacao}"
           direcaoAtual="${direcao}" urlBase="${urlOrdem}" />
 
     campo:         valor do parâmetro "ordenacao" (nome, categoria, preco, quantidade).
@@ -10,7 +10,6 @@
     urlBase:       URL pronta (com o contexto e já com "?"), com os filtros e o tamanho, SEM ordenacao e direcao.
     numerico:      true alinha à direita (preço).
     Clicar na coluna ativa inverte a direção; em outra coluna começa crescente. A página volta à primeira.
-    Arquivo do lote 3: ao crescer, pode ir para o conjunto compartilhado de tags no lote 5.
 --%>
 <%@ attribute name="campo" required="true" type="java.lang.String" %>
 <%@ attribute name="rotulo" required="true" type="java.lang.String" %>

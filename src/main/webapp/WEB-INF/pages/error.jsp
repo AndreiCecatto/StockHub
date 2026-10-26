@@ -1,10 +1,13 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="sh" tagdir="/WEB-INF/tags" %>
 <%--
-    Pagina de erro (view "error" do Spring Boot). O model traz status, error e path.
-    Funciona sem usuario logado: nao usa sidebar/navbar nem usuarioLogado.
-    Nunca mostra stack trace nem mensagem interna da excecao.
+    Página de erro (view "error" do Spring Boot, novo design, lote 5). O model traz status, error e path, mas só o
+    status é usado: o texto é fixo por status, então nunca aparece stack trace, mensagem interna nem o caminho pedido.
+    Funciona sem usuário logado e sem atributos do app: usa layoutPublico (sem menu) e não lê usuarioLogado.
+    Rota /error liberada no SecurityConfig. Sem script nem style inline.
 --%>
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:choose>
     <c:when test="${status == 404}">
         <c:set var="tituloErro" value="Página não encontrada" />
@@ -20,40 +23,42 @@
     </c:when>
     <c:when test="${status == 405}">
         <c:set var="tituloErro" value="Ação não permitida" />
-        <c:set var="textoErro" value="Esta página não aceita esse tipo de ação. Volte ao painel e tente novamente." />
+        <c:set var="textoErro" value="Esta página não aceita esse tipo de ação. Volte ao início e tente novamente." />
     </c:when>
     <c:otherwise>
         <c:set var="tituloErro" value="Algo deu errado" />
         <c:set var="textoErro" value="Tivemos um problema inesperado. Tente novamente em instantes; se continuar, avise o suporte." />
     </c:otherwise>
 </c:choose>
-<!DOCTYPE html>
-<html lang="pt-BR">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
-    <title><c:out value="${tituloErro}" /> - StockHub</title>
-</head>
-
-<body class="pagina-login min-vh-100 d-flex align-items-center justify-content-center p-4">
-    <main class="cartao-login cartao-erro card p-4">
-        <span class="logo-marca mx-auto"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
-        <p class="codigo-erro mt-3" aria-hidden="true"><c:out value="${empty status ? 'Erro' : status}" /></p>
-        <h1 class="mt-2 mb-2"><c:out value="${tituloErro}" /></h1>
-        <p><c:out value="${textoErro}" /></p>
-        <c:if test="${not empty path}">
-            <p class="small mb-3">Endereço: <code><c:out value="${path}" /></code></p>
-        </c:if>
-        <div class="d-grid gap-2">
-            <a class="btn btn-primary" href="${pageContext.request.contextPath}/dashboard">
-                <i class="bi bi-house" aria-hidden="true"></i> Voltar ao painel
-            </a>
+<sh:layoutPublico titulo="${tituloErro}">
+    <jsp:attribute name="scripts">
+        <link rel="stylesheet" href="${ctx}/css/relatorios.css">
+    </jsp:attribute>
+    <jsp:body>
+        <div class="sh-erro">
+            <div class="sh-erro__tema">
+                <jsp:include page="/WEB-INF/includes/sh/tema-botao.jsp" />
+            </div>
+            <section class="sh-card sh-erro__caixa" aria-labelledby="titulo-erro">
+                <a class="sh-erro__marca" href="${ctx}/dashboard">
+                    <span class="sh-marca__logo"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
+                    <span>StockHub</span>
+                </a>
+                <p class="sh-erro__codigo" aria-hidden="true"><c:out value="${empty status ? 'Erro' : status}" /></p>
+                <h1 class="sh-erro__titulo" id="titulo-erro"><c:out value="${tituloErro}" /></h1>
+                <p class="sh-erro__texto"><c:out value="${textoErro}" /></p>
+                <div class="sh-erro__acoes">
+                    <a class="btn btn-primary" href="${ctx}/dashboard">
+                        <i class="bi bi-house" aria-hidden="true"></i> Voltar ao início
+                    </a>
+                    <c:if test="${status == 403}">
+                        <a class="btn btn-outline-secondary" href="${ctx}/login">
+                            <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Entrar
+                        </a>
+                    </c:if>
+                </div>
+            </section>
         </div>
-    </main>
-</body>
-
-</html>
+    </jsp:body>
+</sh:layoutPublico>

@@ -277,13 +277,13 @@
                                 <caption class="visually-hidden">Lista de produtos, <c:out value="${totalProdutosFiltro}" /> no total</caption>
                                 <thead role="rowgroup">
                                     <tr role="row">
-                                        <sh:loteProdutosColunaOrdenavel campo="nome" rotulo="Produto" ordenacaoAtual="${ordenacao}"
+                                        <sh:colunaOrdenavel campo="nome" rotulo="Produto" ordenacaoAtual="${ordenacao}"
                                             direcaoAtual="${direcao}" urlBase="${urlOrdem}" />
-                                        <sh:loteProdutosColunaOrdenavel campo="categoria" rotulo="Categoria" ordenacaoAtual="${ordenacao}"
+                                        <sh:colunaOrdenavel campo="categoria" rotulo="Categoria" ordenacaoAtual="${ordenacao}"
                                             direcaoAtual="${direcao}" urlBase="${urlOrdem}" />
-                                        <sh:loteProdutosColunaOrdenavel campo="preco" rotulo="Preço" ordenacaoAtual="${ordenacao}"
+                                        <sh:colunaOrdenavel campo="preco" rotulo="Preço" ordenacaoAtual="${ordenacao}"
                                             direcaoAtual="${direcao}" urlBase="${urlOrdem}" numerico="true" />
-                                        <sh:loteProdutosColunaOrdenavel campo="quantidade" rotulo="Saldo" ordenacaoAtual="${ordenacao}"
+                                        <sh:colunaOrdenavel campo="quantidade" rotulo="Saldo" ordenacaoAtual="${ordenacao}"
                                             direcaoAtual="${direcao}" urlBase="${urlOrdem}" />
                                         <th scope="col" role="columnheader">Situação</th>
                                         <th scope="col" role="columnheader"><span class="visually-hidden">Ações</span></th>
