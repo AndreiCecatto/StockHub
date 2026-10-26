@@ -1,33 +1,49 @@
 package org.example.stockhubspring.service;
 
-import org.example.stockhubspring.model.Produto;
+import org.example.stockhubspring.model.NivelEstoque;
 import org.example.stockhubspring.model.ResumoEstoque;
+import org.example.stockhubspring.repository.CategoriaRepository;
+import org.example.stockhubspring.repository.ProdutoRepository;
+import org.example.stockhubspring.repository.ProdutoSpecs;
+import org.example.stockhubspring.repository.ResumoProdutos;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.List;
 
+/** Totais do painel, todos calculados no banco por consultas agregadas (RN-13), só de produtos ativos. */
 @Service
 public class DashboardService {
 
-    private final ProdutoService produtoService;
-    private final CategoriaService categoriaService;
+    private final ProdutoRepository produtoRepository;
+    private final CategoriaRepository categoriaRepository;
 
-    public DashboardService(ProdutoService produtoService, CategoriaService categoriaService) {
-        this.produtoService = produtoService;
-        this.categoriaService = categoriaService;
+    public DashboardService(ProdutoRepository produtoRepository, CategoriaRepository categoriaRepository) {
+        this.produtoRepository = produtoRepository;
+        this.categoriaRepository = categoriaRepository;
     }
 
+    @Transactional(readOnly = true)
     public ResumoEstoque buscarResumo(Integer usuarioCodigo) {
-        List<Produto> produtos = produtoService.listar(null, usuarioCodigo);
+        ResumoProdutos totais = produtoRepository.resumir(usuarioCodigo);
+
         ResumoEstoque resumo = new ResumoEstoque();
-        resumo.setTotalProdutos(produtos.size());
-        resumo.setTotalCategorias(categoriaService.listar(null, usuarioCodigo).size());
-        resumo.setProdutosEstoqueBaixo(produtoService.contarEstoqueBaixo(usuarioCodigo));
-        resumo.setQuantidadeTotalItens(produtos.stream().mapToInt(Produto::getQuantidade).sum());
-        resumo.setValorTotalEstoque(produtos.stream()
-                .map(Produto::getValorTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add));
+        resumo.setTotalProdutos(valorOuZero(totais.getTotalProdutos()));
+        resumo.setQuantidadeTotalItens(valorOuZero(totais.getTotalUnidades()));
+        resumo.setValorTotalEstoque(totais.getValorTotal() == null ? BigDecimal.ZERO : totais.getValorTotal());
+        resumo.setTotalCategorias(categoriaRepository.countByUsuarioCodigo(usuarioCodigo));
+
+        // Níveis pela definição única de NivelEstoque (RN-12)
+        long semEstoque = produtoRepository.count(ProdutoSpecs.ativosDoUsuario(usuarioCodigo)
+                .and(ProdutoSpecs.comNivel(NivelEstoque.SEM_ESTOQUE)));
+        long baixo = produtoRepository.count(ProdutoSpecs.ativosDoUsuario(usuarioCodigo)
+                .and(ProdutoSpecs.comNivel(NivelEstoque.BAIXO)));
+        resumo.setProdutosSemEstoque(semEstoque);
+        resumo.setProdutosEstoqueBaixo(semEstoque + baixo);
         return resumo;
+    }
+
+    private static long valorOuZero(Long valor) {
+        return valor == null ? 0L : valor;
     }
 }

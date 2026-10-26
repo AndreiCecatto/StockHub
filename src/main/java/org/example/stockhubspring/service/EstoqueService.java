@@ -1,61 +1,131 @@
 package org.example.stockhubspring.service;
 
+import org.example.stockhubspring.exception.RecursoNaoEncontradoException;
+import org.example.stockhubspring.exception.RegraNegocioException;
 import org.example.stockhubspring.model.MovimentacaoEstoque;
 import org.example.stockhubspring.model.Produto;
 import org.example.stockhubspring.model.TipoMovimentacao;
 import org.example.stockhubspring.model.Usuario;
 import org.example.stockhubspring.repository.MovimentacaoEstoqueRepository;
 import org.example.stockhubspring.repository.ProdutoRepository;
+import org.example.stockhubspring.util.Paginas;
+import org.example.stockhubspring.util.Textos;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
+/**
+ * Único ponto que altera o saldo de um produto (RN-03). Cada movimentação lê o produto com
+ * bloqueio pessimista, calcula e grava saldo e registro na mesma transação (RN-07).
+ */
 @Service
 public class EstoqueService {
 
-    private final ProdutoService produtoService;
+    /** Motivo gravado na entrada gerada ao cadastrar um produto com saldo (RN-04). */
+    public static final String MOTIVO_ESTOQUE_INICIAL = "Estoque inicial";
+    /** Limite de uma movimentação de ENTRADA ou SAIDA (RN-05). */
+    public static final int QUANTIDADE_MAXIMA_MOVIMENTACAO = 1_000_000;
+    /** Maior saldo permitido, bem abaixo do limite do int (RN-05). */
+    public static final int SALDO_MAXIMO = 2_000_000_000;
+    public static final int OBSERVACAO_MAXIMA = 255;
+    public static final int TAMANHO_MAXIMO_PAGINA = 100;
+
     private final ProdutoRepository produtoRepository;
     private final MovimentacaoEstoqueRepository movimentacaoRepository;
 
-    public EstoqueService(ProdutoService produtoService,
-                          ProdutoRepository produtoRepository,
+    public EstoqueService(ProdutoRepository produtoRepository,
                           MovimentacaoEstoqueRepository movimentacaoRepository) {
-        this.produtoService = produtoService;
         this.produtoRepository = produtoRepository;
         this.movimentacaoRepository = movimentacaoRepository;
     }
 
-    public List<MovimentacaoEstoque> listarMovimentacoes(Integer usuarioCodigo) {
-        return movimentacaoRepository.findByUsuarioCodigoOrderByCriadoEmDesc(usuarioCodigo);
+    /** Histórico da loja, do mais recente para o mais antigo (página em base 1). */
+    @Transactional(readOnly = true)
+    public Page<MovimentacaoEstoque> listarMovimentacoes(Integer usuarioCodigo, int pagina, int tamanho) {
+        Sort ordem = Sort.by(Sort.Order.desc("criadoEm"), Sort.Order.desc("id"));
+        return Paginas.buscar(pagina, tamanho, TAMANHO_MAXIMO_PAGINA, ordem,
+                pageable -> movimentacaoRepository.findByUsuarioCodigo(usuarioCodigo, pageable));
     }
 
+    /**
+     * Registra uma movimentação e atualiza o saldo (RN-02 a RN-07).
+     * <ul>
+     *   <li>ENTRADA: soma; SAIDA: subtrai e nunca deixa o saldo negativo;</li>
+     *   <li>AJUSTE: {@code quantidade} é a contagem FINAL e o motivo (observação) é obrigatório.</li>
+     * </ul>
+     *
+     * @throws RegraNegocioException         se alguma regra for violada (nada é gravado)
+     * @throws RecursoNaoEncontradoException se o produto não existe, está inativo ou é de outra loja
+     */
     @Transactional
-    public void movimentar(Integer produtoId, TipoMovimentacao tipo, int quantidade, String observacao, Usuario usuario) {
-        if (quantidade <= 0) {
-            throw new IllegalArgumentException("A quantidade deve ser maior que zero.");
+    public MovimentacaoEstoque movimentar(Integer produtoId, TipoMovimentacao tipo, int quantidade,
+                                          String observacao, Usuario usuario) {
+        if (tipo == null) {
+            throw new RegraNegocioException("Informe o tipo da movimentação.");
+        }
+        String motivo = Textos.limpar(observacao);
+        if (motivo != null && motivo.length() > OBSERVACAO_MAXIMA) {
+            throw new RegraNegocioException("A observação deve ter no máximo " + OBSERVACAO_MAXIMA + " caracteres.");
+        }
+        validarQuantidade(tipo, quantidade, motivo);
+
+        // Bloqueio pessimista: duas movimentações do mesmo produto se enfileiram (sem lost update).
+        Produto produto = produtoRepository.buscarAtivoComBloqueio(produtoId, usuario.getCodigo())
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Produto não encontrado."));
+
+        int anterior = produto.getQuantidade();
+        long nova = switch (tipo) {
+            case ENTRADA -> (long) anterior + quantidade;
+            case SAIDA -> (long) anterior - quantidade;
+            case AJUSTE -> quantidade;
+        };
+        if (nova < 0) {
+            throw new RegraNegocioException("Saída de " + quantidade + " unidade(s) maior que o saldo atual ("
+                    + anterior + "). Nada foi registrado.");
+        }
+        if (nova > SALDO_MAXIMO) {
+            throw new RegraNegocioException("O saldo do produto não pode passar de " + formatar(SALDO_MAXIMO)
+                    + " unidades.");
         }
 
-        Produto produto = produtoService.buscarPorId(produtoId, usuario.getCodigo());
-        if (tipo == TipoMovimentacao.ENTRADA) {
-            produto.setQuantidade(produto.getQuantidade() + quantidade);
-        } else if (tipo == TipoMovimentacao.SAIDA) {
-            if (produto.getQuantidade() < quantidade) {
-                throw new IllegalArgumentException("Nao ha estoque suficiente para esta saida.");
-            }
-            produto.setQuantidade(produto.getQuantidade() - quantidade);
-        } else if (tipo == TipoMovimentacao.AJUSTE) {
-            produto.setQuantidade(quantidade);
-        }
+        produto.setQuantidade((int) nova);
 
         MovimentacaoEstoque movimentacao = new MovimentacaoEstoque();
         movimentacao.setProduto(produto);
         movimentacao.setUsuario(usuario);
         movimentacao.setTipo(tipo);
         movimentacao.setQuantidade(quantidade);
-        movimentacao.setObservacao(observacao);
-
+        movimentacao.setQuantidadeAnterior(anterior);
+        movimentacao.setQuantidadeNova((int) nova);
+        movimentacao.setObservacao(motivo);
+        // saveAndFlush: grava o saldo e o registro juntos, ainda dentro da transação
         produtoRepository.save(produto);
-        movimentacaoRepository.save(movimentacao);
+        return movimentacaoRepository.saveAndFlush(movimentacao);
+    }
+
+    private void validarQuantidade(TipoMovimentacao tipo, int quantidade, String motivo) {
+        if (tipo == TipoMovimentacao.AJUSTE) {
+            if (motivo == null) {
+                throw new RegraNegocioException("Informe o motivo do ajuste.");
+            }
+            if (quantidade < 0 || quantidade > SALDO_MAXIMO) {
+                throw new RegraNegocioException("A contagem do ajuste deve estar entre 0 e "
+                        + formatar(SALDO_MAXIMO) + ".");
+            }
+            return;
+        }
+        String nome = tipo == TipoMovimentacao.ENTRADA ? "entrada" : "saída";
+        if (quantidade <= 0) {
+            throw new RegraNegocioException("A quantidade da " + nome + " deve ser maior que zero.");
+        }
+        if (quantidade > QUANTIDADE_MAXIMA_MOVIMENTACAO) {
+            throw new RegraNegocioException("A quantidade da " + nome + " deve ser no máximo "
+                    + formatar(QUANTIDADE_MAXIMA_MOVIMENTACAO) + ".");
+        }
+    }
+
+    private static String formatar(int numero) {
+        return String.format(java.util.Locale.forLanguageTag("pt-BR"), "%,d", numero);
     }
 }

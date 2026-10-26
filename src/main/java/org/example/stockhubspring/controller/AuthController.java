@@ -1,26 +1,35 @@
 package org.example.stockhubspring.controller;
 
+import jakarta.validation.Valid;
+import org.example.stockhubspring.dto.CadastroForm;
+import org.example.stockhubspring.exception.RegraNegocioException;
 import org.example.stockhubspring.service.UsuarioAtualService;
 import org.example.stockhubspring.service.UsuarioService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
- * Telas de login e cadastro. O POST /login e o POST /logout sao tratados
- * pelo Spring Security (ver SecurityConfig), nao por este controller.
+ * Telas de login e cadastro. O POST /login e o POST /logout são tratados
+ * pelo Spring Security (ver SecurityConfig), não por este controller.
  */
 @Controller
 public class AuthController {
 
     private final UsuarioService usuarioService;
     private final UsuarioAtualService usuarioAtualService;
+    private final ErrosFormulario errosFormulario;
 
-    public AuthController(UsuarioService usuarioService, UsuarioAtualService usuarioAtualService) {
+    public AuthController(UsuarioService usuarioService,
+                          UsuarioAtualService usuarioAtualService,
+                          ErrosFormulario errosFormulario) {
         this.usuarioService = usuarioService;
         this.usuarioAtualService = usuarioAtualService;
+        this.errosFormulario = errosFormulario;
     }
 
     @GetMapping({"/login", "/index.jsp"})
@@ -35,10 +44,10 @@ public class AuthController {
             model.addAttribute("erro", "E-mail ou senha incorretos.");
         }
         if (saiu != null) {
-            model.addAttribute("sucesso", "Voce saiu do sistema.");
+            model.addAttribute("sucesso", "Você saiu do sistema.");
         }
         if (cadastrado != null) {
-            model.addAttribute("sucesso", "Cadastro concluido. Entre com seu e-mail e senha.");
+            model.addAttribute("sucesso", "Cadastro concluído. Entre com seu e-mail e senha.");
         }
         return "login";
     }
@@ -50,19 +59,24 @@ public class AuthController {
     }
 
     @PostMapping("/cadastro")
-    public String cadastrar(@RequestParam String nome,
-                            @RequestParam String email,
-                            @RequestParam String senha,
+    public String cadastrar(@Valid @ModelAttribute("cadastroForm") CadastroForm form,
+                            BindingResult resultado,
                             Model model) {
-        try {
-            usuarioService.cadastrarLoja(nome, email, senha);
-            return "redirect:/login?cadastrado";
-        } catch (IllegalArgumentException e) {
-            model.addAttribute("modoCadastro", true);
-            model.addAttribute("erro", e.getMessage());
-            model.addAttribute("nome", nome);
-            model.addAttribute("email", email);
-            return "login";
+        if (!resultado.hasErrors()) {
+            try {
+                usuarioService.cadastrarLoja(form.getNome(), form.getEmail(), form.getSenha());
+                return "redirect:/login?cadastrado";
+            } catch (RegraNegocioException e) {
+                model.addAttribute("erro", e.getMessage());
+            }
+        } else {
+            errosFormulario.publicar(resultado, model);
         }
+        // Volta ao mesmo formulário, sem devolver a senha digitada
+        form.setSenha(null);
+        model.addAttribute("modoCadastro", true);
+        model.addAttribute("nome", form.getNome());
+        model.addAttribute("email", form.getEmail());
+        return "login";
     }
 }

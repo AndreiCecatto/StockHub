@@ -1,0 +1,139 @@
+package org.example.stockhubspring.dto;
+
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import org.example.stockhubspring.model.Produto;
+import org.example.stockhubspring.util.Textos;
+
+import java.math.BigDecimal;
+
+/**
+ * Dados de entrada do formulário de produto (RN-11). Não tem usuário nem "ativo": o dono vem
+ * sempre da sessão, nunca do POST. {@code quantidade} só vale no cadastro (estoque inicial,
+ * RN-04); na edição é ignorada (RN-03).
+ */
+public class ProdutoForm {
+
+    private Integer id;
+
+    @NotBlank(message = "O nome do produto é obrigatório.")
+    @Size(min = 2, max = 120, message = "O nome do produto deve ter entre 2 e 120 caracteres.")
+    private String nome;
+
+    @Size(max = 500, message = "A descrição deve ter no máximo 500 caracteres.")
+    private String descricao;
+
+    @NotNull(message = "Informe o preço.")
+    @DecimalMin(value = "0.00", message = "O preço deve ser maior ou igual a zero.")
+    @DecimalMax(value = "9999999.99", message = "O preço deve ser no máximo 9.999.999,99.")
+    @Digits(integer = 7, fraction = 2, message = "O preço deve ter no máximo 2 casas decimais.")
+    private BigDecimal preco = BigDecimal.ZERO;
+
+    @Min(value = 0, message = "A quantidade deve ser maior ou igual a zero.")
+    @Max(value = 2_000_000_000, message = "A quantidade é grande demais.")
+    private Integer quantidade = 0;
+
+    @NotNull(message = "Informe o estoque mínimo.")
+    @Min(value = 0, message = "O estoque mínimo deve ser maior ou igual a zero.")
+    @Max(value = 2_000_000_000, message = "O estoque mínimo é grande demais.")
+    private Integer estoqueMinimo = 0;
+
+    @NotNull(message = "Selecione uma categoria.")
+    private Integer categoriaId;
+
+    /** Preenche o formulário de edição a partir do produto (inclui o saldo atual, só para exibição). */
+    public static ProdutoForm de(Produto produto) {
+        ProdutoForm form = new ProdutoForm();
+        form.id = produto.getId();
+        form.nome = produto.getNome();
+        form.descricao = produto.getDescricao();
+        form.preco = produto.getPreco();
+        form.quantidade = produto.getQuantidade();
+        form.estoqueMinimo = produto.getEstoqueMinimo();
+        form.categoriaId = produto.getCategoria() == null ? null : produto.getCategoria().getId();
+        return form;
+    }
+
+    /**
+     * Compatibilidade com a JSP, que compara {@code produto.categoria.id} para marcar a opção
+     * selecionada. Só leitura (não há setter, então o POST não consegue alterar nada por aqui).
+     */
+    public CategoriaSelecionada getCategoria() {
+        return new CategoriaSelecionada(categoriaId);
+    }
+
+    /** Referência mínima à categoria escolhida (apenas o id). */
+    public static final class CategoriaSelecionada {
+        private final Integer id;
+
+        CategoriaSelecionada(Integer id) {
+            this.id = id;
+        }
+
+        public Integer getId() {
+            return id;
+        }
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = Textos.limpar(nome);
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public void setDescricao(String descricao) {
+        this.descricao = Textos.limpar(descricao);
+    }
+
+    public BigDecimal getPreco() {
+        return preco;
+    }
+
+    public void setPreco(BigDecimal preco) {
+        this.preco = preco;
+    }
+
+    public Integer getQuantidade() {
+        return quantidade;
+    }
+
+    public void setQuantidade(Integer quantidade) {
+        this.quantidade = quantidade;
+    }
+
+    public Integer getEstoqueMinimo() {
+        return estoqueMinimo;
+    }
+
+    public void setEstoqueMinimo(Integer estoqueMinimo) {
+        this.estoqueMinimo = estoqueMinimo;
+    }
+
+    public Integer getCategoriaId() {
+        return categoriaId;
+    }
+
+    public void setCategoriaId(Integer categoriaId) {
+        this.categoriaId = categoriaId;
+    }
+}

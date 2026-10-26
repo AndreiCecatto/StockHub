@@ -2,12 +2,15 @@ package org.example.stockhubspring.model;
 
 import java.math.BigDecimal;
 
+/** Totais do painel, calculados no banco por consultas agregadas (RN-13). */
 public class ResumoEstoque {
 
     private long totalProdutos;
     private long totalCategorias;
+    // Produtos que pedem reposição: níveis BAIXO e SEM_ESTOQUE (RN-12)
     private long produtosEstoqueBaixo;
-    private int quantidadeTotalItens;
+    private long produtosSemEstoque;
+    private long quantidadeTotalItens;
     private BigDecimal valorTotalEstoque = BigDecimal.ZERO;
 
     public long getTotalProdutos() {
@@ -34,11 +37,19 @@ public class ResumoEstoque {
         this.produtosEstoqueBaixo = produtosEstoqueBaixo;
     }
 
-    public int getQuantidadeTotalItens() {
+    public long getProdutosSemEstoque() {
+        return produtosSemEstoque;
+    }
+
+    public void setProdutosSemEstoque(long produtosSemEstoque) {
+        this.produtosSemEstoque = produtosSemEstoque;
+    }
+
+    public long getQuantidadeTotalItens() {
         return quantidadeTotalItens;
     }
 
-    public void setQuantidadeTotalItens(int quantidadeTotalItens) {
+    public void setQuantidadeTotalItens(long quantidadeTotalItens) {
         this.quantidadeTotalItens = quantidadeTotalItens;
     }
 

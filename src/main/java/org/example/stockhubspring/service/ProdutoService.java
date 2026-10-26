@@ -1,144 +1,232 @@
 package org.example.stockhubspring.service;
 
+import org.example.stockhubspring.dto.ProdutoFiltro;
+import org.example.stockhubspring.dto.ProdutoForm;
+import org.example.stockhubspring.exception.RecursoNaoEncontradoException;
+import org.example.stockhubspring.exception.RegraNegocioException;
 import org.example.stockhubspring.model.Categoria;
+import org.example.stockhubspring.model.MovimentacaoEstoque;
+import org.example.stockhubspring.model.NivelEstoque;
 import org.example.stockhubspring.model.Produto;
+import org.example.stockhubspring.model.TipoMovimentacao;
 import org.example.stockhubspring.model.Usuario;
+import org.example.stockhubspring.repository.CategoriaRepository;
+import org.example.stockhubspring.repository.MovimentacaoEstoqueRepository;
 import org.example.stockhubspring.repository.ProdutoRepository;
+import org.example.stockhubspring.repository.ProdutoSpecs;
+import org.example.stockhubspring.util.Paginas;
+import org.example.stockhubspring.util.Textos;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
 import java.util.List;
 
+/** Produtos da loja. Toda operação é escopada pelo usuário logado (RN-01) e só enxerga produtos ativos. */
 @Service
 public class ProdutoService {
 
+    /** Resultado de {@link #excluir}: apagado de vez ou apenas inativado (RN-08). */
+    public enum ResultadoExclusao {
+        EXCLUIDO,
+        INATIVADO
+    }
+
+    public static final int TAMANHO_MAXIMO_PAGINA = ProdutoFiltro.TAMANHO_MAXIMO;
+
     private final ProdutoRepository produtoRepository;
-    private final CategoriaService categoriaService;
+    private final CategoriaRepository categoriaRepository;
+    private final MovimentacaoEstoqueRepository movimentacaoRepository;
+    private final EstoqueService estoqueService;
 
-    public ProdutoService(ProdutoRepository produtoRepository, CategoriaService categoriaService) {
+    public ProdutoService(ProdutoRepository produtoRepository,
+                          CategoriaRepository categoriaRepository,
+                          MovimentacaoEstoqueRepository movimentacaoRepository,
+                          EstoqueService estoqueService) {
         this.produtoRepository = produtoRepository;
-        this.categoriaService = categoriaService;
+        this.categoriaRepository = categoriaRepository;
+        this.movimentacaoRepository = movimentacaoRepository;
+        this.estoqueService = estoqueService;
     }
 
-    public List<Produto> listar(String busca, Integer usuarioCodigo) {
-        if (busca != null && !busca.isBlank()) {
-            return produtoRepository.findByUsuarioCodigoAndNomeContainingIgnoreCaseOrderByIdDesc(usuarioCodigo, busca);
+    /** Listagem paginada com filtros e ordenação feitos no banco. */
+    @Transactional(readOnly = true)
+    public Page<Produto> listarPagina(ProdutoFiltro filtro, Integer usuarioCodigo) {
+        Specification<Produto> spec = ProdutoSpecs.ativosDoUsuario(usuarioCodigo);
+        if (filtro.busca() != null) {
+            spec = spec.and(ProdutoSpecs.comBusca(filtro.busca()));
         }
-        return produtoRepository.findByUsuarioCodigoOrderByIdDesc(usuarioCodigo);
-    }
-
-    public List<Produto> listarFiltrado(String busca, Integer categoriaId, String nivelEstoque,
-                                        String ordenacao, String direcao, Integer usuarioCodigo) {
-        Comparator<Produto> comparador = comparador(ordenacao);
-        if ("desc".equalsIgnoreCase(direcao)) {
-            comparador = comparador.reversed();
+        if (filtro.categoriaId() != null) {
+            spec = spec.and(ProdutoSpecs.daCategoria(filtro.categoriaId()));
         }
+        if (filtro.nivel() != null) {
+            spec = spec.and(ProdutoSpecs.comNivel(filtro.nivel()));
+        }
+        // Desempate por id mantém a paginação estável quando o campo escolhido tem valores repetidos
+        Sort.Order principal = "asc".equals(filtro.direcao())
+                ? Sort.Order.asc(filtro.propriedadeOrdenacao())
+                : Sort.Order.desc(filtro.propriedadeOrdenacao());
+        if ("nome".equals(filtro.ordenacao()) || "categoria".equals(filtro.ordenacao())) {
+            principal = principal.ignoreCase();
+        }
+        Sort ordem = "id".equals(filtro.ordenacao()) ? Sort.by(principal) : Sort.by(principal, Sort.Order.asc("id"));
 
-        return produtoRepository.findByUsuarioCodigoOrderByIdDesc(usuarioCodigo).stream()
-                .filter(produto -> busca == null || busca.isBlank()
-                        || contem(produto.getNome(), busca)
-                        || contem(produto.getCategoria().getNome(), busca)
-                        || String.valueOf(produto.getId()).contains(busca))
-                .filter(produto -> categoriaId == null || categoriaId <= 0 || produto.getCategoria().getId().equals(categoriaId))
-                .filter(produto -> filtrarNivel(produto, nivelEstoque))
-                .sorted(comparador)
-                .toList();
+        Specification<Produto> especificacao = spec;
+        return Paginas.buscar(filtro.pagina(), filtro.tamanho(), TAMANHO_MAXIMO_PAGINA, ordem,
+                pageable -> produtoRepository.findAll(especificacao, pageable));
     }
 
-    public List<Produto> listarRecentes(Integer limite, Integer usuarioCodigo) {
-        return produtoRepository.findByUsuarioCodigoOrderByIdDesc(usuarioCodigo).stream()
-                .limit(limite)
-                .toList();
+    /** Últimos produtos cadastrados (painel). */
+    @Transactional(readOnly = true)
+    public List<Produto> listarRecentes(int limite, Integer usuarioCodigo) {
+        return produtoRepository.findByUsuarioCodigoAndAtivoTrue(usuarioCodigo,
+                PageRequest.of(0, Math.max(1, Math.min(limite, TAMANHO_MAXIMO_PAGINA)), Sort.by(Sort.Order.desc("id"))));
     }
 
-    public List<Produto> listarEstoqueBaixo(Integer usuarioCodigo) {
-        return produtoRepository.listarEstoqueBaixo(usuarioCodigo);
+    /**
+     * Produtos que pedem reposição: níveis SEM_ESTOQUE e BAIXO (RN-12), do menor saldo para o maior.
+     * Página em base 1.
+     */
+    @Transactional(readOnly = true)
+    public Page<Produto> listarEstoqueBaixo(Integer usuarioCodigo, int pagina, int tamanho) {
+        Specification<Produto> spec = ProdutoSpecs.ativosDoUsuario(usuarioCodigo)
+                .and(ProdutoSpecs.comNivel(NivelEstoque.SEM_ESTOQUE, NivelEstoque.BAIXO));
+        Sort ordem = Sort.by(Sort.Order.asc("quantidade"), Sort.Order.asc("nome").ignoreCase(), Sort.Order.asc("id"));
+        return Paginas.buscar(pagina, tamanho, TAMANHO_MAXIMO_PAGINA, ordem,
+                pageable -> produtoRepository.findAll(spec, pageable));
     }
 
+    /** Produtos ativos em ordem de nome, para o seletor da tela de movimentação. */
+    @Transactional(readOnly = true)
+    public List<Produto> listarParaSelecao(Integer usuarioCodigo) {
+        return produtoRepository.findByUsuarioCodigoAndAtivoTrueOrderByNomeAsc(usuarioCodigo);
+    }
+
+    /** Produto ativo da loja (com a categoria carregada). */
+    @Transactional(readOnly = true)
     public Produto buscarPorId(Integer id, Integer usuarioCodigo) {
-        return produtoRepository.findByIdAndUsuarioCodigo(id, usuarioCodigo)
-                .orElseThrow(() -> new IllegalArgumentException("Produto nao encontrado."));
+        return produtoRepository.findByIdAndUsuarioCodigoAndAtivoTrue(id, usuarioCodigo)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Produto não encontrado."));
     }
 
+    /**
+     * Cria (id nulo) ou atualiza o produto da loja.
+     * <ul>
+     *   <li>Criação: o saldo inicial vira uma ENTRADA "Estoque inicial" (RN-04);</li>
+     *   <li>Edição: NÃO altera a quantidade (RN-03), mesmo que ela venha no formulário.</li>
+     * </ul>
+     */
     @Transactional
-    public void salvar(Produto formulario, Integer categoriaId, Usuario usuario) {
-        if (formulario.getNome() == null || formulario.getNome().isBlank()) {
-            throw new IllegalArgumentException("O nome do produto e obrigatorio.");
+    public Produto salvar(ProdutoForm form, Usuario usuario) {
+        String nome = Textos.limpar(form.getNome());
+        if (nome == null) {
+            throw new RegraNegocioException("O nome do produto é obrigatório.");
         }
-        if (formulario.getPreco() == null || formulario.getPreco().signum() < 0
-                || formulario.getQuantidade() < 0 || formulario.getEstoqueMinimo() < 0) {
-            throw new IllegalArgumentException("Preco, quantidade e estoque minimo nao podem ser negativos.");
-        }
+        // A categoria também precisa ser da loja logada (RN-01)
+        Categoria categoria = categoriaRepository.findByIdAndUsuarioCodigo(form.getCategoriaId(), usuario.getCodigo())
+                .orElseThrow(() -> new RegraNegocioException("Categoria não encontrada. Selecione outra."));
 
-        // A categoria tambem precisa pertencer ao usuario logado.
-        Categoria categoria = categoriaService.buscarPorId(categoriaId, usuario.getCodigo());
-
-        Produto produto;
-        if (formulario.getId() != null) {
-            // Edicao: carrega o produto DO USUARIO LOGADO (evita IDOR) e copia so os campos permitidos.
-            produto = buscarPorId(formulario.getId(), usuario.getCodigo());
-        } else {
-            // Novo: sempre vinculado ao usuario logado, ignorando qualquer usuario vindo do formulario.
-            produto = new Produto();
-            produto.setUsuario(usuario);
+        if (form.getId() == null) {
+            return criar(form, nome, categoria, usuario);
         }
-        produto.setNome(formulario.getNome().trim());
-        produto.setDescricao(formulario.getDescricao());
-        produto.setPreco(formulario.getPreco());
-        produto.setQuantidade(formulario.getQuantidade());
-        produto.setEstoqueMinimo(formulario.getEstoqueMinimo());
+        return atualizar(form, nome, categoria, usuario);
+    }
+
+    private Produto criar(ProdutoForm form, String nome, Categoria categoria, Usuario usuario) {
+        int estoqueInicial = form.getQuantidade() == null ? 0 : form.getQuantidade();
+        if (estoqueInicial < 0) {
+            throw new RegraNegocioException("A quantidade deve ser maior ou igual a zero.");
+        }
+        if (estoqueInicial > EstoqueService.QUANTIDADE_MAXIMA_MOVIMENTACAO) {
+            throw new RegraNegocioException("O estoque inicial deve ser no máximo 1.000.000. "
+                    + "Cadastre o produto e registre entradas adicionais.");
+        }
+        validarNomeUnico(nome, usuario.getCodigo(), -1);
+
+        Produto produto = new Produto();
+        produto.setUsuario(usuario);
+        preencher(produto, form, nome, categoria);
+        produto.setQuantidade(0); // o saldo só nasce por movimentação (RN-03)
+        produto.setAtivo(true);
+        produto = gravar(produto, nome);
+
+        if (estoqueInicial > 0) {
+            estoqueService.movimentar(produto.getId(), TipoMovimentacao.ENTRADA, estoqueInicial,
+                    EstoqueService.MOTIVO_ESTOQUE_INICIAL, usuario);
+        }
+        return produto;
+    }
+
+    private Produto atualizar(ProdutoForm form, String nome, Categoria categoria, Usuario usuario) {
+        // Edição: carrega o produto DA LOJA LOGADA (evita IDOR); o id do formulário nunca é confiável
+        Produto produto = buscarPorId(form.getId(), usuario.getCodigo());
+        validarNomeUnico(nome, usuario.getCodigo(), produto.getId());
+        preencher(produto, form, nome, categoria);
+        return gravar(produto, nome);
+    }
+
+    /** Copia os campos editáveis. Quantidade e ativo ficam de fora de propósito. */
+    private void preencher(Produto produto, ProdutoForm form, String nome, Categoria categoria) {
+        produto.setNome(nome);
+        produto.setDescricao(Textos.limpar(form.getDescricao()));
+        produto.setPreco(form.getPreco());
+        produto.setEstoqueMinimo(form.getEstoqueMinimo() == null ? 0 : form.getEstoqueMinimo());
         produto.setCategoria(categoria);
-        produtoRepository.save(produto);
     }
 
+    private Produto gravar(Produto produto, String nome) {
+        try {
+            // saveAndFlush: se outra requisição criou o mesmo nome agora, o índice único acusa aqui
+            return produtoRepository.saveAndFlush(produto);
+        } catch (DataIntegrityViolationException e) {
+            throw nomeDuplicado(nome);
+        }
+    }
+
+    /**
+     * Exclusão de produto (RN-08): sem movimentação além do estoque inicial, apaga de vez;
+     * com histórico, apenas inativa (some das listagens e do painel; o histórico permanece).
+     */
     @Transactional
-    public void excluir(Integer id, Integer usuarioCodigo) {
-        Produto produto = buscarPorId(id, usuarioCodigo);
-        produtoRepository.delete(produto);
+    public ResultadoExclusao excluir(Integer id, Integer usuarioCodigo) {
+        // Bloqueia a linha: impede uma movimentação concorrente entre a decisão e a exclusão
+        Produto produto = produtoRepository.buscarAtivoComBloqueio(id, usuarioCodigo)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Produto não encontrado."));
+
+        List<MovimentacaoEstoque> historico = movimentacaoRepository.findTop2ByProdutoIdOrderByIdAsc(id);
+        boolean semHistoricoReal = historico.isEmpty()
+                || (historico.size() == 1 && ehEstoqueInicial(historico.get(0)));
+
+        if (semHistoricoReal) {
+            // Só pode haver o registro de estoque inicial: sai antes do produto (chave estrangeira)
+            movimentacaoRepository.deleteAll(historico);
+            produtoRepository.delete(produto);
+            produtoRepository.flush();
+            return ResultadoExclusao.EXCLUIDO;
+        }
+        produto.setAtivo(false);
+        produtoRepository.flush();
+        return ResultadoExclusao.INATIVADO;
     }
 
-    public long contar(Integer usuarioCodigo) {
-        return produtoRepository.countByUsuarioCodigo(usuarioCodigo);
+    private boolean ehEstoqueInicial(MovimentacaoEstoque movimentacao) {
+        return movimentacao.getTipo() == TipoMovimentacao.ENTRADA
+                && movimentacao.getQuantidadeAnterior() == 0
+                && EstoqueService.MOTIVO_ESTOQUE_INICIAL.equals(movimentacao.getObservacao());
     }
 
-    public long contarEstoqueBaixo(Integer usuarioCodigo) {
-        return produtoRepository.contarEstoqueBaixo(usuarioCodigo);
+    /** RN-10: dois produtos ativos da mesma loja não podem ter o mesmo nome. */
+    private void validarNomeUnico(String nome, Integer usuarioCodigo, Integer ignorarId) {
+        if (produtoRepository.contarNomeAtivo(usuarioCodigo, Textos.normalizarNome(nome), ignorarId) > 0) {
+            throw nomeDuplicado(nome);
+        }
     }
 
-    private boolean contem(String valor, String busca) {
-        return valor != null && valor.toLowerCase().contains(busca.toLowerCase());
-    }
-
-    private boolean filtrarNivel(Produto produto, String nivelEstoque) {
-        if (nivelEstoque == null || nivelEstoque.isBlank()) {
-            return true;
-        }
-        if ("semEstoque".equals(nivelEstoque)) {
-            return produto.getQuantidade() == 0;
-        }
-        if ("baixo".equals(nivelEstoque)) {
-            return produto.getQuantidade() > 0 && produto.getQuantidade() <= produto.getEstoqueMinimo();
-        }
-        if ("ok".equals(nivelEstoque)) {
-            return produto.getQuantidade() > produto.getEstoqueMinimo();
-        }
-        return true;
-    }
-
-    private Comparator<Produto> comparador(String ordenacao) {
-        if ("nome".equals(ordenacao)) {
-            return Comparator.comparing(Produto::getNome, String.CASE_INSENSITIVE_ORDER);
-        }
-        if ("preco".equals(ordenacao)) {
-            return Comparator.comparing(Produto::getPreco);
-        }
-        if ("quantidade".equals(ordenacao)) {
-            return Comparator.comparingInt(Produto::getQuantidade);
-        }
-        if ("categoria".equals(ordenacao)) {
-            return Comparator.comparing(produto -> produto.getCategoria().getNome(), String.CASE_INSENSITIVE_ORDER);
-        }
-        return Comparator.comparing(Produto::getId);
+    private RegraNegocioException nomeDuplicado(String nome) {
+        return new RegraNegocioException("Já existe um produto ativo chamado \"" + nome + "\" na sua loja.");
     }
 }

@@ -1,23 +1,31 @@
 package org.example.stockhubspring.controller;
 
+import jakarta.validation.Valid;
+import org.example.stockhubspring.dto.ProdutoFiltro;
+import org.example.stockhubspring.dto.ProdutoForm;
+import org.example.stockhubspring.exception.RegraNegocioException;
 import org.example.stockhubspring.model.Produto;
 import org.example.stockhubspring.model.Usuario;
 import org.example.stockhubspring.service.CategoriaService;
 import org.example.stockhubspring.service.ProdutoService;
+import org.example.stockhubspring.service.ProdutoService.ResultadoExclusao;
 import org.example.stockhubspring.service.UsuarioAtualService;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
+/** Só recebe, valida e redireciona; as regras ficam no {@link ProdutoService}. */
 @Controller
 @RequestMapping("/produtos")
 public class ProdutoController {
@@ -25,13 +33,16 @@ public class ProdutoController {
     private final ProdutoService produtoService;
     private final CategoriaService categoriaService;
     private final UsuarioAtualService usuarioAtualService;
+    private final ErrosFormulario errosFormulario;
 
     public ProdutoController(ProdutoService produtoService,
                              CategoriaService categoriaService,
-                             UsuarioAtualService usuarioAtualService) {
+                             UsuarioAtualService usuarioAtualService,
+                             ErrosFormulario errosFormulario) {
         this.produtoService = produtoService;
         this.categoriaService = categoriaService;
         this.usuarioAtualService = usuarioAtualService;
+        this.errosFormulario = errosFormulario;
     }
 
     @GetMapping
@@ -56,34 +67,31 @@ public class ProdutoController {
         }
 
         Usuario usuario = usuarioAtualService.getUsuarioAtual();
-        List<Produto> filtrados = produtoService.listarFiltrado(busca, categoriaId, nivelEstoque, ordenacao, direcao, usuario.getCodigo());
-        int totalProdutos = filtrados.size();
-        int totalPaginas = Math.max(1, (int) Math.ceil(totalProdutos / (double) tamanho));
-        int paginaAtual = Math.max(1, Math.min(pagina, totalPaginas));
-        int inicio = Math.min((paginaAtual - 1) * tamanho, totalProdutos);
-        int fim = Math.min(inicio + tamanho, totalProdutos);
+        // O filtro normaliza tudo: ordenação só da lista branca, tamanho de página limitado
+        ProdutoFiltro filtro = ProdutoFiltro.de(busca, categoriaId, nivelEstoque, ordenacao, direcao, pagina, tamanho);
+        Page<Produto> resultado = produtoService.listarPagina(filtro, usuario.getCodigo());
 
-        model.addAttribute("produtos", filtrados.subList(inicio, fim));
-        model.addAttribute("categorias", categoriaService.listar(null, usuario.getCodigo()));
-        model.addAttribute("busca", busca);
-        model.addAttribute("categoriaId", categoriaId);
-        model.addAttribute("nivelEstoque", nivelEstoque);
-        model.addAttribute("ordenacao", ordenacao);
-        model.addAttribute("direcao", direcao);
-        model.addAttribute("direcaoInversa", "asc".equals(direcao) ? "desc" : "asc");
-        model.addAttribute("paginaAtual", paginaAtual);
-        model.addAttribute("totalPaginas", totalPaginas);
-        model.addAttribute("totalProdutosFiltro", totalProdutos);
-        model.addAttribute("tamanho", tamanho);
-        model.addAttribute("parametrosFiltros", montarParametros(busca, categoriaId, nivelEstoque, ordenacao, tamanho));
+        model.addAttribute("produtos", resultado.getContent());
+        model.addAttribute("categorias", categoriaService.listarParaSelecao(usuario.getCodigo()));
+        model.addAttribute("busca", filtro.busca());
+        model.addAttribute("categoriaId", filtro.categoriaId());
+        model.addAttribute("nivelEstoque", filtro.nivelEstoqueParametro());
+        model.addAttribute("ordenacao", filtro.ordenacao());
+        model.addAttribute("direcao", filtro.direcao());
+        model.addAttribute("direcaoInversa", "asc".equals(filtro.direcao()) ? "desc" : "asc");
+        model.addAttribute("paginaAtual", resultado.getNumber() + 1);
+        model.addAttribute("totalPaginas", Math.max(1, resultado.getTotalPages()));
+        model.addAttribute("totalProdutosFiltro", resultado.getTotalElements());
+        model.addAttribute("tamanho", filtro.tamanho());
+        model.addAttribute("parametrosFiltros", montarParametros(filtro));
         return "produtos";
     }
 
     @GetMapping("/novo")
     public String novo(Model model) {
         Usuario usuario = usuarioAtualService.getUsuarioAtual();
-        model.addAttribute("produto", new Produto());
-        model.addAttribute("categorias", categoriaService.listar(null, usuario.getCodigo()));
+        model.addAttribute("produto", new ProdutoForm());
+        model.addAttribute("categorias", categoriaService.listarParaSelecao(usuario.getCodigo()));
         return "produto-form";
     }
 
@@ -97,32 +105,53 @@ public class ProdutoController {
     @GetMapping("/{id}/editar")
     public String editar(@PathVariable Integer id, Model model) {
         Usuario usuario = usuarioAtualService.getUsuarioAtual();
-        model.addAttribute("produto", produtoService.buscarPorId(id, usuario.getCodigo()));
-        model.addAttribute("categorias", categoriaService.listar(null, usuario.getCodigo()));
+        Produto produto = produtoService.buscarPorId(id, usuario.getCodigo());
+        model.addAttribute("produto", ProdutoForm.de(produto));
+        model.addAttribute("categorias", categoriaService.listarParaSelecao(usuario.getCodigo()));
         return "produto-form";
     }
 
     @PostMapping
-    public String salvar(@ModelAttribute Produto produto, @RequestParam Integer categoriaId) {
+    public String salvar(@Valid @ModelAttribute("produto") ProdutoForm produto,
+                         BindingResult resultado,
+                         Model model,
+                         RedirectAttributes redirectAttributes) {
         Usuario usuario = usuarioAtualService.getUsuarioAtual();
-        produtoService.salvar(produto, categoriaId, usuario);
+        if (resultado.hasErrors()) {
+            // Volta ao MESMO formulário, com o que o usuário digitou e os erros
+            errosFormulario.publicar(resultado, model);
+            model.addAttribute("categorias", categoriaService.listarParaSelecao(usuario.getCodigo()));
+            return "produto-form";
+        }
+        boolean novo = produto.getId() == null;
+        try {
+            produtoService.salvar(produto, usuario);
+        } catch (RegraNegocioException e) {
+            model.addAttribute("erro", e.getMessage());
+            model.addAttribute("categorias", categoriaService.listarParaSelecao(usuario.getCodigo()));
+            return "produto-form";
+        }
+        redirectAttributes.addFlashAttribute("mensagem", novo ? "Produto cadastrado." : "Produto atualizado.");
         return "redirect:/produtos";
     }
 
     @PostMapping("/{id}/excluir")
-    public String excluir(@PathVariable Integer id) {
+    public String excluir(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
         Usuario usuario = usuarioAtualService.getUsuarioAtual();
-        produtoService.excluir(id, usuario.getCodigo());
+        ResultadoExclusao resultado = produtoService.excluir(id, usuario.getCodigo());
+        redirectAttributes.addFlashAttribute("mensagem", resultado == ResultadoExclusao.EXCLUIDO
+                ? "Produto excluído."
+                : "Produto inativado: ele tem histórico de movimentações, que foi preservado.");
         return "redirect:/produtos";
     }
 
-    private String montarParametros(String busca, Integer categoriaId, String nivelEstoque, String ordenacao, int tamanho) {
+    private String montarParametros(ProdutoFiltro filtro) {
         StringBuilder parametros = new StringBuilder();
-        adicionarParametro(parametros, "busca", busca);
-        adicionarParametro(parametros, "categoriaId", categoriaId == null ? null : categoriaId.toString());
-        adicionarParametro(parametros, "nivelEstoque", nivelEstoque);
-        adicionarParametro(parametros, "ordenacao", ordenacao);
-        adicionarParametro(parametros, "tamanho", String.valueOf(tamanho));
+        adicionarParametro(parametros, "busca", filtro.busca());
+        adicionarParametro(parametros, "categoriaId", filtro.categoriaId() == null ? null : filtro.categoriaId().toString());
+        adicionarParametro(parametros, "nivelEstoque", filtro.nivelEstoqueParametro());
+        adicionarParametro(parametros, "ordenacao", filtro.ordenacao());
+        adicionarParametro(parametros, "tamanho", String.valueOf(filtro.tamanho()));
         return parametros.toString();
     }
 
