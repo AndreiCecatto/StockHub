@@ -1,0 +1,424 @@
+/*
+ * StockHub: tokens de design (seção 1 e 5 de docs/design-system.md).
+ * Ordem de carregamento: Bootstrap, Bootstrap Icons, tokens.css, layout.css, componentes.css.
+ *
+ * Os valores de cor dos dois temas aparecem em três blocos:
+ *   1. :root / [data-bs-theme="light"]   tema claro (padrão)
+ *   2. [data-bs-theme="dark"]            tema escuro (js/tema-init.js define o atributo antes de pintar)
+ *   3. @media (prefers-color-scheme: dark) com :root:not([data-bs-theme])
+ *                                        mesmo escuro, para quem está sem JavaScript
+ * Os blocos 2 e 3 devem ser idênticos. Ao mudar um valor, mude nos dois.
+ */
+
+/* ---------- Fonte Inter (subset latino, variável, servida localmente) ---------- */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../vendor/inter/inter-latin-wght-normal.woff2") format("woff2-variations"),
+       url("../vendor/inter/inter-latin-wght-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+                 U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ---------- Tokens que não mudam com o tema ---------- */
+:root {
+  --sh-font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Escala tipográfica (raiz em 16 px; corpo em 15 px) */
+  --sh-text-sm: 0.8125rem;
+  --sh-text-md: 0.875rem;
+  --sh-text-base: 0.9375rem;
+  --sh-text-lg: 1.0625rem;
+  --sh-text-xl: 1.375rem;
+  --sh-text-2xl: 1.75rem;
+  --sh-text-metric: 2rem;
+
+  /* Espaço (base de 4 px) */
+  --sh-space-1: 4px;
+  --sh-space-2: 8px;
+  --sh-space-3: 12px;
+  --sh-space-4: 16px;
+  --sh-space-5: 20px;
+  --sh-space-6: 24px;
+  --sh-space-8: 32px;
+  --sh-space-10: 40px;
+  --sh-space-12: 48px;
+  --sh-gutter: 16px;
+
+  /* Raios */
+  --sh-radius-sm: 6px;
+  --sh-radius: 10px;
+  --sh-radius-lg: 14px;
+  --sh-radius-pill: 999px;
+
+  /* Movimento */
+  --sh-dur-fast: 120ms;
+  --sh-dur: 200ms;
+  --sh-dur-slow: 320ms;
+  --sh-ease-out: cubic-bezier(.2, .8, .2, 1);
+  --sh-ease-in: cubic-bezier(.4, 0, 1, 1);
+  --sh-ease: cubic-bezier(.4, 0, .2, 1);
+
+  /* Alvo de toque mínimo (44 px no celular, 40 px no desktop) */
+  --sh-alvo: 44px;
+}
+
+@media (min-width: 992px) {
+  :root {
+    --sh-gutter: 24px;
+    --sh-alvo: 40px;
+  }
+}
+
+/* ---------- Tema claro (padrão) ---------- */
+:root,
+[data-bs-theme="light"] {
+  color-scheme: light;
+
+  /* Neutros, marca e foco */
+  --sh-bg: #F5F6F8;
+  --sh-surface: #FFFFFF;
+  --sh-surface-2: #EEF0F4;
+  --sh-border: #D5DAE2;
+  --sh-border-strong: #7C8696;
+  --sh-text: #161B26;
+  --sh-text-muted: #4B5565;
+  --sh-text-subtle: #5F6B7C;
+  --sh-accent: #4338CA;
+  --sh-accent-hover: #3730A3;
+  --sh-accent-text: #4338CA;
+  --sh-accent-soft: #E8E7FB;
+  --sh-focus: #4338CA;
+
+  /* Barra lateral (escura nos dois temas) */
+  --sh-side-bg: #161B2E;
+  --sh-side-text: #C5CCDC;
+  --sh-side-muted: #98A2B8;
+  --sh-side-active-bg: #262E48;
+  --sh-side-marker: #A5A4F8;
+
+  /* Semânticas: texto, fundo tonal e borda decorativa */
+  --sh-success-fg: #0E6B3B;
+  --sh-success-bg: #E4F6EB;
+  --sh-success-border: #A8DEBF;
+  --sh-warning-fg: #7A4100;
+  --sh-warning-bg: #FFF2D9;
+  --sh-warning-border: #F2CD8A;
+  --sh-danger-fg: #B42318;
+  --sh-danger-bg: #FDEAE8;
+  --sh-danger-border: #F4B4AE;
+  --sh-info-fg: #0A5BA8;
+  --sh-info-bg: #E5F1FC;
+  --sh-info-border: #A9CFF2;
+
+  /* Botões sólidos (texto branco): só para confirmar ação */
+  --sh-danger-solid: #C0261B;
+  --sh-danger-solid-hover: #A31F15;
+  --sh-success-solid: #15803D;
+  --sh-success-solid-hover: #116A32;
+
+  /* Medidor de saldo e barra de saúde */
+  --sh-meter-track: #DDE2EA;
+  --sh-meter-normal: #15803D;
+  --sh-meter-baixo: #B25E09;
+  --sh-meter-sem: #C0261B;
+
+  /* Sombras (só em elementos que flutuam) */
+  --sh-shadow-pop: 0 8px 24px rgba(16, 24, 40, .12);
+  --sh-shadow-modal: 0 16px 48px rgba(16, 24, 40, .20);
+
+  /* Trios RGB e variáveis que o Bootstrap 5.3 usa em foco, links e utilitários */
+  --bs-primary-rgb: 67, 56, 202;
+  --bs-success-rgb: 21, 128, 61;
+  --bs-warning-rgb: 178, 94, 9;
+  --bs-danger-rgb: 192, 38, 27;
+  --bs-info-rgb: 10, 91, 168;
+  --bs-body-bg-rgb: 245, 246, 248;
+  --bs-body-color-rgb: 22, 27, 38;
+  --bs-link-color-rgb: 67, 56, 202;
+  --bs-link-hover-color-rgb: 55, 48, 163;
+  --bs-success-text-emphasis: #0E6B3B;
+  --bs-success-bg-subtle: #E4F6EB;
+  --bs-success-border-subtle: #A8DEBF;
+  --bs-warning-text-emphasis: #7A4100;
+  --bs-warning-bg-subtle: #FFF2D9;
+  --bs-warning-border-subtle: #F2CD8A;
+  --bs-danger-text-emphasis: #B42318;
+  --bs-danger-bg-subtle: #FDEAE8;
+  --bs-danger-border-subtle: #F4B4AE;
+  --bs-info-text-emphasis: #0A5BA8;
+  --bs-info-bg-subtle: #E5F1FC;
+  --bs-info-border-subtle: #A9CFF2;
+}
+
+/* ---------- Tema escuro ---------- */
+[data-bs-theme="dark"] {
+  color-scheme: dark;
+
+  /* Neutros, marca e foco */
+  --sh-bg: #0E1117;
+  --sh-surface: #161B24;
+  --sh-surface-2: #1D2430;
+  --sh-border: #2A3341;
+  --sh-border-strong: #7B8798;
+  --sh-text: #E7EBF1;
+  --sh-text-muted: #A5AFBF;
+  --sh-text-subtle: #8D98A9;
+  --sh-accent: #5B59E0;
+  --sh-accent-hover: #4F4DD1;
+  --sh-accent-text: #A9A8F8;
+  --sh-accent-soft: #24244F;
+  --sh-focus: #A9A8F8;
+
+  /* Barra lateral (escura nos dois temas) */
+  --sh-side-bg: #0A0D13;
+  --sh-side-text: #B4BDCD;
+  --sh-side-muted: #8A94A8;
+  --sh-side-active-bg: #1B2231;
+  --sh-side-marker: #A9A8F8;
+
+  /* Semânticas: texto, fundo tonal e borda decorativa */
+  --sh-success-fg: #6FDB9D;
+  --sh-success-bg: #12301F;
+  --sh-success-border: #2C6B47;
+  --sh-warning-fg: #F6C46A;
+  --sh-warning-bg: #35260A;
+  --sh-warning-border: #6B4E17;
+  --sh-danger-fg: #FFA39B;
+  --sh-danger-bg: #3B1512;
+  --sh-danger-border: #7A302B;
+  --sh-info-fg: #8DC5FF;
+  --sh-info-bg: #0F2744;
+  --sh-info-border: #2A5A91;
+
+  /* Botões sólidos (texto branco): só para confirmar ação */
+  --sh-danger-solid: #D63A2E;
+  --sh-danger-solid-hover: #C4322A;
+  --sh-success-solid: #1A7F45;
+  --sh-success-solid-hover: #156C3A;
+
+  /* Medidor de saldo e barra de saúde */
+  --sh-meter-track: #2A3341;
+  --sh-meter-normal: #4CC38A;
+  --sh-meter-baixo: #E8A93A;
+  --sh-meter-sem: #F0645A;
+
+  /* Sombras (no escuro quase não aparecem; a separação vem da superfície e da borda) */
+  --sh-shadow-pop: 0 8px 24px rgba(0, 0, 0, .45);
+  --sh-shadow-modal: 0 16px 48px rgba(0, 0, 0, .55);
+
+  /* Trios RGB e variáveis que o Bootstrap 5.3 usa em foco, links e utilitários */
+  --bs-primary-rgb: 91, 89, 224;
+  --bs-success-rgb: 26, 127, 69;
+  --bs-warning-rgb: 232, 169, 58;
+  --bs-danger-rgb: 214, 58, 46;
+  --bs-info-rgb: 141, 197, 255;
+  --bs-body-bg-rgb: 14, 17, 23;
+  --bs-body-color-rgb: 231, 235, 241;
+  --bs-link-color-rgb: 169, 168, 248;
+  --bs-link-hover-color-rgb: 199, 198, 252;
+  --bs-success-text-emphasis: #6FDB9D;
+  --bs-success-bg-subtle: #12301F;
+  --bs-success-border-subtle: #2C6B47;
+  --bs-warning-text-emphasis: #F6C46A;
+  --bs-warning-bg-subtle: #35260A;
+  --bs-warning-border-subtle: #6B4E17;
+  --bs-danger-text-emphasis: #FFA39B;
+  --bs-danger-bg-subtle: #3B1512;
+  --bs-danger-border-subtle: #7A302B;
+  --bs-info-text-emphasis: #8DC5FF;
+  --bs-info-bg-subtle: #0F2744;
+  --bs-info-border-subtle: #2A5A91;
+}
+
+/* ---------- Tema escuro do sistema, quando não há JavaScript (sem data-bs-theme) ---------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-bs-theme]) {
+    color-scheme: dark;
+
+    /* Neutros, marca e foco */
+    --sh-bg: #0E1117;
+    --sh-surface: #161B24;
+    --sh-surface-2: #1D2430;
+    --sh-border: #2A3341;
+    --sh-border-strong: #7B8798;
+    --sh-text: #E7EBF1;
+    --sh-text-muted: #A5AFBF;
+    --sh-text-subtle: #8D98A9;
+    --sh-accent: #5B59E0;
+    --sh-accent-hover: #4F4DD1;
+    --sh-accent-text: #A9A8F8;
+    --sh-accent-soft: #24244F;
+    --sh-focus: #A9A8F8;
+
+    /* Barra lateral (escura nos dois temas) */
+    --sh-side-bg: #0A0D13;
+    --sh-side-text: #B4BDCD;
+    --sh-side-muted: #8A94A8;
+    --sh-side-active-bg: #1B2231;
+    --sh-side-marker: #A9A8F8;
+
+    /* Semânticas: texto, fundo tonal e borda decorativa */
+    --sh-success-fg: #6FDB9D;
+    --sh-success-bg: #12301F;
+    --sh-success-border: #2C6B47;
+    --sh-warning-fg: #F6C46A;
+    --sh-warning-bg: #35260A;
+    --sh-warning-border: #6B4E17;
+    --sh-danger-fg: #FFA39B;
+    --sh-danger-bg: #3B1512;
+    --sh-danger-border: #7A302B;
+    --sh-info-fg: #8DC5FF;
+    --sh-info-bg: #0F2744;
+    --sh-info-border: #2A5A91;
+
+    /* Botões sólidos (texto branco): só para confirmar ação */
+    --sh-danger-solid: #D63A2E;
+    --sh-danger-solid-hover: #C4322A;
+    --sh-success-solid: #1A7F45;
+    --sh-success-solid-hover: #156C3A;
+
+    /* Medidor de saldo e barra de saúde */
+    --sh-meter-track: #2A3341;
+    --sh-meter-normal: #4CC38A;
+    --sh-meter-baixo: #E8A93A;
+    --sh-meter-sem: #F0645A;
+
+    /* Sombras (no escuro quase não aparecem; a separação vem da superfície e da borda) */
+    --sh-shadow-pop: 0 8px 24px rgba(0, 0, 0, .45);
+    --sh-shadow-modal: 0 16px 48px rgba(0, 0, 0, .55);
+
+    /* Trios RGB e variáveis que o Bootstrap 5.3 usa em foco, links e utilitários */
+    --bs-primary-rgb: 91, 89, 224;
+    --bs-success-rgb: 26, 127, 69;
+    --bs-warning-rgb: 232, 169, 58;
+    --bs-danger-rgb: 214, 58, 46;
+    --bs-info-rgb: 141, 197, 255;
+    --bs-body-bg-rgb: 14, 17, 23;
+    --bs-body-color-rgb: 231, 235, 241;
+    --bs-link-color-rgb: 169, 168, 248;
+    --bs-link-hover-color-rgb: 199, 198, 252;
+    --bs-success-text-emphasis: #6FDB9D;
+    --bs-success-bg-subtle: #12301F;
+    --bs-success-border-subtle: #2C6B47;
+    --bs-warning-text-emphasis: #F6C46A;
+    --bs-warning-bg-subtle: #35260A;
+    --bs-warning-border-subtle: #6B4E17;
+    --bs-danger-text-emphasis: #FFA39B;
+    --bs-danger-bg-subtle: #3B1512;
+    --bs-danger-border-subtle: #7A302B;
+    --bs-info-text-emphasis: #8DC5FF;
+    --bs-info-bg-subtle: #0F2744;
+    --bs-info-border-subtle: #2A5A91;
+  }
+}
+
+/* ---------- Estados de estoque (apelidos dos pares semânticos) ---------- */
+:root,
+[data-bs-theme="light"],
+[data-bs-theme="dark"] {
+  --sh-estoque-normal-fg: var(--sh-success-fg);
+  --sh-estoque-normal-bg: var(--sh-success-bg);
+  --sh-estoque-normal-border: var(--sh-success-border);
+  --sh-estoque-baixo-fg: var(--sh-warning-fg);
+  --sh-estoque-baixo-bg: var(--sh-warning-bg);
+  --sh-estoque-baixo-border: var(--sh-warning-border);
+  --sh-estoque-sem-fg: var(--sh-danger-fg);
+  --sh-estoque-sem-bg: var(--sh-danger-bg);
+  --sh-estoque-sem-border: var(--sh-danger-border);
+
+  /* Mapeamento para o Bootstrap 5.3 (os trios RGB ficam nos blocos de cada tema) */
+  --bs-body-font-family: var(--sh-font);
+  --bs-body-font-size: var(--sh-text-base);
+  --bs-body-line-height: 1.5;
+  --bs-body-bg: var(--sh-bg);
+  --bs-body-color: var(--sh-text);
+  --bs-emphasis-color: var(--sh-text);
+  --bs-heading-color: var(--sh-text);
+  --bs-secondary-color: var(--sh-text-muted);
+  --bs-secondary-bg: var(--sh-surface-2);
+  --bs-tertiary-color: var(--sh-text-subtle);
+  --bs-tertiary-bg: var(--sh-surface-2);
+  --bs-border-color: var(--sh-border);
+  --bs-border-color-translucent: var(--sh-border);
+  --bs-primary: var(--sh-accent);
+  --bs-success: var(--sh-success-solid);
+  --bs-warning: var(--sh-meter-baixo);
+  --bs-danger: var(--sh-danger-solid);
+  --bs-info: var(--sh-info-fg);
+  --bs-link-color: var(--sh-accent-text);
+  --bs-link-hover-color: var(--sh-accent-text);
+  --bs-focus-ring-color: var(--sh-focus);
+  --bs-border-radius: var(--sh-radius-sm);
+  --bs-border-radius-sm: 4px;
+  --bs-border-radius-lg: var(--sh-radius);
+  --bs-border-radius-xl: var(--sh-radius-lg);
+  --bs-border-radius-pill: var(--sh-radius-pill);
+}
+
+/* ---------- Base ---------- */
+html {
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--sh-font);
+  font-size: var(--sh-text-base);
+  line-height: 1.5;
+  background: var(--sh-bg);
+  color: var(--sh-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.25;
+  color: var(--sh-text);
+}
+
+/* Números que se alinham em colunas */
+.sh-num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Foco visível em tudo: anel de 3 px com 2 px de afastamento (seção 6.2).
+   O !important vence o foco próprio do Bootstrap (que troca o contorno por sombra). */
+:focus-visible,
+.btn:focus-visible,
+.btn-check:focus-visible + .btn,
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus,
+.page-link:focus,
+.btn-close:focus,
+.btn-close:focus-visible,
+.dropdown-item:focus-visible,
+.accordion-button:focus {
+  outline: 3px solid var(--sh-focus) !important;
+  outline-offset: 2px;
+  box-shadow: none !important;
+}
+
+/* Âncoras com o cabeçalho fixo não escondem o destino */
+:target {
+  scroll-margin-top: 72px;
+}
+
+::selection {
+  background: var(--sh-accent-soft);
+  color: var(--sh-text);
+}
+
+/* ---------- Menos movimento (obrigatório, seção 5) ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

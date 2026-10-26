@@ -1,0 +1,1654 @@
+/*
+ * StockHub: componentes (seção 4 de docs/design-system.md). Prefixo sh- sobre o Bootstrap 5.3.
+ * Visual plano: bordas de 1 px, sem sombra; só o que flutua (menu, toast, modal) tem sombra.
+ * Sem animação gratuita: o movimento explica uma mudança (seção 5). Cores sempre por tokens.css.
+ */
+
+/* ============================== Botões ============================== */
+.btn {
+  --bs-btn-font-size: var(--sh-text-base);
+  --bs-btn-font-weight: 600;
+  --bs-btn-padding-x: 1rem;
+  --bs-btn-padding-y: 0.5rem;
+  --bs-btn-border-radius: var(--sh-radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: var(--sh-alvo);
+  line-height: 1.25;
+  transition: background-color var(--sh-dur-fast) var(--sh-ease), border-color var(--sh-dur-fast) var(--sh-ease),
+    color var(--sh-dur-fast) var(--sh-ease);
+}
+
+/* sm: 32 px só no desktop; no celular todo botão tem pelo menos 44 px */
+.btn-sm {
+  --bs-btn-font-size: var(--sh-text-md);
+  --bs-btn-padding-x: 0.75rem;
+  --bs-btn-padding-y: 0.25rem;
+  min-height: 44px;
+}
+
+@media (min-width: 992px) {
+  .btn-sm {
+    min-height: 32px;
+  }
+}
+
+.btn-lg {
+  --bs-btn-font-size: var(--sh-text-lg);
+  --bs-btn-padding-x: 1.25rem;
+  min-height: 48px;
+}
+
+.btn-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--sh-accent);
+  --bs-btn-border-color: var(--sh-accent);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--sh-accent-hover);
+  --bs-btn-hover-border-color: var(--sh-accent-hover);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--sh-accent-hover);
+  --bs-btn-active-border-color: var(--sh-accent-hover);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: var(--sh-accent);
+  --bs-btn-disabled-border-color: var(--sh-accent);
+  --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
+}
+
+.btn-outline-secondary {
+  --bs-btn-color: var(--sh-text);
+  --bs-btn-bg: var(--sh-surface);
+  --bs-btn-border-color: var(--sh-border-strong);
+  --bs-btn-hover-color: var(--sh-text);
+  --bs-btn-hover-bg: var(--sh-surface-2);
+  --bs-btn-hover-border-color: var(--sh-border-strong);
+  --bs-btn-active-color: var(--sh-text);
+  --bs-btn-active-bg: var(--sh-surface-2);
+  --bs-btn-active-border-color: var(--sh-border-strong);
+  --bs-btn-disabled-color: var(--sh-text);
+  --bs-btn-disabled-bg: var(--sh-surface);
+  --bs-btn-disabled-border-color: var(--sh-border-strong);
+}
+
+.btn-outline-danger {
+  --bs-btn-color: var(--sh-danger-fg);
+  --bs-btn-bg: var(--sh-surface);
+  --bs-btn-border-color: var(--sh-danger-fg);
+  --bs-btn-hover-color: var(--sh-danger-fg);
+  --bs-btn-hover-bg: var(--sh-danger-bg);
+  --bs-btn-hover-border-color: var(--sh-danger-fg);
+  --bs-btn-active-color: var(--sh-danger-fg);
+  --bs-btn-active-bg: var(--sh-danger-bg);
+  --bs-btn-active-border-color: var(--sh-danger-fg);
+  --bs-btn-disabled-color: var(--sh-danger-fg);
+  --bs-btn-disabled-bg: var(--sh-surface);
+  --bs-btn-disabled-border-color: var(--sh-danger-fg);
+}
+
+/* Perigo sólido: só dentro de modal de confirmação */
+.btn-danger {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--sh-danger-solid);
+  --bs-btn-border-color: var(--sh-danger-solid);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--sh-danger-solid-hover);
+  --bs-btn-hover-border-color: var(--sh-danger-solid-hover);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--sh-danger-solid-hover);
+  --bs-btn-active-border-color: var(--sh-danger-solid-hover);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: var(--sh-danger-solid);
+  --bs-btn-disabled-border-color: var(--sh-danger-solid);
+}
+
+.btn-success {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--sh-success-solid);
+  --bs-btn-border-color: var(--sh-success-solid);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--sh-success-solid-hover);
+  --bs-btn-hover-border-color: var(--sh-success-solid-hover);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--sh-success-solid-hover);
+  --bs-btn-active-border-color: var(--sh-success-solid-hover);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: var(--sh-success-solid);
+  --bs-btn-disabled-border-color: var(--sh-success-solid);
+}
+
+/* Fantasma: ações discretas e botões só com ícone */
+.btn-ghost {
+  --bs-btn-color: var(--sh-text-muted);
+  --bs-btn-bg: transparent;
+  --bs-btn-border-color: transparent;
+  --bs-btn-hover-color: var(--sh-text);
+  --bs-btn-hover-bg: var(--sh-surface-2);
+  --bs-btn-hover-border-color: transparent;
+  --bs-btn-active-color: var(--sh-text);
+  --bs-btn-active-bg: var(--sh-surface-2);
+  --bs-btn-active-border-color: transparent;
+  --bs-btn-disabled-color: var(--sh-text-muted);
+  --bs-btn-disabled-bg: transparent;
+  --bs-btn-disabled-border-color: transparent;
+}
+
+.btn-ghost--perigo {
+  --bs-btn-color: var(--sh-danger-fg);
+  --bs-btn-hover-color: var(--sh-danger-fg);
+  --bs-btn-hover-bg: var(--sh-danger-bg);
+  --bs-btn-active-color: var(--sh-danger-fg);
+  --bs-btn-active-bg: var(--sh-danger-bg);
+  --bs-btn-disabled-color: var(--sh-danger-fg);
+}
+
+/* Desabilitado: opacidade 0,55 e cursor de bloqueio */
+.btn:disabled,
+.btn.disabled,
+fieldset:disabled .btn {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+button.btn:disabled {
+  pointer-events: auto;
+}
+
+/* Enviando: o JS troca o texto por "Salvando…" e liga aria-busy */
+.btn[aria-busy="true"] {
+  cursor: progress;
+}
+
+.sh-spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: sh-giro 0.7s linear infinite;
+}
+
+@keyframes sh-giro {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================== Campos de formulário ============================== */
+.form-label {
+  margin-bottom: var(--sh-space-1);
+  color: var(--sh-text);
+  font-size: var(--sh-text-md);
+  font-weight: 600;
+}
+
+/* "(obrigatório)" escrito, não só asterisco */
+.sh-obrigatorio {
+  margin-left: 0.25rem;
+  color: var(--sh-text-muted);
+  font-weight: 400;
+}
+
+.form-control,
+.form-select {
+  min-height: calc(var(--sh-alvo) + 2px);
+  border: 1px solid var(--sh-border-strong);
+  border-radius: var(--sh-radius-sm);
+  background-color: var(--sh-surface);
+  color: var(--sh-text);
+  font-size: 1rem; /* 16 px: o iOS não dá zoom ao focar */
+  transition: border-color var(--sh-dur-fast) var(--sh-ease);
+}
+
+textarea.form-control {
+  min-height: 96px;
+}
+
+.form-control::placeholder {
+  color: var(--sh-text-subtle);
+  opacity: 1;
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  background-color: var(--sh-surface-2);
+  color: var(--sh-text-subtle);
+  cursor: not-allowed;
+}
+
+/* Somente leitura: o valor aparece sem aparência de campo */
+.form-control[readonly] {
+  padding-left: 0;
+  border-color: transparent;
+  background-color: transparent;
+}
+
+.form-text {
+  margin-top: var(--sh-space-1);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+/* Inválido: borda de perigo reforçada (sem ocupar mais espaço) + ícone e mensagem */
+.form-control.is-invalid,
+.form-select.is-invalid,
+.was-validated .form-control:invalid {
+  padding-right: 0.75rem;
+  border-color: var(--sh-danger-fg);
+  background-image: none;
+  box-shadow: inset 0 0 0 1px var(--sh-danger-fg);
+}
+
+.form-select.is-invalid {
+  padding-right: 2.25rem;
+  background-image: var(--bs-form-select-bg-img);
+}
+
+.sh-erro-campo {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: var(--sh-space-1);
+  color: var(--sh-danger-fg);
+  font-size: var(--sh-text-sm);
+  font-weight: 500;
+}
+
+.sh-erro-campo .bi {
+  flex: 0 0 auto;
+  line-height: 1.5;
+}
+
+.input-group-text {
+  border-color: var(--sh-border-strong);
+  background: var(--sh-surface-2);
+  color: var(--sh-text-muted);
+  font-weight: 600;
+}
+
+.form-check-input {
+  border-color: var(--sh-border-strong);
+  background-color: var(--sh-surface);
+}
+
+.form-check-input:checked {
+  background-color: var(--sh-accent);
+  border-color: var(--sh-accent);
+}
+
+.form-check-label {
+  cursor: pointer;
+}
+
+/* Campo de senha com botão mostrar/ocultar */
+.sh-senha {
+  position: relative;
+}
+
+.sh-senha .form-control {
+  padding-right: 3.25rem;
+}
+
+.sh-senha__alternar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--sh-alvo) + 2px);
+  height: calc(var(--sh-alvo) + 2px);
+  border: 0;
+  border-radius: 0 var(--sh-radius-sm) var(--sh-radius-sm) 0;
+  background: transparent;
+  color: var(--sh-text-muted);
+  font-size: 1.125rem;
+}
+
+.sh-senha__alternar:hover {
+  color: var(--sh-text);
+}
+
+/* Lista de regras da senha: ícone + texto, marca o que já foi atendido */
+.sh-regras {
+  list-style: none;
+  margin: var(--sh-space-2) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sh-space-1);
+  font-size: var(--sh-text-sm);
+  color: var(--sh-text-muted);
+}
+
+.sh-regras li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Cada regra tem dois ícones (círculo vazio e círculo com visto); a classe is-ok troca um pelo outro */
+.sh-regras__ok {
+  display: none;
+}
+
+.sh-regras li.is-ok {
+  color: var(--sh-success-fg);
+  font-weight: 600;
+}
+
+.sh-regras li.is-ok .sh-regras__ok {
+  display: inline-block;
+}
+
+.sh-regras li.is-ok .sh-regras__pendente {
+  display: none;
+}
+
+/* Contador de caracteres: "230/255", perto do limite "faltam 12" */
+.sh-contador {
+  margin-top: var(--sh-space-1);
+  text-align: right;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-contador.is-perto {
+  color: var(--sh-warning-fg);
+  font-weight: 600;
+}
+
+/* Resumo de erros no topo do formulário */
+.sh-resumo-erros {
+  margin-bottom: var(--sh-space-4);
+  padding: var(--sh-space-3) var(--sh-space-4);
+  border: 1px solid var(--sh-danger-border);
+  border-radius: var(--sh-radius);
+  background: var(--sh-danger-bg);
+  color: var(--sh-danger-fg);
+  font-size: var(--sh-text-md);
+}
+
+.sh-resumo-erros__titulo {
+  margin: 0 0 var(--sh-space-1);
+  font-weight: 700;
+}
+
+.sh-resumo-erros ul {
+  margin: 0;
+  padding-left: var(--sh-space-5);
+}
+
+.sh-resumo-erros a {
+  color: var(--sh-danger-fg);
+  font-weight: 600;
+}
+
+/* ============================== Badges ============================== */
+.sh-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--sh-radius-pill);
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.sh-badge--normal {
+  color: var(--sh-estoque-normal-fg);
+  background: var(--sh-estoque-normal-bg);
+  border-color: var(--sh-estoque-normal-border);
+}
+
+.sh-badge--baixo {
+  color: var(--sh-estoque-baixo-fg);
+  background: var(--sh-estoque-baixo-bg);
+  border-color: var(--sh-estoque-baixo-border);
+}
+
+.sh-badge--sem {
+  color: var(--sh-estoque-sem-fg);
+  background: var(--sh-estoque-sem-bg);
+  border-color: var(--sh-estoque-sem-border);
+}
+
+/* Tipos de movimentação: Entrada = sucesso (+), Saída = info (−), Ajuste = neutro (=) */
+.sh-badge--entrada {
+  color: var(--sh-success-fg);
+  background: var(--sh-success-bg);
+  border-color: var(--sh-success-border);
+}
+
+.sh-badge--saida {
+  color: var(--sh-info-fg);
+  background: var(--sh-info-bg);
+  border-color: var(--sh-info-border);
+}
+
+.sh-badge--ajuste {
+  color: var(--sh-text-muted);
+  background: var(--sh-surface-2);
+  border-color: var(--sh-border);
+}
+
+/* ============================== Medidor de saldo ============================== */
+.sh-meter {
+  position: relative;
+  height: 8px;
+  min-width: 72px;
+  border-radius: var(--sh-radius-pill);
+  background: var(--sh-meter-track);
+  overflow: hidden;
+}
+
+.sh-meter__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transform-origin: left center;
+  animation: sh-meter-entra 400ms var(--sh-ease-out) both;
+}
+
+.sh-meter--normal .sh-meter__fill {
+  background: var(--sh-meter-normal);
+}
+
+.sh-meter--baixo .sh-meter__fill {
+  background: var(--sh-meter-baixo);
+}
+
+.sh-meter--sem .sh-meter__fill {
+  background: var(--sh-meter-sem);
+}
+
+/* Marcador fixo no estoque mínimo (50 % da barra) */
+.sh-meter__minimo {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: var(--sh-surface);
+}
+
+@keyframes sh-meter-entra {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* Saldo com medidor (número + barra) */
+.sh-saldo {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sh-saldo__texto {
+  font-size: var(--sh-text-md);
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-saldo__texto strong {
+  font-weight: 700;
+}
+
+.sh-saldo__minimo {
+  color: var(--sh-text-muted);
+}
+
+/* ============================== Alertas ============================== */
+.sh-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sh-space-3);
+  margin-bottom: var(--sh-space-4);
+  padding: var(--sh-space-3) var(--sh-space-4);
+  border: 1px solid transparent;
+  border-radius: var(--sh-radius);
+  font-size: var(--sh-text-md);
+}
+
+.sh-alert > .bi {
+  flex: 0 0 auto;
+  font-size: 1.125rem;
+  line-height: 1.4;
+}
+
+.sh-alert__corpo {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sh-alert__titulo {
+  display: block;
+  font-weight: 700;
+}
+
+.sh-alert--success {
+  color: var(--sh-success-fg);
+  background: var(--sh-success-bg);
+  border-color: var(--sh-success-border);
+}
+
+.sh-alert--warning {
+  color: var(--sh-warning-fg);
+  background: var(--sh-warning-bg);
+  border-color: var(--sh-warning-border);
+}
+
+.sh-alert--danger {
+  color: var(--sh-danger-fg);
+  background: var(--sh-danger-bg);
+  border-color: var(--sh-danger-border);
+}
+
+.sh-alert--info {
+  color: var(--sh-info-fg);
+  background: var(--sh-info-bg);
+  border-color: var(--sh-info-border);
+}
+
+/* ============================== Toasts ============================== */
+.sh-toasts {
+  position: fixed;
+  z-index: 1090;
+  left: var(--sh-gutter);
+  right: var(--sh-gutter);
+  bottom: calc(64px + env(safe-area-inset-bottom, 0px) + var(--sh-space-3));
+  display: flex;
+  flex-direction: column;
+  gap: var(--sh-space-2);
+  pointer-events: none;
+}
+
+@media (min-width: 992px) {
+  .sh-toasts {
+    left: auto;
+    right: var(--sh-space-6);
+    bottom: var(--sh-space-6);
+    width: 380px;
+  }
+}
+
+.sh-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sh-space-3);
+  padding: var(--sh-space-3) var(--sh-space-3) var(--sh-space-3) var(--sh-space-4);
+  border: 1px solid var(--sh-success-border);
+  border-left: 4px solid var(--sh-success-fg);
+  border-radius: var(--sh-radius);
+  background: var(--sh-surface);
+  color: var(--sh-text);
+  box-shadow: var(--sh-shadow-pop);
+  font-size: var(--sh-text-md);
+  pointer-events: auto;
+  animation: sh-toast-entra var(--sh-dur) var(--sh-ease-out) both;
+}
+
+.sh-toast > .bi {
+  flex: 0 0 auto;
+  color: var(--sh-success-fg);
+  font-size: 1.125rem;
+  line-height: 1.4;
+}
+
+.sh-toast__texto {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sh-toast.is-saindo {
+  animation: sh-toast-sai 150ms var(--sh-ease-in) both;
+}
+
+@keyframes sh-toast-entra {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes sh-toast-sai {
+  to {
+    opacity: 0;
+  }
+}
+
+/* ============================== Cartões e painéis ============================== */
+.sh-card {
+  background: var(--sh-surface);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius);
+}
+
+.sh-card__cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sh-space-2) var(--sh-space-4);
+  padding: var(--sh-space-4);
+  border-bottom: 1px solid var(--sh-border);
+}
+
+.sh-card__titulo {
+  margin: 0;
+  font-size: var(--sh-text-lg);
+  font-weight: 600;
+}
+
+.sh-card__desc {
+  margin: 2px 0 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.sh-card__corpo {
+  padding: var(--sh-space-4);
+}
+
+.sh-secao {
+  margin-bottom: var(--sh-space-6);
+}
+
+/* ============================== Cartão de métrica ============================== */
+.sh-metricas {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sh-space-3);
+  margin-bottom: var(--sh-space-6);
+}
+
+@media (min-width: 576px) {
+  .sh-metricas {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 992px) {
+  .sh-metricas {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--sh-space-4);
+  }
+}
+
+.sh-metric {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sh-space-1);
+  min-height: 112px;
+  padding: var(--sh-space-4);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius);
+  background: var(--sh-surface);
+  color: var(--sh-text);
+  text-decoration: none;
+  transition: background-color var(--sh-dur-fast) var(--sh-ease);
+}
+
+.sh-metric:hover {
+  background: var(--sh-surface-2);
+  color: var(--sh-text);
+}
+
+.sh-metric__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sh-space-2);
+}
+
+.sh-metric__rotulo {
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-weight: 500;
+}
+
+.sh-metric__icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--sh-accent-soft);
+  color: var(--sh-accent-text);
+  font-size: 1.125rem;
+}
+
+.sh-metric__valor {
+  font-size: var(--sh-text-metric);
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.sh-metric__apoio {
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+/* ============================== Painel "Precisam de reposição" ============================== */
+.sh-reposicao {
+  margin-bottom: var(--sh-space-6);
+  overflow: hidden;
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius);
+  background: var(--sh-surface);
+}
+
+.sh-reposicao__cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sh-space-3) var(--sh-space-4);
+  padding: var(--sh-space-4) var(--sh-space-5);
+  border-bottom: 1px solid transparent;
+}
+
+.sh-reposicao--alerta {
+  border-color: var(--sh-warning-border);
+}
+
+.sh-reposicao--alerta .sh-reposicao__cab {
+  color: var(--sh-warning-fg);
+  background: var(--sh-warning-bg);
+  border-bottom-color: var(--sh-warning-border);
+}
+
+.sh-reposicao--critico {
+  border-color: var(--sh-danger-border);
+}
+
+.sh-reposicao--critico .sh-reposicao__cab {
+  color: var(--sh-danger-fg);
+  background: var(--sh-danger-bg);
+  border-bottom-color: var(--sh-danger-border);
+}
+
+.sh-reposicao--ok {
+  border-color: var(--sh-success-border);
+}
+
+.sh-reposicao--ok .sh-reposicao__cab {
+  color: var(--sh-success-fg);
+  background: var(--sh-success-bg);
+}
+
+.sh-reposicao__resumo {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-space-4);
+  min-width: 0;
+}
+
+.sh-reposicao__icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--sh-surface);
+  font-size: 1.5rem;
+}
+
+.sh-reposicao__titulo {
+  margin: 0;
+  font-size: var(--sh-text-lg);
+  font-weight: 700;
+  color: inherit;
+}
+
+.sh-reposicao__numero {
+  font-size: var(--sh-text-metric);
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-reposicao__sub {
+  margin: 2px 0 0;
+  font-size: var(--sh-text-md);
+  font-weight: 500;
+}
+
+.sh-reposicao__cab .btn {
+  --bs-btn-bg: var(--sh-surface);
+}
+
+.sh-reposicao__vazio {
+  padding: var(--sh-space-5);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+/* ============================== Listas de produtos ============================== */
+.sh-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sh-lista__item {
+  display: grid;
+  gap: var(--sh-space-2) var(--sh-space-4);
+  align-items: center;
+  padding: var(--sh-space-3) var(--sh-space-5);
+  border-top: 1px solid var(--sh-border);
+}
+
+.sh-lista__item:first-child {
+  border-top: 0;
+}
+
+/* Linha de reposição: info | saldo | situação | ação */
+.sh-lista__item--repor {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "info acao"
+    "saldo situacao";
+}
+
+@media (min-width: 768px) {
+  .sh-lista__item--repor {
+    grid-template-columns: minmax(0, 1.6fr) minmax(140px, 1fr) auto auto;
+    grid-template-areas: "info saldo situacao acao";
+  }
+}
+
+/* Linha de produto recente: info | preço | situação */
+.sh-lista__item--recente {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "info situacao"
+    "preco preco";
+}
+
+@media (min-width: 768px) {
+  .sh-lista__item--recente {
+    grid-template-columns: minmax(0, 1.6fr) auto auto;
+    grid-template-areas: "info preco situacao";
+  }
+}
+
+.sh-lista__info {
+  grid-area: info;
+  min-width: 0;
+}
+
+.sh-lista__saldo {
+  grid-area: saldo;
+}
+
+.sh-lista__situacao {
+  grid-area: situacao;
+  justify-self: end;
+}
+
+.sh-lista__acao {
+  grid-area: acao;
+  justify-self: end;
+}
+
+.sh-lista__preco {
+  grid-area: preco;
+  font-size: var(--sh-text-md);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 768px) {
+  .sh-lista__preco {
+    text-align: right;
+  }
+}
+
+.sh-lista__nome {
+  display: block;
+  color: var(--sh-text);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+a.sh-lista__nome:hover {
+  color: var(--sh-accent-text);
+}
+
+.sh-lista__sub {
+  display: block;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============================== Barra de saúde do estoque ============================== */
+.sh-saude {
+  display: flex;
+  gap: 2px;
+  height: 14px;
+  border-radius: var(--sh-radius-pill);
+  background: var(--sh-meter-track);
+  overflow: hidden;
+}
+
+.sh-saude__seg {
+  flex: 0 1 auto;
+  min-width: 6px;
+  height: 100%;
+  transform-origin: left center;
+  animation: sh-meter-entra 400ms var(--sh-ease-out) both;
+}
+
+.sh-saude__seg--normal {
+  background: var(--sh-meter-normal);
+}
+
+.sh-saude__seg--baixo {
+  background: var(--sh-meter-baixo);
+}
+
+.sh-saude__seg--sem {
+  background: var(--sh-meter-sem);
+}
+
+.sh-saude__legenda {
+  list-style: none;
+  margin: var(--sh-space-4) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sh-space-2) var(--sh-space-6);
+  font-size: var(--sh-text-md);
+}
+
+.sh-saude__legenda li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sh-saude__legenda .bi {
+  font-size: 1rem;
+}
+
+.sh-saude__legenda strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-saude__pct {
+  color: var(--sh-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-tom--normal {
+  color: var(--sh-estoque-normal-fg);
+}
+
+.sh-tom--baixo {
+  color: var(--sh-estoque-baixo-fg);
+}
+
+.sh-tom--sem {
+  color: var(--sh-estoque-sem-fg);
+}
+
+/* ============================== Primeiros passos ============================== */
+.sh-passos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sh-space-3);
+  counter-reset: passo;
+}
+
+@media (min-width: 768px) {
+  .sh-passos {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.sh-passo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sh-space-2);
+  padding: var(--sh-space-4);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius);
+  background: var(--sh-surface);
+}
+
+.sh-passo__numero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--sh-accent-soft);
+  color: var(--sh-accent-text);
+  font-weight: 700;
+}
+
+.sh-passo.is-feito .sh-passo__numero {
+  background: var(--sh-success-bg);
+  color: var(--sh-success-fg);
+}
+
+.sh-passo__titulo {
+  margin: 0;
+  font-size: var(--sh-text-base);
+  font-weight: 600;
+}
+
+.sh-passo__texto {
+  margin: 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.sh-passo__estado {
+  margin-top: auto;
+  color: var(--sh-success-fg);
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+}
+
+.sh-passo__pendente {
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+/* ============================== Tabela e cartões (mobile) ============================== */
+.sh-table-wrap {
+  overflow: hidden;
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius);
+  background: var(--sh-surface);
+}
+
+.sh-table {
+  width: 100%;
+  margin: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--sh-text-md);
+  color: var(--sh-text);
+}
+
+.sh-table th {
+  padding: var(--sh-space-3) var(--sh-space-4);
+  border-bottom: 1px solid var(--sh-border);
+  background: var(--sh-surface-2);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.sh-table td {
+  height: 52px;
+  padding: var(--sh-space-2) var(--sh-space-4);
+  border-bottom: 1px solid var(--sh-border);
+  vertical-align: middle;
+}
+
+.sh-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.sh-table .sh-col-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-table th a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sh-space-1);
+  color: inherit;
+  text-decoration: none;
+}
+
+.sh-table th a:hover {
+  color: var(--sh-text);
+}
+
+/* Linha com problema de estoque: barra lateral de 4 px (o badge continua obrigatório) */
+.sh-table tr.sh-linha--sem td:first-child {
+  box-shadow: inset 4px 0 0 var(--sh-danger-fg);
+}
+
+.sh-table tr.sh-linha--baixo td:first-child {
+  box-shadow: inset 4px 0 0 var(--sh-warning-fg);
+}
+
+/* Linha recém-criada: fundo que desbota + barra de 3 px de acento (seção 5) */
+.sh-novo {
+  animation: sh-destaque 2.4s var(--sh-ease-out) both;
+  box-shadow: inset 3px 0 0 var(--sh-accent);
+}
+
+@keyframes sh-destaque {
+  from {
+    background-color: var(--sh-accent-soft);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Menos movimento: o destaque fica estático (mesmo fundo e barra, sem desbotar) */
+  .sh-novo {
+    animation: none;
+    background-color: var(--sh-accent-soft);
+  }
+}
+
+@media (max-width: 767.98px) {
+  .sh-table--cards,
+  .sh-table--cards tbody,
+  .sh-table--cards tr,
+  .sh-table--cards td {
+    display: block;
+  }
+
+  .sh-table--cards thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  .sh-table--cards tr {
+    padding: var(--sh-space-3) var(--sh-space-4);
+    border-bottom: 1px solid var(--sh-border);
+  }
+
+  .sh-table--cards tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .sh-table--cards td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sh-space-4);
+    height: auto;
+    min-height: 36px;
+    padding: var(--sh-space-1) 0;
+    border: 0;
+    text-align: right;
+  }
+
+  .sh-table--cards td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    color: var(--sh-text-muted);
+    font-size: var(--sh-text-sm);
+    font-weight: 600;
+    text-align: left;
+  }
+
+  .sh-table--cards td:not([data-label])::before,
+  .sh-table--cards td[data-label=""]::before {
+    content: none;
+  }
+
+  .sh-table--cards tr.sh-linha--sem td:first-child,
+  .sh-table--cards tr.sh-linha--baixo td:first-child {
+    box-shadow: none;
+  }
+
+  .sh-table--cards tr.sh-linha--sem {
+    box-shadow: inset 4px 0 0 var(--sh-danger-fg);
+  }
+
+  .sh-table--cards tr.sh-linha--baixo {
+    box-shadow: inset 4px 0 0 var(--sh-warning-fg);
+  }
+}
+
+/* ============================== Esqueleto, estado vazio ============================== */
+.sh-skeleton {
+  display: block;
+  height: 1em;
+  border-radius: var(--sh-radius-sm);
+  background: linear-gradient(90deg, var(--sh-surface-2) 0%, var(--sh-border) 50%, var(--sh-surface-2) 100%);
+  background-size: 200% 100%;
+  animation: sh-brilho 1.2s linear infinite;
+}
+
+@keyframes sh-brilho {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Sem brilho: cinza fixo */
+  .sh-skeleton {
+    background: var(--sh-surface-2);
+    animation: none;
+  }
+}
+
+.sh-vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sh-space-2);
+  padding: var(--sh-space-10) var(--sh-space-4);
+  text-align: center;
+}
+
+.sh-vazio__icone {
+  font-size: 2.5rem; /* 40 px */
+  line-height: 1;
+  color: var(--sh-text-subtle);
+}
+
+.sh-vazio__titulo {
+  margin: 0;
+  font-size: var(--sh-text-lg);
+  font-weight: 600;
+}
+
+.sh-vazio__texto {
+  max-width: 44ch;
+  margin: 0 0 var(--sh-space-2);
+  color: var(--sh-text-muted);
+}
+
+.sh-vazio--sucesso .sh-vazio__icone {
+  color: var(--sh-success-fg);
+}
+
+/* ============================== Paginação ============================== */
+.sh-paginacao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sh-space-3) var(--sh-space-4);
+  padding: var(--sh-space-3) var(--sh-space-4);
+  border-top: 1px solid var(--sh-border);
+  font-size: var(--sh-text-sm);
+}
+
+.sh-paginacao__info {
+  margin: 0;
+  color: var(--sh-text-muted);
+}
+
+.sh-paginacao .pagination {
+  --bs-pagination-padding-x: 0.75rem;
+  --bs-pagination-padding-y: 0.375rem;
+  --bs-pagination-font-size: var(--sh-text-md);
+  --bs-pagination-color: var(--sh-accent-text);
+  --bs-pagination-bg: var(--sh-surface);
+  --bs-pagination-border-color: var(--sh-border);
+  --bs-pagination-hover-color: var(--sh-accent-text);
+  --bs-pagination-hover-bg: var(--sh-surface-2);
+  --bs-pagination-hover-border-color: var(--sh-border);
+  --bs-pagination-active-color: #fff;
+  --bs-pagination-active-bg: var(--sh-accent);
+  --bs-pagination-active-border-color: var(--sh-accent);
+  --bs-pagination-disabled-color: var(--sh-text-muted);
+  --bs-pagination-disabled-bg: var(--sh-surface-2);
+  --bs-pagination-disabled-border-color: var(--sh-border);
+  margin: 0;
+  gap: var(--sh-space-1);
+}
+
+.sh-paginacao .page-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--sh-alvo);
+  min-height: var(--sh-alvo);
+  border-radius: var(--sh-radius-sm);
+}
+
+.sh-paginacao .page-item:not(:first-child) .page-link {
+  margin-left: 0;
+}
+
+.sh-paginacao .page-item.disabled .page-link {
+  cursor: not-allowed;
+}
+
+/* No celular: "‹ Anterior · 2 de 6 · Próxima ›" */
+.sh-paginacao__compacta {
+  display: none;
+}
+
+@media (max-width: 575.98px) {
+  .sh-paginacao .pagination .sh-pag-numero {
+    display: none;
+  }
+
+  .sh-paginacao__compacta {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 var(--sh-space-2);
+    color: var(--sh-text-muted);
+    font-size: var(--sh-text-md);
+  }
+}
+
+/* ============================== Linha do tempo (histórico) ============================== */
+.sh-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sh-timeline__dia {
+  margin: var(--sh-space-5) 0 var(--sh-space-2);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+}
+
+.sh-timeline__item {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: var(--sh-space-3);
+  padding: var(--sh-space-3) 0;
+  border-top: 1px solid var(--sh-border);
+}
+
+.sh-timeline__icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.sh-timeline__delta {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================== Filtros e chips ============================== */
+.sh-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sh-space-2);
+}
+
+.sh-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--sh-alvo);
+  padding: 0 var(--sh-space-3);
+  border: 1px solid var(--sh-border-strong);
+  border-radius: var(--sh-radius-pill);
+  background: var(--sh-surface);
+  color: var(--sh-text);
+  font-size: var(--sh-text-md);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.sh-chip:hover {
+  background: var(--sh-surface-2);
+  color: var(--sh-text);
+}
+
+.sh-chip[aria-pressed="true"],
+.sh-chip[aria-current="true"] {
+  border-color: var(--sh-accent);
+  background: var(--sh-accent-soft);
+  color: var(--sh-accent-text);
+  font-weight: 600;
+}
+
+/* ============================== Modal, menu suspenso, painel lateral ============================== */
+.modal {
+  --bs-modal-bg: var(--sh-surface);
+  --bs-modal-color: var(--sh-text);
+  --bs-modal-border-color: var(--sh-border);
+  --bs-modal-border-radius: var(--sh-radius-lg);
+  --bs-modal-inner-border-radius: var(--sh-radius-lg);
+  --bs-modal-box-shadow: var(--sh-shadow-modal);
+  --bs-modal-header-border-color: var(--sh-border);
+  --bs-modal-footer-border-color: var(--sh-border);
+}
+
+.modal-title {
+  font-size: var(--sh-text-lg);
+  font-weight: 700;
+}
+
+.dropdown-menu {
+  --bs-dropdown-bg: var(--sh-surface);
+  --bs-dropdown-color: var(--sh-text);
+  --bs-dropdown-border-color: var(--sh-border);
+  --bs-dropdown-border-radius: var(--sh-radius);
+  --bs-dropdown-link-color: var(--sh-text);
+  --bs-dropdown-link-hover-color: var(--sh-text);
+  --bs-dropdown-link-hover-bg: var(--sh-surface-2);
+  --bs-dropdown-link-active-color: var(--sh-accent-text);
+  --bs-dropdown-link-active-bg: var(--sh-accent-soft);
+  --bs-dropdown-divider-bg: var(--sh-border);
+  --bs-dropdown-box-shadow: var(--sh-shadow-pop);
+  --bs-dropdown-font-size: var(--sh-text-base);
+}
+
+.offcanvas {
+  --bs-offcanvas-bg: var(--sh-surface);
+  --bs-offcanvas-color: var(--sh-text);
+  --bs-offcanvas-border-color: var(--sh-border);
+  --bs-offcanvas-box-shadow: var(--sh-shadow-modal);
+}
+
+.offcanvas-title {
+  font-size: var(--sh-text-lg);
+  font-weight: 700;
+}
+
+.breadcrumb {
+  --bs-breadcrumb-divider: "›";
+}
+
+kbd.sh-tecla {
+  display: inline-block;
+  min-width: 1.75rem;
+  padding: 2px 8px;
+  border: 1px solid var(--sh-border-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--sh-radius-sm);
+  background: var(--sh-surface-2);
+  color: var(--sh-text);
+  font-family: var(--sh-font);
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+  text-align: center;
+}
+
+.sh-atalhos {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--sh-space-2) var(--sh-space-4);
+  align-items: center;
+  margin: 0;
+  font-size: var(--sh-text-md);
+}
+
+.sh-atalhos dt {
+  font-weight: 400;
+}
+
+.sh-atalhos dd {
+  margin: 0;
+}
+
+/* ============================== Utilitários ============================== */
+.sh-truncar {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sh-muted {
+  color: var(--sh-text-muted);
+}
+
+.sh-fluxo > * + * {
+  margin-top: var(--sh-space-4);
+}
+
+/* Larguras em degraus (sem style inline): medidor de saldo e participação no valor */
+.sh-w-0 { width: 0%; }
+.sh-w-5 { width: 5%; }
+.sh-w-10 { width: 10%; }
+.sh-w-15 { width: 15%; }
+.sh-w-20 { width: 20%; }
+.sh-w-25 { width: 25%; }
+.sh-w-30 { width: 30%; }
+.sh-w-35 { width: 35%; }
+.sh-w-40 { width: 40%; }
+.sh-w-45 { width: 45%; }
+.sh-w-50 { width: 50%; }
+.sh-w-55 { width: 55%; }
+.sh-w-60 { width: 60%; }
+.sh-w-65 { width: 65%; }
+.sh-w-70 { width: 70%; }
+.sh-w-75 { width: 75%; }
+.sh-w-80 { width: 80%; }
+.sh-w-85 { width: 85%; }
+.sh-w-90 { width: 90%; }
+.sh-w-95 { width: 95%; }
+.sh-w-100 { width: 100%; }
+
+/* Larguras de 1 em 1 % para os segmentos da barra de saúde (a soma dos segmentos fecha em 100 %) */
+.sh-seg-0 { width: 0%; }
+.sh-seg-1 { width: 1%; }
+.sh-seg-2 { width: 2%; }
+.sh-seg-3 { width: 3%; }
+.sh-seg-4 { width: 4%; }
+.sh-seg-5 { width: 5%; }
+.sh-seg-6 { width: 6%; }
+.sh-seg-7 { width: 7%; }
+.sh-seg-8 { width: 8%; }
+.sh-seg-9 { width: 9%; }
+.sh-seg-10 { width: 10%; }
+.sh-seg-11 { width: 11%; }
+.sh-seg-12 { width: 12%; }
+.sh-seg-13 { width: 13%; }
+.sh-seg-14 { width: 14%; }
+.sh-seg-15 { width: 15%; }
+.sh-seg-16 { width: 16%; }
+.sh-seg-17 { width: 17%; }
+.sh-seg-18 { width: 18%; }
+.sh-seg-19 { width: 19%; }
+.sh-seg-20 { width: 20%; }
+.sh-seg-21 { width: 21%; }
+.sh-seg-22 { width: 22%; }
+.sh-seg-23 { width: 23%; }
+.sh-seg-24 { width: 24%; }
+.sh-seg-25 { width: 25%; }
+.sh-seg-26 { width: 26%; }
+.sh-seg-27 { width: 27%; }
+.sh-seg-28 { width: 28%; }
+.sh-seg-29 { width: 29%; }
+.sh-seg-30 { width: 30%; }
+.sh-seg-31 { width: 31%; }
+.sh-seg-32 { width: 32%; }
+.sh-seg-33 { width: 33%; }
+.sh-seg-34 { width: 34%; }
+.sh-seg-35 { width: 35%; }
+.sh-seg-36 { width: 36%; }
+.sh-seg-37 { width: 37%; }
+.sh-seg-38 { width: 38%; }
+.sh-seg-39 { width: 39%; }
+.sh-seg-40 { width: 40%; }
+.sh-seg-41 { width: 41%; }
+.sh-seg-42 { width: 42%; }
+.sh-seg-43 { width: 43%; }
+.sh-seg-44 { width: 44%; }
+.sh-seg-45 { width: 45%; }
+.sh-seg-46 { width: 46%; }
+.sh-seg-47 { width: 47%; }
+.sh-seg-48 { width: 48%; }
+.sh-seg-49 { width: 49%; }
+.sh-seg-50 { width: 50%; }
+.sh-seg-51 { width: 51%; }
+.sh-seg-52 { width: 52%; }
+.sh-seg-53 { width: 53%; }
+.sh-seg-54 { width: 54%; }
+.sh-seg-55 { width: 55%; }
+.sh-seg-56 { width: 56%; }
+.sh-seg-57 { width: 57%; }
+.sh-seg-58 { width: 58%; }
+.sh-seg-59 { width: 59%; }
+.sh-seg-60 { width: 60%; }
+.sh-seg-61 { width: 61%; }
+.sh-seg-62 { width: 62%; }
+.sh-seg-63 { width: 63%; }
+.sh-seg-64 { width: 64%; }
+.sh-seg-65 { width: 65%; }
+.sh-seg-66 { width: 66%; }
+.sh-seg-67 { width: 67%; }
+.sh-seg-68 { width: 68%; }
+.sh-seg-69 { width: 69%; }
+.sh-seg-70 { width: 70%; }
+.sh-seg-71 { width: 71%; }
+.sh-seg-72 { width: 72%; }
+.sh-seg-73 { width: 73%; }
+.sh-seg-74 { width: 74%; }
+.sh-seg-75 { width: 75%; }
+.sh-seg-76 { width: 76%; }
+.sh-seg-77 { width: 77%; }
+.sh-seg-78 { width: 78%; }
+.sh-seg-79 { width: 79%; }
+.sh-seg-80 { width: 80%; }
+.sh-seg-81 { width: 81%; }
+.sh-seg-82 { width: 82%; }
+.sh-seg-83 { width: 83%; }
+.sh-seg-84 { width: 84%; }
+.sh-seg-85 { width: 85%; }
+.sh-seg-86 { width: 86%; }
+.sh-seg-87 { width: 87%; }
+.sh-seg-88 { width: 88%; }
+.sh-seg-89 { width: 89%; }
+.sh-seg-90 { width: 90%; }
+.sh-seg-91 { width: 91%; }
+.sh-seg-92 { width: 92%; }
+.sh-seg-93 { width: 93%; }
+.sh-seg-94 { width: 94%; }
+.sh-seg-95 { width: 95%; }
+.sh-seg-96 { width: 96%; }
+.sh-seg-97 { width: 97%; }
+.sh-seg-98 { width: 98%; }
+.sh-seg-99 { width: 99%; }
+.sh-seg-100 { width: 100%; }
