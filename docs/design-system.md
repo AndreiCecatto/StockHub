@@ -608,6 +608,20 @@ Antes de dar um lote por pronto: `./mvnw test` com o resultado real, conferênci
 - **Paginação:** o seletor "Itens por página" fica para o lote 3, porque pertence ao formulário de filtros de `/produtos` (ele precisa reenviar os filtros).
 - **Guia de componentes** (`/css/guia-componentes.html`): fica em `/css/**`, que o `SecurityConfig` já libera sem login; não tem dado nenhum. Remover no lote 5.
 
+### 8.2 Como ficou o lote 5 (relatórios, erro e limpeza)
+
+**Telas migradas** (todas no `layout.tag`, só `<c:out>`, sem `style=` nem `<script>` inline, sem CDN; rotas, parâmetros `pagina` e atributos de model inalterados): `estoque-baixo.jsp`, `unidades.jsp`, `valor-estoque.jsp` e `error.jsp`. Reaproveitam `sh:cabecalhoPagina`, `sh:paginacao`, `sh:badgeEstoque`, `sh:medidorEstoque` e `sh:estadoVazio`. Estilos próprios em `css/relatorios.css` (prefixos `sh-rel` e `sh-erro`) e `js/relatorios.js` (só liga o botão **Imprimir**).
+
+- **Estoque baixo:** tabela que vira cartões no celular, com Saldo / mínimo + medidor, coluna "Para o mínimo" (`estoqueMinimo − quantidade`; mostra "Sem saldo" ou "No mínimo" quando não há falta), badge, **Repor** (`/estoque?movProduto=ID&movTipo=ENTRADA`) e Ver. Vazio positivo com tom de sucesso. Impressão: botão **Imprimir lista**; o `impressao.css` já esconde menus e botões e a coluna em branco **Comprar** (`.sh-so-impressao`) só aparece no papel.
+- **Unidades e Valor:** alternância Unidades | Valor, cartão de métrica, tabela. Em Valor, a coluna **Participação no valor** calcula `produto.valorTotal / resumo.valorTotalEstoque` na JSP (divisão por zero protegida), com barra em degraus `.sh-w-N` e o percentual também em texto.
+- **Exportar CSV:** reaproveita `/produtos/exportar.csv`. Unidades e Valor exportam todos os produtos em ordem de nome. Estoque baixo tem um menu com dois links (`nivelEstoque=semEstoque` e `nivelEstoque=baixo`), porque o filtro aceita um nível por vez e a lista junta os dois. Sem backend novo.
+- **Erro:** usa `layoutPublico` (sem menu, sem login, sem ler `usuarioLogado`), com botão de tema, código grande e texto fixo por status (400, 403, 404, 405 e genérico). Não mostra o caminho pedido (`path`), a mensagem nem stack trace. Botão **Voltar ao início**; em 403 também **Entrar**. Para carregar o `relatorios.css` no `<head>`, o `layoutPublico.tag` ganhou o fragmento opcional `scripts` (igual ao do `layout.tag`).
+- **Removidos (sem nenhuma referência, conferido por grep):** `WEB-INF/includes/{alertas,menu,modal-exclusao,navbar,paginacao,scripts,sidebar}.jsp`, `css/style.css`, `js/app.js`, `js/estoque.js`, `css/guia-componentes.html`. Era o único lugar com CDN: não resta nenhum link externo em `src/main/webapp` fora de `vendor/`.
+- **Renomeado:** `loteProdutosColunaOrdenavel.tag` virou `colunaOrdenavel.tag` (uso em `produtos.jsp` atualizado). Os `css/lote-*.css` ficaram com o nome atual (renomear exige tocar em várias JSPs; sem ganho).
+- **Outros:** BOM UTF-8 removido de `dashboard.jsp`, `estoque-baixo.jsp`, `unidades.jsp`, `valor-estoque.jsp` e do include antigo (apagado). `js/formularios.js` passou a documentar `form="sh-sem-formulario"` (seletor de produto da movimentação), sem mudar comportamento.
+
+**Divergências em relação ao mapa de telas (7.9 a 7.12):** os dois botões do dashboard para Unidades e Valor continuam como cartões de métrica; o cartão de "Total de unidades" e o de "Valor total" nas telas de relatório não são links. Em `error.jsp` o botão de tema é o compacto do login. A página de erro não sabe se há sessão: em 403 o botão **Entrar** aparece sempre.
+
 ## 9. Pedidos ao `dev-backend`
 
 Nenhum deles muda regra de negócio nem modelo; todos mantêm o isolamento por loja (RN-01).
