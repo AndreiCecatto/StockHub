@@ -241,7 +241,7 @@ Implementação em `js/atalhos.js`. Regras (WCAG 2.1.4): atalhos de **uma tecla*
 |---|---|---|---|---|---|
 | Bootstrap | **5.3.8** (a mesma de hoje) | MIT | `vendor/bootstrap-5.3.8/css/bootstrap.min.css`, `js/bootstrap.bundle.min.js` | CSS ~230 KB, JS ~80 KB (gzip ~30 KB) | Já é a base; grade, formulários, modal, offcanvas, dropdown, toast e tema escuro nativo, todos com acessibilidade testada (foco preso no modal, Esc, `aria-*`). Trocar custaria reescrever todas as telas por nada |
 | Bootstrap Icons | **1.11.3** (a mesma de hoje) | MIT | `vendor/bootstrap-icons-1.11.3/bootstrap-icons.min.css`, `fonts/bootstrap-icons.woff2` (e `.woff`, mantido como veio) | ~130 KB (woff2) | Mesma família do Bootstrap, cobre o mapa de ícones |
-| Inter (subset latino, variável) | **5.x** do pacote `@fontsource-variable/inter` (fixar a exata no download) | SIL OFL 1.1 | `vendor/inter/inter-latin-wght-normal.woff2`, `OFL.txt` | ~50 KB | seção 1.3 |
+| Inter (subset latino, variável) | **5.3.0** do pacote `@fontsource-variable/inter` (fixada no download do lote 1) | SIL OFL 1.1 | `vendor/inter/inter-latin-wght-normal.woff2`, `OFL.txt` | 48 KB (48256 bytes) | seção 1.3 |
 | JS e CSS próprios | n/a | do projeto | `css/` e `js/` | ~25 KB de JS e ~25 KB de CSS sem minificar | seção 3.3 |
 
 Como baixar na fase 3 (sem npm): uma vez, com `Invoke-WebRequest` a partir do jsDelivr/GitHub, gravar `Get-FileHash -Algorithm SHA256` de cada arquivo em `vendor/VERSOES.md` (nome, versão exata, licença, URL de origem, SHA-256). Remover o comentário final `//# sourceMappingURL` dos arquivos do Bootstrap só se o 404 do mapa incomodar (registrar a alteração e o hash do arquivo alterado).
@@ -300,7 +300,7 @@ Classes próprias com prefixo `sh-`, sobre o Bootstrap. Os arquivos CSS (seção
 | **Badge de estoque** (`.sh-badge--normal/--baixo/--sem`) | n/a | n/a | n/a | n/a (ver 1.2) | n/a |
 | **Medidor de saldo** (`.sh-meter`) | mínimo = 0: só o número, sem barra | n/a | n/a | enche de 0 ao valor ao carregar (400 ms) | n/a |
 | **Alerta inline** (`.sh-alert--success/warning/danger/info`) | n/a | n/a | `role="alert"`, ícone + título + texto | `role="status"` | n/a |
-| **Toast** (`.sh-toast`) | n/a | n/a | não se usa para erro (erro fica inline e persistente) | `role="status"`, some em 7 s, pausa com mouse ou foco | n/a |
+| **Toast** (`.sh-toast`) | n/a | n/a | não se usa para erro (erro fica inline e persistente) | anunciado pelo contêiner `#sh-toasts` (`aria-live="polite"`), sem `role` em cada toast para o leitor não ler duas vezes; some em 7 s, pausa com mouse ou foco | n/a |
 | **Modal de confirmação** | n/a | botão Confirmar vira "Excluindo…" e fica desabilitado | falha: a página recarrega com o alerta do servidor | n/a | Confirmar desabilitado após o clique (evita duplo envio) |
 | **Paginação** | oculta se só há 1 página | n/a | n/a | n/a | Anterior na página 1 e Próxima na última, `aria-disabled="true"` e fora da ordem de tabulação |
 | **Filtros e busca** | "Nenhum resultado para 'x'" + botão "Limpar filtros" | opacidade 0,6 na lista + esqueleto | mensagem sob o campo | contador "N produtos" atualizado em região `aria-live="polite"` | n/a |
@@ -388,7 +388,8 @@ Resolve o problema do `<select>` com todos os produtos (achado em `mercado-requi
 - **Esqueleto** (`.sh-skeleton`): barras cinza `--sh-surface-2` com brilho de 1,2 s; sem movimento se o usuário pediu menos animação.
 - **Medidor de saldo** (`.sh-meter`): barra cheia até `quantidade / (2 × mínimo)` (máx. 100 %), marcador fixo no mínimo (50 %); mínimo 0 mostra só o número. A largura sai por **classes de degrau** (`.sh-w-0`, `.sh-w-5`, ..., `.sh-w-100`, arredondando a múltiplos de 5), sem `style` inline. `role="img"` com `aria-label="Saldo 3 de mínimo 10"`.
 - **Barra de saúde do estoque** (dashboard): três segmentos Normal / Baixo / Sem estoque (`resumo.totalProdutos − resumo.produtosEstoqueBaixo`; `resumo.produtosEstoqueBaixo − resumo.produtosSemEstoque`; `resumo.produtosSemEstoque`), com legenda em texto e contagem. A barra é decorativa (`aria-hidden`), a legenda é a informação.
-- **Includes novos:** `badge-estoque.jsp` (param `nivel`: `${produto.nivelEstoque}`), `medidor-estoque.jsp`, `estado-vazio.jsp`, `breadcrumb.jsp`, `cabecalho-pagina.jsp`. Layout base como **tag file** `WEB-INF/tags/layout.tag` (atributos `titulo`, `ativo`, fragmento `scripts`, `<jsp:doBody/>`), que concentra `head`, barra lateral, superior, inferior, toasts e scripts: acaba a repetição do `head` em cada JSP. Se tag file der problema no Jasper do Spring Boot, o plano B é um par `layout-inicio.jsp` / `layout-fim.jsp` incluído com `jsp:include`.
+- **Como ficou nos lotes 1 e 2 (verificado no Jasper do Tomcat 11, o mesmo do projeto):** os componentes com atributos tipados ou com corpo viraram **tag files** em `WEB-INF/tags/`, usados com `<%@ taglib prefix="sh" tagdir="/WEB-INF/tags" %>`: `layout.tag`, `layoutPublico.tag` (login e, no lote 5, o erro), `cabecalhoPagina.tag` (corpo = botões de ação), `badgeEstoque.tag` (`nivel`), `medidorEstoque.tag` (`saldo`, `minimo`), `estadoVazio.tag`, `paginacao.tag`. Motivo: `jsp:include` só passa texto por `jsp:param` e não aceita marcação de ações; o tag file aceita número, enum e corpo. A trilha de navegação (`breadcrumb.jsp`) virou o fragmento `migalhas` do `layout.tag` (a página passa só os `<li>`). Os trechos fixos (cabeça, barra lateral, barra inferior, painel "Mais", modais, alertas, opções de tema) ficam em `WEB-INF/includes/sh/`, pasta nova para não colidir com os includes antigos até o lote 5.
+- **Plano original (mantido para consulta):** `badge-estoque.jsp` (param `nivel`: `${produto.nivelEstoque}`), `medidor-estoque.jsp`, `estado-vazio.jsp`, `breadcrumb.jsp`, `cabecalho-pagina.jsp`. Layout base como **tag file** `WEB-INF/tags/layout.tag` (atributos `titulo`, `ativo`, fragmento `scripts`, `<jsp:doBody/>`), que concentra `head`, barra lateral, superior, inferior, toasts e scripts: acaba a repetição do `head` em cada JSP. Se tag file der problema no Jasper do Spring Boot, o plano B é um par `layout-inicio.jsp` / `layout-fim.jsp` incluído com `jsp:include`.
 
 ## 5. Movimento
 
@@ -426,7 +427,7 @@ Tokens: `--sh-dur-fast: 120ms` (hover, foco, cor), `--sh-dur: 200ms` (painéis, 
 | < 576 px | uma coluna; barra inferior; tabelas em cartões; ações empilhadas |
 | 576 a 767 px | idem, grades de 2 colunas em métricas |
 | 768 a 991 px | tabelas voltam a ser tabelas; ainda sem barra lateral (barra inferior + offcanvas) |
-| 992 a 1199 px | barra lateral recolhida (68 px); métricas em 3 colunas |
+| 992 a 1199 px | barra lateral recolhida (68 px); métricas em 4 colunas (eram 3; com 4 cartões, 3 colunas deixariam um sozinho na linha de baixo) |
 | 1200 px ou mais | barra lateral aberta; movimentação em 2 colunas (formulário 380 px fixo + histórico); métricas em 4 colunas |
 | 1400 px ou mais | só aumenta a margem lateral; o conteúdo continua com máx. 1200 px |
 
@@ -435,7 +436,7 @@ Testar em 320, 360, 390, 768, 1024, 1440 px, com zoom de 200 % e **reflow a 320 
 ### 6.2 Regras
 
 - **Alvo de toque:** 44 × 44 px no celular para qualquer controle (botões, chips, linhas de menu, itens do seletor, paginação); 40 px no desktop (mínimo absoluto da WCAG 2.2 é 24 px). Espaço de 8 px entre alvos vizinhos.
-- **Foco visível:** `outline: 3px solid var(--sh-focus); outline-offset: 2px` em **tudo** que recebe foco, em `:focus-visible`; nunca `outline: none` sem substituto. Contraste do anel ≥ 3:1 contra os dois fundos (verificado: ≥ 7,3:1 no claro e ≥ 7,9:1 no escuro).
+- **Foco visível:** `outline: 3px solid var(--sh-focus); outline-offset: 2px` em **tudo** que recebe foco, em `:focus-visible`; nunca `outline: none` sem substituto. Contraste do anel ≥ 3:1 contra os dois fundos (verificado: ≥ 7,3:1 no claro e ≥ 7,9:1 no escuro). **Exceção corrigida no lote 1:** dentro dos painéis escuros (barra lateral e painel de marca do login) o índigo do tema claro daria só 2,2:1, então ali o anel usa `--sh-side-marker` (7,5:1 no claro, 8,9:1 no escuro).
 - **Ordem de tabulação** = ordem visual: link "Pular para o conteúdo" (primeiro elemento, aparece ao focar) → barra lateral → barra superior → conteúdo → barra de ações do formulário. No celular: barra superior → conteúdo → barra inferior. Nenhum `tabindex` positivo.
 - **Marcos:** `header`, `nav aria-label="Menu principal"`, `main id="conteudo"`, `nav aria-label="Trilha de navegação"`; um `h1` por página, sem pular níveis.
 - **Regiões vivas:** contêiner de toasts `aria-live="polite"`; resumo de erros `role="alert"`; contador de resultados `aria-live="polite"`; atualização do seletor de produto anunciada ("3 produtos encontrados").
@@ -591,6 +592,22 @@ Estratégia de convivência: arquivos **novos** (`css/tokens.css`, `layout.css`,
 
 Antes de dar um lote por pronto: `./mvnw test` com o resultado real, conferência manual em 390 e 1440 px, nos dois temas, e passada do axe ou Lighthouse na tela alterada.
 
+### 8.1 Como ficaram os lotes 1 e 2 (fase 3)
+
+**Convivência com o legado (decisão):** as telas migradas (`login.jsp`, `dashboard.jsp`) usam **só** o layout novo e **nenhum** arquivo antigo; as não migradas continuam intactas, com `style.css`, os includes antigos (`sidebar`, `navbar`, `menu`, `alertas`, `scripts`, `paginacao`, `modal-exclusao`), `app.js`, `estoque.js` e o Bootstrap por CDN. Os dois mundos não se misturam na mesma página (o CSS novo nunca é carregado numa tela legada e vice-versa), então nada do legado muda de aparência nem de comportamento. Navegar entre uma tela nova e uma antiga troca de layout; isso some no lote 5.
+
+**Arquivos novos:** `vendor/` (com `VERSOES.md`), `css/tokens.css`, `layout.css`, `componentes.css`, `impressao.css`, `guia-componentes.html`, `js/tema-init.js`, `nucleo.js`, `toast.js`, `atalhos.js`, `formularios.js`, `confirmar-exclusao.js`, `numeros.js`, `img/favicon.svg`, `WEB-INF/tags/*.tag`, `WEB-INF/includes/sh/*.jsp`.
+
+**Detalhes que o plano deixava em aberto:**
+
+- **Tema:** o `tokens.css` tem os valores do tema escuro em dois blocos idênticos, `[data-bs-theme="dark"]` (com JS) e `@media (prefers-color-scheme: dark)` com `:root:not([data-bs-theme])` (sem JS); um script conferiu que os dois são iguais. As variáveis `--bs-*` apontam para `--sh-*` (um único bloco), então tema do Bootstrap e tema do projeto nunca divergem.
+- **Barra lateral:** `tema-init.js` já define `data-sh-lateral` (`aberta` ou `recolhida`) antes de pintar: preferência salva, ou recolhida abaixo de 1200 px quando não há preferência. Sem JS a barra fica aberta.
+- **Barra de saúde:** além de `.sh-w-N` (degraus de 5, medidor e participação no valor), existe `.sh-seg-N` (de 1 em 1 %) para a barra do dashboard; a JSP calcula os percentuais de modo que a soma feche em 100.
+- **Atalhos:** `m` fora de `/estoque` vai para `/estoque#registrar` (o lote 4 passa a focar o seletor de produto); `n` usa o primeiro elemento `[data-sh-atalho-novo="pagina"]` e, se não houver, o item "Produto" do menu Novo; nas telas públicas os atalhos ficam desligados. O teclado ABNT2 usa AltGr para `/` e `?`, por isso AltGr é aceito.
+- **Mensagens do servidor:** `includes/sh/alertas.jsp` não mostra o alerta `erro` quando a tela também recebe `errosCampos` (o erro aparece junto ao campo e no resumo que a própria tela monta). A regra dos 72 bytes da senha chega como `errosCampos['senhaDentroDoLimite']` (nome da propriedade do `CadastroForm`) e a tela de login a mostra no campo de senha.
+- **Paginação:** o seletor "Itens por página" fica para o lote 3, porque pertence ao formulário de filtros de `/produtos` (ele precisa reenviar os filtros).
+- **Guia de componentes** (`/css/guia-componentes.html`): fica em `/css/**`, que o `SecurityConfig` já libera sem login; não tem dado nenhum. Remover no lote 5.
+
 ## 9. Pedidos ao `dev-backend`
 
 Nenhum deles muda regra de negócio nem modelo; todos mantêm o isolamento por loja (RN-01).
@@ -613,7 +630,7 @@ Nenhum deles muda regra de negócio nem modelo; todos mantêm o isolamento por l
 - **Tag file (`layout.tag`):** não foi testado no Jasper do projeto; o plano B (par de includes) está descrito na 4.12.
 - **Seletor de produto próprio:** é o componente mais complexo do front; o padrão ARIA é conhecido, mas exige teste real com NVDA. Se travar, a alternativa é Tom Select (MIT) servido local.
 - **Tabela em cartões:** a restauração da semântica por `role` precisa de teste com leitor de tela (checklist 12); se falhar, usar duas marcações.
-- **Tamanho da fonte Inter** (~50 KB) é estimativa do pacote Fontsource; registrar o valor real em `VERSOES.md`.
+- **Tamanho da fonte Inter:** medido no download do lote 1, 48256 bytes (registrado em `vendor/VERSOES.md`, junto com os SHA-256 reais).
 - **Busca ao digitar** troca HTML do servidor: depende de a JSP marcar `data-regiao-viva` e de a resposta ter o mesmo trecho; sem JS tudo continua funcionando por envio normal.
 - **Motivos pré-definidos** só preenchem texto livre (v1). O motivo estruturado (enum com migration) continua sendo v2, como em `mercado-requisitos.md`.
 - **Exclusão sem desfazer:** por desenho do backend (exclusão definitiva ou inativação). O modal precisa ser claro; não há toast de "Desfazer".
