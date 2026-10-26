@@ -7,6 +7,7 @@ import org.example.stockhubspring.model.Categoria;
 import org.example.stockhubspring.model.Usuario;
 import org.example.stockhubspring.repository.CategoriaRepository;
 import org.example.stockhubspring.repository.ProdutoRepository;
+import org.example.stockhubspring.util.Restricoes;
 import org.example.stockhubspring.util.Textos;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -70,7 +71,7 @@ public class CategoriaService {
         if (nome == null) {
             throw new RegraNegocioException("O nome da categoria é obrigatório.");
         }
-        if (categoriaRepository.contarNome(usuario.getCodigo(), Textos.normalizarNome(nome), ignorarId) > 0) {
+        if (categoriaRepository.contarNome(usuario.getCodigo(), nome, ignorarId) > 0) {
             throw nomeDuplicado(nome);
         }
         categoria.setNome(nome);
@@ -79,7 +80,11 @@ public class CategoriaService {
             // saveAndFlush: se outra requisição criou o mesmo nome agora, o índice único acusa aqui
             return categoriaRepository.saveAndFlush(categoria);
         } catch (DataIntegrityViolationException e) {
-            throw nomeDuplicado(nome);
+            if (Restricoes.violou(e, Restricoes.UX_CATEGORIA_NOME)) {
+                throw nomeDuplicado(nome);
+            }
+            // Outra violação: sem vazar detalhes do banco
+            throw new RegraNegocioException(Restricoes.MENSAGEM_GENERICA);
         }
     }
 

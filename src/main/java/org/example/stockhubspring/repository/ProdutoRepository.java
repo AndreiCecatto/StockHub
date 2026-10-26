@@ -48,9 +48,9 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer>, JpaS
 
     /** Quantos produtos ATIVOS têm o mesmo nome (RN-10), ignorando o próprio produto na edição. */
     @Query("select count(p) from Produto p where p.usuario.codigo = :usuarioCodigo and p.ativo = true "
-            + "and lower(trim(p.nome)) = :nome and p.id <> :ignorarId")
+            + "and lower(trim(p.nome)) = lower(trim(:nome)) and p.id <> :ignorarId")
     long contarNomeAtivo(@Param("usuarioCodigo") Integer usuarioCodigo,
-                         @Param("nome") String nomeNormalizado,
+                         @Param("nome") String nome,
                          @Param("ignorarId") Integer ignorarId);
 
     /** Totais do painel em UMA consulta agregada (RN-13): produtos, unidades e valor do estoque. */

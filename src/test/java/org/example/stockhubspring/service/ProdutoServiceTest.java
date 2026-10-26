@@ -107,7 +107,8 @@ class ProdutoServiceTest {
             assertThat(captor.getValue().getQuantidade()).isZero();
             assertThat(salvo.getUsuario()).isSameAs(usuario);
             assertThat(salvo.isAtivo()).isTrue();
-            verify(estoqueService).movimentar(55, TipoMovimentacao.ENTRADA, 10, "Estoque inicial", usuario);
+            verify(estoqueService).registrarEstoqueInicial(55, 10, usuario);
+            verify(estoqueService, never()).movimentar(any(), any(), anyInt(), any(), any());
         }
 
         @Test
@@ -156,7 +157,7 @@ class ProdutoServiceTest {
         @DisplayName("estoque inicial de exatamente 1.000.000 é aceito")
         void estoqueInicialNoLimiteAceito() {
             service.salvar(formNovo("Caneta", 1_000_000), usuario);
-            verify(estoqueService).movimentar(55, TipoMovimentacao.ENTRADA, 1_000_000, "Estoque inicial", usuario);
+            verify(estoqueService).registrarEstoqueInicial(55, 1_000_000, usuario);
         }
 
         @Test
@@ -203,7 +204,7 @@ class ProdutoServiceTest {
         @Test
         @DisplayName("nome duplicado é recusado com mensagem que cita o nome")
         void nomeDuplicadoRecusado() {
-            when(produtoRepository.contarNomeAtivo(LOJA, "caneta", -1)).thenReturn(1L);
+            when(produtoRepository.contarNomeAtivo(LOJA, "Caneta", -1)).thenReturn(1L);
 
             assertThatThrownBy(() -> service.salvar(formNovo("Caneta", 5), usuario))
                     .isInstanceOf(RegraNegocioException.class)
@@ -214,10 +215,10 @@ class ProdutoServiceTest {
         }
 
         @Test
-        @DisplayName("a comparação ignora maiúsculas e espaços nas pontas")
-        void comparacaoIgnoraCaixaEEspacos() {
-            service.salvar(formNovo("  CaNeTa  ", 0), usuario);
-            verify(produtoRepository).contarNomeAtivo(LOJA, "caneta", -1);
+        @DisplayName("o nome vai à consulta sem passar por lowercase do Java (o banco aplica lower(trim()) dos dois lados)")
+        void comparacaoDeixaACaixaParaOBanco() {
+            service.salvar(formNovo("  ÁGUA Mineral  ", 0), usuario);
+            verify(produtoRepository).contarNomeAtivo(LOJA, "ÁGUA Mineral", -1);
         }
 
         @Test
@@ -231,7 +232,7 @@ class ProdutoServiceTest {
 
             service.salvar(form, usuario);
 
-            verify(produtoRepository).contarNomeAtivo(LOJA, "caneta", 21);
+            verify(produtoRepository).contarNomeAtivo(LOJA, "CANETA", 21);
             assertThat(existente.getNome()).isEqualTo("CANETA");
         }
 
@@ -239,11 +240,27 @@ class ProdutoServiceTest {
         @DisplayName("violação do índice único numa corrida entre dois cadastros vira erro de negócio")
         void corridaViraErroDeNegocio() {
             when(produtoRepository.saveAndFlush(any(Produto.class)))
-                    .thenThrow(new DataIntegrityViolationException("uk"));
+                    .thenThrow(new DataIntegrityViolationException("duplicate key value violates unique constraint "
+                            + "\"ux_produto_usuario_nome_ativo\""));
 
             assertThatThrownBy(() -> service.salvar(formNovo("Caneta", 3), usuario))
                     .isInstanceOf(RegraNegocioException.class)
                     .hasMessageContaining("Já existe um produto ativo");
+            verifyNoInteractions(estoqueService);
+        }
+
+        @Test
+        @DisplayName("outra violação de integridade (ex.: FK) NÃO vira 'nome duplicado': mensagem genérica sem detalhes")
+        void outraViolacaoNaoViraNomeDuplicado() {
+            when(produtoRepository.saveAndFlush(any(Produto.class)))
+                    .thenThrow(new DataIntegrityViolationException("insert or update on table \"produto\" violates "
+                            + "foreign key constraint \"fk_produto_categoria\" Detail: Key (categoria_id)=(3)"));
+
+            assertThatThrownBy(() -> service.salvar(formNovo("Caneta", 3), usuario))
+                    .isInstanceOf(RegraNegocioException.class)
+                    .hasMessage("Não foi possível salvar: o registro relacionado foi alterado ou removido. Tente de novo.")
+                    .hasMessageNotContaining("Já existe")
+                    .hasMessageNotContaining("fk_produto_categoria");
             verifyNoInteractions(estoqueService);
         }
     }

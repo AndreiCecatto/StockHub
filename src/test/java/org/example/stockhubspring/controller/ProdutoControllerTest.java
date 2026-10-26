@@ -230,6 +230,30 @@ class ProdutoControllerTest extends ControllerTestBase {
     }
 
     @Test
+    @DisplayName("cadastro: estoque inicial acima de 1.000.000 é recusado no campo quantidade; 1.000.000 é aceito")
+    void estoqueInicialAcimaDoLimiteRecusadoNoCadastro() throws Exception {
+        mvc.perform(cadastro("quantidade", "1000001"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("produto-form"))
+                .andExpect(model().attributeHasFieldErrors("produto", "quantidade"))
+                .andExpect(model().attribute("errosCampos", hasKey("quantidade")))
+                .andExpect(model().attribute("erro", containsString("1.000.000")));
+        verify(produtoService, never()).salvar(any(), any());
+
+        mvc.perform(cadastro("quantidade", "1000000"))
+                .andExpect(redirectedUrl("/produtos"));
+        verify(produtoService).salvar(any(), any());
+    }
+
+    @Test
+    @DisplayName("edição: a quantidade é ignorada, então o saldo atual acima de 1.000.000 (campo somente leitura) não bloqueia")
+    void edicaoNaoValidaOLimiteDoEstoqueInicial() throws Exception {
+        mvc.perform(cadastro("quantidade", "1500000000").param("id", "5"))
+                .andExpect(redirectedUrl("/produtos"))
+                .andExpect(flash().attribute("mensagem", "Produto atualizado."));
+    }
+
+    @Test
     @DisplayName("sem categoria selecionada é recusado")
     void semCategoriaRecusado() throws Exception {
         mvc.perform(post("/produtos").with(logadoComo(7)).with(csrf())

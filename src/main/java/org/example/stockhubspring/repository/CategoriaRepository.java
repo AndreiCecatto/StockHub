@@ -29,8 +29,8 @@ public interface CategoriaRepository extends JpaRepository<Categoria, Integer> {
 
     /** Quantas categorias da loja têm o mesmo nome (RN-10), ignorando a própria na edição. */
     @Query("select count(c) from Categoria c where c.usuario.codigo = :usuarioCodigo "
-            + "and lower(trim(c.nome)) = :nome and c.id <> :ignorarId")
+            + "and lower(trim(c.nome)) = lower(trim(:nome)) and c.id <> :ignorarId")
     long contarNome(@Param("usuarioCodigo") Integer usuarioCodigo,
-                    @Param("nome") String nomeNormalizado,
+                    @Param("nome") String nome,
                     @Param("ignorarId") Integer ignorarId);
 }

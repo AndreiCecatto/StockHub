@@ -7,6 +7,7 @@ import org.example.stockhubspring.model.Produto;
 import org.example.stockhubspring.model.TipoMovimentacao;
 import org.example.stockhubspring.model.Usuario;
 import org.example.stockhubspring.service.UsuarioDetailsService;
+import org.example.stockhubspring.util.Restricoes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 /**
  * Última defesa: restrições e índices do banco (migration V2) e o cadastro de usuário (RN-14).
@@ -84,6 +86,41 @@ class BancoRestricoesIntegracaoTest extends IntegracaoBase {
     void bancoRecusaCategoriaDuplicada() {
         assertThatThrownBy(() -> novaCategoria(loja, "  GERAL "))
                 .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
+    @DisplayName("a exceção real do índice de produto é reconhecida pelo nome da constraint (e não pela de categoria)")
+    void violacaoDeProdutoIdentificadaPelaConstraint() {
+        novoProduto(loja, categoria, "Caneta", 1, 0);
+
+        Throwable erro = catchThrowable(() -> novoProduto(loja, categoria, "caneta", 1, 0));
+
+        assertThat(erro).isInstanceOf(DataIntegrityViolationException.class);
+        assertThat(Restricoes.violou(erro, Restricoes.UX_PRODUTO_NOME_ATIVO)).isTrue();
+        assertThat(Restricoes.violou(erro, Restricoes.UX_CATEGORIA_NOME)).isFalse();
+    }
+
+    @Test
+    @DisplayName("a exceção real do índice de categoria é reconhecida pelo nome da constraint")
+    void violacaoDeCategoriaIdentificadaPelaConstraint() {
+        Throwable erro = catchThrowable(() -> novaCategoria(loja, "geral"));
+
+        assertThat(erro).isInstanceOf(DataIntegrityViolationException.class);
+        assertThat(Restricoes.violou(erro, Restricoes.UX_CATEGORIA_NOME)).isTrue();
+        assertThat(Restricoes.violou(erro, Restricoes.UX_PRODUTO_NOME_ATIVO)).isFalse();
+    }
+
+    @Test
+    @DisplayName("violação de chave estrangeira real não é reconhecida como nome duplicado")
+    void violacaoDeFkNaoEIdentificadaComoNomeDuplicado() {
+        Produto produto = novoProduto(loja, categoria, "Caneta", 1, 0);
+
+        Throwable erro = catchThrowable(() -> jdbc.update("delete from categoria where id = ?", categoria.getId()));
+
+        assertThat(erro).isInstanceOf(DataIntegrityViolationException.class);
+        assertThat(produto.getId()).isNotNull();
+        assertThat(Restricoes.violou(erro, Restricoes.UX_PRODUTO_NOME_ATIVO)).isFalse();
+        assertThat(Restricoes.violou(erro, Restricoes.UX_CATEGORIA_NOME)).isFalse();
     }
 
     @Test

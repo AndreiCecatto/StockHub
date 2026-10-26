@@ -88,7 +88,7 @@ class CategoriaServiceTest {
         @Test
         @DisplayName("nome duplicado (sem diferenciar caixa e espaços) é recusado")
         void nomeDuplicadoRecusado() {
-            when(categoriaRepository.contarNome(LOJA, "livros", -1)).thenReturn(1L);
+            when(categoriaRepository.contarNome(LOJA, "LIVROS", -1)).thenReturn(1L);
 
             assertThatThrownBy(() -> service.salvar(form(null, "  LIVROS  "), usuario))
                     .isInstanceOf(RegraNegocioException.class)
@@ -98,10 +98,10 @@ class CategoriaServiceTest {
         }
 
         @Test
-        @DisplayName("a conferência de nome usa o nome normalizado e a loja logada")
+        @DisplayName("a conferência de nome usa o nome aparado (sem lowercase no Java) e a loja logada")
         void conferenciaUsaNomeNormalizado() {
             service.salvar(form(null, "  LiVrOs "), usuario);
-            verify(categoriaRepository).contarNome(LOJA, "livros", -1);
+            verify(categoriaRepository).contarNome(LOJA, "LiVrOs", -1);
         }
 
         @Test
@@ -128,7 +128,7 @@ class CategoriaServiceTest {
 
             Categoria salva = service.salvar(form(12, "LIVROS"), usuario);
 
-            verify(categoriaRepository).contarNome(LOJA, "livros", 12);
+            verify(categoriaRepository).contarNome(LOJA, "LIVROS", 12);
             assertThat(salva.getNome()).isEqualTo("LIVROS");
         }
 
@@ -146,11 +146,26 @@ class CategoriaServiceTest {
         @DisplayName("corrida no índice único vira erro de negócio")
         void corridaViraErroDeNegocio() {
             when(categoriaRepository.saveAndFlush(any(Categoria.class)))
-                    .thenThrow(new DataIntegrityViolationException("uk"));
+                    .thenThrow(new DataIntegrityViolationException("duplicate key value violates unique constraint "
+                            + "\"ux_categoria_usuario_nome\""));
 
             assertThatThrownBy(() -> service.salvar(form(null, "Livros"), usuario))
                     .isInstanceOf(RegraNegocioException.class)
                     .hasMessageContaining("Já existe uma categoria");
+        }
+
+        @Test
+        @DisplayName("outra violação de integridade NÃO vira 'nome duplicado': mensagem genérica sem detalhes")
+        void outraViolacaoNaoViraNomeDuplicado() {
+            when(categoriaRepository.saveAndFlush(any(Categoria.class)))
+                    .thenThrow(new DataIntegrityViolationException("insert or update on table \"categoria\" violates "
+                            + "foreign key constraint \"fk_categoria_usuario\""));
+
+            assertThatThrownBy(() -> service.salvar(form(null, "Livros"), usuario))
+                    .isInstanceOf(RegraNegocioException.class)
+                    .hasMessage("Não foi possível salvar: o registro relacionado foi alterado ou removido. Tente de novo.")
+                    .hasMessageNotContaining("Já existe")
+                    .hasMessageNotContaining("fk_categoria_usuario");
         }
     }
 

@@ -18,7 +18,11 @@ import java.math.BigDecimal;
  * sempre da sessão, nunca do POST. {@code quantidade} só vale no cadastro (estoque inicial,
  * RN-04); na edição é ignorada (RN-03).
  */
+@EstoqueInicialValido
 public class ProdutoForm {
+
+    /** Maior estoque inicial no cadastro (o mesmo limite de uma movimentação de entrada, RN-05). */
+    public static final int ESTOQUE_INICIAL_MAXIMO = 1_000_000;
 
     private Integer id;
 
@@ -36,7 +40,7 @@ public class ProdutoForm {
     private BigDecimal preco = BigDecimal.ZERO;
 
     @Min(value = 0, message = "A quantidade deve ser maior ou igual a zero.")
-    @Max(value = 2_000_000_000, message = "A quantidade é grande demais.")
+    // O máximo (1.000.000) vale só no cadastro: ver @EstoqueInicialValido na classe
     private Integer quantidade = 0;
 
     @NotNull(message = "Informe o estoque mínimo.")

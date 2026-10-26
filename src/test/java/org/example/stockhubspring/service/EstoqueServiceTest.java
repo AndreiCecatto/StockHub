@@ -432,6 +432,61 @@ class EstoqueServiceTest {
     }
 
     @Nested
+    @DisplayName("motivo reservado 'Estoque inicial' (RN-08)")
+    class MotivoReservado {
+
+        @ParameterizedTest(name = "ENTRADA/SAIDA/AJUSTE com motivo [{0}] é recusado")
+        @ValueSource(strings = {"Estoque inicial", "estoque inicial", "  ESTOQUE INICIAL  ", "Estoque Inicial\t"})
+        @DisplayName("movimentação manual com o motivo reservado é recusada e nada é gravado")
+        void movimentacaoManualComMotivoReservadoRecusada(String motivo) {
+            Produto produto = produtoComSaldo(10);
+
+            for (TipoMovimentacao tipo : TipoMovimentacao.values()) {
+                assertThatThrownBy(() -> service.movimentar(PRODUTO_ID, tipo, 1, motivo, usuario))
+                        .isInstanceOf(RegraNegocioException.class)
+                        .hasMessageContaining("reservado");
+            }
+
+            assertThat(produto.getQuantidade()).isEqualTo(10);
+            verificarQueNadaFoiGravado();
+            verifyNoInteractions(produtoRepository);
+        }
+
+        @Test
+        @DisplayName("motivo parecido (mas não igual) continua permitido")
+        void motivoParecidoContinuaPermitido() {
+            produtoComSaldo(0);
+            assertThat(service.movimentar(PRODUTO_ID, TipoMovimentacao.ENTRADA, 1, "Estoque inicial da loja", usuario)
+                    .getObservacao()).isEqualTo("Estoque inicial da loja");
+        }
+
+        @Test
+        @DisplayName("o caminho interno do cadastro grava a ENTRADA com o motivo 'Estoque inicial'")
+        void caminhoInternoGravaEstoqueInicial() {
+            Produto produto = produtoComSaldo(0);
+
+            MovimentacaoEstoque mov = service.registrarEstoqueInicial(PRODUTO_ID, 25, usuario);
+
+            assertThat(produto.getQuantidade()).isEqualTo(25);
+            assertThat(mov.getTipo()).isEqualTo(TipoMovimentacao.ENTRADA);
+            assertThat(mov.getObservacao()).isEqualTo(EstoqueService.MOTIVO_ESTOQUE_INICIAL);
+            assertThat(mov.getQuantidadeAnterior()).isZero();
+            assertThat(mov.getQuantidadeNova()).isEqualTo(25);
+        }
+
+        @Test
+        @DisplayName("o caminho interno também respeita os limites de quantidade")
+        void caminhoInternoRespeitaLimites() {
+            produtoComSaldo(0);
+            assertThatThrownBy(() -> service.registrarEstoqueInicial(PRODUTO_ID, 1_000_001, usuario))
+                    .isInstanceOf(RegraNegocioException.class);
+            assertThatThrownBy(() -> service.registrarEstoqueInicial(PRODUTO_ID, 0, usuario))
+                    .isInstanceOf(RegraNegocioException.class);
+            verificarQueNadaFoiGravado();
+        }
+    }
+
+    @Nested
     @DisplayName("histórico")
     class Historico {
 

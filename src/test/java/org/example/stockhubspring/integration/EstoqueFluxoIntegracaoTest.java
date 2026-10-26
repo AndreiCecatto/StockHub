@@ -342,6 +342,73 @@ class EstoqueFluxoIntegracaoTest extends IntegracaoBase {
     }
 
     @Test
+    @DisplayName("nome com acento: 'ÁGUA' e 'água' são o mesmo nome de produto (a comparação é toda no banco)")
+    void nomeComAcentoDetectaDuplicidadeDeProduto() {
+        produtoService.salvar(form("ÁGUA", 0), loja);
+        limparSessao();
+
+        assertThat(produtoRepository.contarNomeAtivo(loja.getCodigo(), "água", -1)).isEqualTo(1);
+        assertThat(produtoRepository.contarNomeAtivo(loja.getCodigo(), "  Água ", -1)).isEqualTo(1);
+        assertThatThrownBy(() -> produtoService.salvar(form("água", 0), loja))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessageContaining("Já existe um produto ativo");
+    }
+
+    @Test
+    @DisplayName("nome com sigma final: o lowercase do Java ('ς') difere do do banco ('σ'), mas a duplicidade é detectada")
+    void nomeComSigmaFinalDetectaDuplicidadeDeProduto() {
+        // Java: "ΟΔΟΣ".toLowerCase() = "οδος" (sigma final); PostgreSQL lower() = "οδοσ".
+        // Comparar um lado em Java e o outro no banco deixava passar a duplicata até o índice único.
+        produtoService.salvar(form("ΟΔΟΣ", 0), loja);
+        limparSessao();
+
+        assertThat(produtoRepository.contarNomeAtivo(loja.getCodigo(), "ΟΔΟΣ", -1)).isEqualTo(1);
+        assertThatThrownBy(() -> produtoService.salvar(form("ΟΔΟΣ", 0), loja))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessageContaining("Já existe um produto ativo");
+    }
+
+    @Test
+    @DisplayName("nome com acento: 'ÁGUAS' e 'águas' são o mesmo nome de categoria; sigma final também")
+    void nomeComAcentoDetectaDuplicidadeDeCategoria() {
+        categoriaService.salvar(categoriaForm("ÁGUAS"), loja);
+        categoriaService.salvar(categoriaForm("ΟΔΟΣ"), loja);
+        limparSessao();
+
+        assertThat(categoriaRepository.contarNome(loja.getCodigo(), "águas", -1)).isEqualTo(1);
+        assertThat(categoriaRepository.contarNome(loja.getCodigo(), "ΟΔΟΣ", -1)).isEqualTo(1);
+        assertThatThrownBy(() -> categoriaService.salvar(categoriaForm("águas"), loja))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessageContaining("Já existe uma categoria");
+        assertThatThrownBy(() -> categoriaService.salvar(categoriaForm("ΟΔΟΣ"), loja))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessageContaining("Já existe uma categoria");
+    }
+
+    private org.example.stockhubspring.dto.CategoriaForm categoriaForm(String nome) {
+        org.example.stockhubspring.dto.CategoriaForm form = new org.example.stockhubspring.dto.CategoriaForm();
+        form.setNome(nome);
+        return form;
+    }
+
+    @Test
+    @DisplayName("movimentação manual com o motivo reservado 'Estoque inicial' é recusada e não grava nada (RN-08)")
+    void motivoReservadoRecusadoNaMovimentacaoManual() {
+        Produto produto = produtoService.salvar(form("Caneta", 5), loja);
+        limparSessao();
+
+        assertThatThrownBy(() -> estoqueService.movimentar(produto.getId(), TipoMovimentacao.ENTRADA, 3,
+                " ESTOQUE inicial ", loja))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessageContaining("reservado");
+
+        assertThat(saldoNoBanco(produto.getId())).isEqualTo(5);
+        assertThat(contarMovimentacoesDoProduto(produto.getId())).isEqualTo(1);
+        // Com o histórico intacto (só o estoque inicial do sistema), o produto ainda pode ser excluído de vez
+        assertThat(produtoService.excluir(produto.getId(), loja.getCodigo())).isEqualTo(ResultadoExclusao.EXCLUIDO);
+    }
+
+    @Test
     @DisplayName("editar mantendo o próprio nome não é conflito, mas trocar para o nome de outro produto é")
     void editarComNomeDeOutroProduto() {
         Produto caneta = produtoService.salvar(form("Caneta", 0), loja);

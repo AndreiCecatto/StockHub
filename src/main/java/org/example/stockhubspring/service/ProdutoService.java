@@ -15,6 +15,7 @@ import org.example.stockhubspring.repository.MovimentacaoEstoqueRepository;
 import org.example.stockhubspring.repository.ProdutoRepository;
 import org.example.stockhubspring.repository.ProdutoSpecs;
 import org.example.stockhubspring.util.Paginas;
+import org.example.stockhubspring.util.Restricoes;
 import org.example.stockhubspring.util.Textos;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -141,7 +142,7 @@ public class ProdutoService {
         if (estoqueInicial < 0) {
             throw new RegraNegocioException("A quantidade deve ser maior ou igual a zero.");
         }
-        if (estoqueInicial > EstoqueService.QUANTIDADE_MAXIMA_MOVIMENTACAO) {
+        if (estoqueInicial > ProdutoForm.ESTOQUE_INICIAL_MAXIMO) {
             throw new RegraNegocioException("O estoque inicial deve ser no máximo 1.000.000. "
                     + "Cadastre o produto e registre entradas adicionais.");
         }
@@ -155,8 +156,8 @@ public class ProdutoService {
         produto = gravar(produto, nome);
 
         if (estoqueInicial > 0) {
-            estoqueService.movimentar(produto.getId(), TipoMovimentacao.ENTRADA, estoqueInicial,
-                    EstoqueService.MOTIVO_ESTOQUE_INICIAL, usuario);
+            // Caminho interno: o motivo "Estoque inicial" é reservado e recusado em movimentar()
+            estoqueService.registrarEstoqueInicial(produto.getId(), estoqueInicial, usuario);
         }
         return produto;
     }
@@ -183,7 +184,11 @@ public class ProdutoService {
             // saveAndFlush: se outra requisição criou o mesmo nome agora, o índice único acusa aqui
             return produtoRepository.saveAndFlush(produto);
         } catch (DataIntegrityViolationException e) {
-            throw nomeDuplicado(nome);
+            if (Restricoes.violou(e, Restricoes.UX_PRODUTO_NOME_ATIVO)) {
+                throw nomeDuplicado(nome);
+            }
+            // Outra violação (ex.: categoria removida no meio do caminho): sem vazar detalhes do banco
+            throw new RegraNegocioException(Restricoes.MENSAGEM_GENERICA);
         }
     }
 
@@ -219,9 +224,12 @@ public class ProdutoService {
                 && EstoqueService.MOTIVO_ESTOQUE_INICIAL.equals(movimentacao.getObservacao());
     }
 
-    /** RN-10: dois produtos ativos da mesma loja não podem ter o mesmo nome. */
+    /**
+     * RN-10: dois produtos ativos da mesma loja não podem ter o mesmo nome. O banco aplica
+     * {@code lower(trim())} aos dois lados (igual ao índice único), então o nome vai sem normalizar.
+     */
     private void validarNomeUnico(String nome, Integer usuarioCodigo, Integer ignorarId) {
-        if (produtoRepository.contarNomeAtivo(usuarioCodigo, Textos.normalizarNome(nome), ignorarId) > 0) {
+        if (produtoRepository.contarNomeAtivo(usuarioCodigo, nome, ignorarId) > 0) {
             throw nomeDuplicado(nome);
         }
     }

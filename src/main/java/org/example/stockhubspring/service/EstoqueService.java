@@ -61,6 +61,32 @@ public class EstoqueService {
     @Transactional
     public MovimentacaoEstoque movimentar(Integer produtoId, TipoMovimentacao tipo, int quantidade,
                                           String observacao, Usuario usuario) {
+        // RN-08: o motivo "Estoque inicial" identifica o único registro que pode ser apagado junto
+        // com o produto; por isso só o sistema o grava (ver registrarEstoqueInicial).
+        if (ehMotivoReservado(observacao)) {
+            throw new RegraNegocioException("O motivo \"" + MOTIVO_ESTOQUE_INICIAL + "\" é reservado ao sistema "
+                    + "(é gerado ao cadastrar um produto com saldo). Informe outro motivo.");
+        }
+        return registrar(produtoId, tipo, quantidade, observacao, usuario);
+    }
+
+    /**
+     * Caminho interno, usado só pelo {@code ProdutoService} ao cadastrar um produto com saldo (RN-04):
+     * grava a ENTRADA com o motivo reservado. Não é alcançado por nenhum formulário.
+     */
+    @Transactional
+    public MovimentacaoEstoque registrarEstoqueInicial(Integer produtoId, int quantidade, Usuario usuario) {
+        return registrar(produtoId, TipoMovimentacao.ENTRADA, quantidade, MOTIVO_ESTOQUE_INICIAL, usuario);
+    }
+
+    /** O motivo é o texto reservado do estoque inicial? Ignora maiúsculas e espaços nas pontas. */
+    public static boolean ehMotivoReservado(String observacao) {
+        return observacao != null
+                && Textos.normalizarNome(observacao).equals(Textos.normalizarNome(MOTIVO_ESTOQUE_INICIAL));
+    }
+
+    private MovimentacaoEstoque registrar(Integer produtoId, TipoMovimentacao tipo, int quantidade,
+                                          String observacao, Usuario usuario) {
         if (tipo == null) {
             throw new RegraNegocioException("Informe o tipo da movimentação.");
         }
