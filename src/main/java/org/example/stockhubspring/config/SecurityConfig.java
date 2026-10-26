@@ -1,5 +1,6 @@
 package org.example.stockhubspring.config;
 
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -21,6 +22,9 @@ public class SecurityConfig {
         http
                 // Rotas publicas: login, cadastro, pagina de erro e recursos estaticos. O resto exige login.
                 .authorizeHttpRequests(auth -> auth
+                        // O forward interno para as JSPs (e para /error) acontece depois de a requisicao
+                        // original ja ter sido autorizada; sem isso o login redireciona para si mesmo.
+                        .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
                         .requestMatchers("/login", "/index.jsp", "/cadastro", "/error",
                                 "/css/**", "/js/**", "/img/**", "/images/**", "/favicon.ico").permitAll()
                         .anyRequest().authenticated())
