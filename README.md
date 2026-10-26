@@ -57,7 +57,7 @@ A aplicação foi estruturada utilizando diferentes camadas para separar as resp
 | **Banco de Dados** | PostgreSQL, SQL |
 | **Build** | Maven |
 | **Versionamento** | Git, GitHub |
-| **Servidor** | WildFly |
+| **Servidor** | Tomcat embutido (Spring Boot) |
 
 <br>
 
@@ -95,19 +95,23 @@ O projeto utiliza uma arquitetura baseada na separação de responsabilidades en
 
 ```text
 src/
-└── main/
-    ├── java/
-    │   ├── config/
-    │   ├── controller/
-    │   ├── model/
-    │   ├── repository/
-    │   └── service/
-    ├── resources/
-    │   └── application.properties
-    └── webapp/
-        └── WEB-INF/
-            ├── includes/
-            └── pages/
+├── main/
+│   ├── java/org/example/stockhubspring/
+│   │   ├── config/
+│   │   ├── controller/
+│   │   ├── model/
+│   │   ├── repository/
+│   │   ├── service/
+│   │   └── StockHubSpringApplication.java
+│   ├── resources/
+│   │   ├── application.properties
+│   │   └── application-example.properties
+│   └── webapp/
+│       ├── css/
+│       └── WEB-INF/
+│           ├── includes/
+│           └── pages/
+└── test/java/org/example/stockhubspring/
 pom.xml
 README.md
 ```
@@ -132,8 +136,8 @@ O projeto utiliza JPA e Hibernate para realizar o mapeamento entre as entidades 
 
 | Requisito | Versão |
 | :--- | :--- |
-| **Java** | 17 ou superior |
-| **Maven** | 3.9+ |
+| **JDK** | 17 (não use o Java 8/JRE) |
+| **Maven** | Opcional (o projeto inclui o wrapper `mvnw`) |
 | **PostgreSQL** | 14+ |
 | **Git** | Versão atual |
 
@@ -147,52 +151,53 @@ git clone https://github.com/AndreiCecatto/StockHub.git
 cd StockHub
 ```
 
-### 2. Configure o banco de dados
-Crie um banco PostgreSQL para o projeto. Exemplo:
+### 2. Configure o JDK 17
+Se a variável `JAVA_HOME` estiver vazia, aponte para um JDK 17. Exemplo usando o JDK embutido do IntelliJ (PowerShell):
+
+```powershell
+$env:JAVA_HOME="C:\Program Files\JetBrains\IntelliJ IDEA 2026.2.1\jbr"
+```
+
+### 3. Configure o banco de dados
+Crie um banco PostgreSQL para o projeto:
 
 ```sql
 CREATE DATABASE stockhub;
 ```
 
-Depois, configure a conexão no arquivo `src/main/resources/application.properties`:
+As credenciais **nunca** ficam no `application.properties`. Informe-as de uma das formas abaixo:
 
-```properties
-spring.application.name=StockHub-Spring
-spring.datasource.url=jdbc:postgresql://localhost:5432/stockhub
-spring.datasource.username=postgres
-spring.datasource.password=SUA_SENHA
-
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
-
-spring.mvc.view.prefix=/WEB-INF/pages/
-spring.mvc.view.suffix=.jsp
-
-server.port=8080
+**Opção A: variáveis de ambiente** (PowerShell)
+```powershell
+$env:DB_USERNAME="seu_usuario"
+$env:DB_PASSWORD="sua_senha"
 ```
 
-### 3. Instale as dependências
-```bash
-mvn clean install
-```
+**Opção B: arquivo `application-local.properties`**
+Copie `src/main/resources/application-example.properties` para `src/main/resources/application-local.properties` e preencha usuário e senha reais (`spring.datasource.username` e `spring.datasource.password`). Esse arquivo é carregado automaticamente (`spring.config.import`) e está no `.gitignore`, portanto **não é versionado**.
 
 ### 4. Execute a aplicação
+O projeto roda com o Tomcat embutido do Spring Boot (não é necessário WildFly nem outro servidor):
+
 ```bash
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
 
-No Windows, também é possível utilizar:
+No Windows:
 ```cmd
 mvnw.cmd spring-boot:run
 ```
 
 ### 5. Acesse a aplicação
-Após iniciar o servidor:
 ```text
 http://localhost:8080
 ```
 
+### Testes e build
+```bash
+./mvnw test
+./mvnw clean package
+```
 ---
 
 ##  Conceitos aplicados
