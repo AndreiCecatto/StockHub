@@ -65,7 +65,7 @@
                                         <form method="post" class="m-0"
                                             action="${pageContext.request.contextPath}/categorias/<c:out value='${categoria.id}'/>/excluir"
                                             data-confirmar-exclusao data-tipo="a categoria" data-nome="<c:out value='${categoria.nome}'/>"
-                                            data-aviso="A categoria só pode ser excluída se não tiver produtos ativos.">
+                                            data-aviso="A categoria não pode ser excluída se algum produto a usa, ativo ou inativado (o histórico é preservado).">
                                             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
                                             <button class="btn btn-outline-danger btn-sm" type="submit"
                                                 aria-label="Excluir categoria <c:out value='${categoria.nome}'/>">

@@ -115,7 +115,7 @@
                                         <c:otherwise>
                                             <label class="form-label" for="quantidade">Estoque inicial</label>
                                             <input id="quantidade" class="form-control ${not empty eQuantidade ? 'is-invalid' : ''}"
-                                                type="number" min="0" max="2000000000" name="quantidade"
+                                                type="number" min="0" max="1000000" name="quantidade"
                                                 value="<c:out value='${produto.quantidade}'/>" required
                                                 aria-describedby="dica-quantidade${not empty eQuantidade ? ' erro-quantidade' : ''}"
                                                 ${not empty eQuantidade ? 'aria-invalid="true"' : ''}>

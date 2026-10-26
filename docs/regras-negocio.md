@@ -16,12 +16,15 @@ Cada `Usuario` representa uma loja, com seus próprios produtos, categorias e mo
 | RN-06 | **Movimentação é imutável e auditável.** Guarda produto, usuário, tipo, quantidade, `quantidadeAnterior`, `quantidadeNova`, observação e data de criação. Não existe edição nem exclusão. Erro se corrige com outra movimentação. | trilha de auditoria confiável |
 | RN-07 | **Atomicidade e concorrência.** A movimentação lê o produto com bloqueio pessimista, calcula e grava saldo e movimentação na mesma transação. | evita lost update com dois usuários mexendo ao mesmo tempo |
 | RN-08 | **Exclusão de produto.** Produto sem movimentação além do estoque inicial pode ser excluído de vez. Com histórico é **inativado** (`ativo=false`): some das listagens e do dashboard, não aceita movimentação, e o histórico permanece. | preserva a auditoria sem bloquear o usuário |
-| RN-09 | **Exclusão de categoria.** Só é permitida se não tiver produtos ativos. Caso contrário a mensagem diz quantos produtos a usam. | evita erro de FK e produto sem categoria |
-| RN-10 | **Nomes únicos por loja.** Não pode haver dois produtos ativos nem duas categorias com o mesmo nome (sem diferenciar maiúsculas e sem espaços nas pontas) na mesma loja. | evita duplicidade na contagem |
+| RN-09 | **Exclusão de categoria.** Só é permitida se **nenhum** produto a usar, ativo ou inativado. Com produtos ativos a mensagem diz quantos a usam; se só restarem inativados, diz que eles são mantidos para preservar o histórico. | evita erro de FK e produto sem categoria || RN-10 | **Nomes únicos por loja.** Não pode haver dois produtos ativos nem duas categorias com o mesmo nome (sem diferenciar maiúsculas e sem espaços nas pontas) na mesma loja. | evita duplicidade na contagem |
 | RN-11 | **Faixas de valores.** Nome de 2 a 120 caracteres, descrição até 500, observação até 255, preço maior ou igual a zero com 2 casas (até 9.999.999,99), estoque mínimo maior ou igual a zero. | dados limpos e coerentes com as colunas |
 | RN-12 | **Nível de estoque tem uma definição só.** `SEM_ESTOQUE` quando saldo = 0; `BAIXO` quando 0 < saldo ≤ estoque mínimo; `NORMAL` acima disso. Dashboard, filtros e alertas usam esse mesmo cálculo. | o diagnóstico achou duas definições diferentes |
 | RN-13 | **Valor do estoque** é a soma de preço × quantidade dos produtos ativos, calculada no banco. | consistente e sem carregar tudo em memória |
 | RN-14 | **Usuário.** E-mail normalizado (sem espaços, minúsculo) e único, inclusive entre inativos. Senha de 8 a 72 bytes, sempre com BCrypt. Cadastro duplicado responde com mensagem genérica. | segurança e não revelar quais e-mails existem |
+
+> Nota RN-09: o produto inativado (RN-08) continua apontando para a categoria (chave estrangeira obrigatória), então ele também impede a exclusão. Para liberar a categoria é preciso mover os produtos ativos para outra categoria; os inativados mantêm a categoria original por serem histórico.
+
+> Nota RN-04/RN-08: o motivo "Estoque inicial" (sem diferenciar maiúsculas e espaços) é reservado ao sistema. A movimentação manual com esse motivo é recusada; só o cadastro de produto o grava (`EstoqueService.registrarEstoqueInicial`). No cadastro o estoque inicial vai de 0 a 1.000.000; na edição a quantidade é ignorada.
 
 ## Modelo de dados exigido (migration V2)
 Aplicar sobre a V1, sem apagar dados:
