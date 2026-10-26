@@ -1,5 +1,6 @@
 package org.example.stockhubspring.service;
 
+import org.example.stockhubspring.dto.MovimentacaoFiltro;
 import org.example.stockhubspring.exception.RecursoNaoEncontradoException;
 import org.example.stockhubspring.exception.RegraNegocioException;
 import org.example.stockhubspring.model.MovimentacaoEstoque;
@@ -24,6 +25,7 @@ import org.mockito.quality.Strictness;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -490,21 +493,90 @@ class EstoqueServiceTest {
     @DisplayName("histórico")
     class Historico {
 
+        @SuppressWarnings("unchecked")
+        private ArgumentCaptor<Pageable> capturarConsulta() {
+            ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+            verify(movimentacaoRepository).findAll(any(Specification.class), captor.capture());
+            return captor;
+        }
+
+        @SuppressWarnings("unchecked")
+        private void simularRepositorioVazio() {
+            when(movimentacaoRepository.findAll(any(Specification.class), any(Pageable.class)))
+                    .thenAnswer(inv -> new PageImpl<MovimentacaoEstoque>(List.of(), inv.getArgument(1), 0));
+        }
+
         @Test
         @DisplayName("lista do mais recente para o mais antigo e limita o tamanho da página a 100")
         void ordenaDescEPaginaLimitada() {
-            ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
-            when(movimentacaoRepository.findByUsuarioCodigo(any(), any(Pageable.class)))
-                    .thenAnswer(inv -> new PageImpl<MovimentacaoEstoque>(List.of(), inv.getArgument(1), 0));
+            simularRepositorioVazio();
 
             service.listarMovimentacoes(7, 0, 100_000);
 
-            verify(movimentacaoRepository).findByUsuarioCodigo(any(), captor.capture());
-            Pageable pageable = captor.getValue();
+            Pageable pageable = capturarConsulta().getValue();
             assertThat(pageable.getPageNumber()).isZero();
             assertThat(pageable.getPageSize()).isEqualTo(EstoqueService.TAMANHO_MAXIMO_PAGINA);
             assertThat(pageable.getSort().getOrderFor("criadoEm").getDirection()).isEqualTo(Sort.Direction.DESC);
             assertThat(pageable.getSort().getOrderFor("id").getDirection()).isEqualTo(Sort.Direction.DESC);
+        }
+
+        @Test
+        @DisplayName("histórico filtrado também limita a página e mantém a ordem recente primeiro")
+        void filtradoMantemOrdemEPagina() {
+            simularRepositorioVazio();
+
+            service.listarMovimentacoes(7, new MovimentacaoFiltro(4, TipoMovimentacao.SAIDA, null, null), 3, 50);
+
+            Pageable pageable = capturarConsulta().getValue();
+            assertThat(pageable.getPageNumber()).isEqualTo(2);
+            assertThat(pageable.getPageSize()).isEqualTo(50);
+            assertThat(pageable.getSort().getOrderFor("criadoEm").getDirection()).isEqualTo(Sort.Direction.DESC);
+        }
+
+        @Test
+        @DisplayName("exportação: uma consulta sem paginação de verdade, limitada a 10.000 linhas, recentes primeiro")
+        void exportacaoLimitada() {
+            simularRepositorioVazio();
+
+            service.listarParaExportar(7, MovimentacaoFiltro.VAZIO);
+
+            Pageable pageable = capturarConsulta().getValue();
+            assertThat(pageable.getPageNumber()).isZero();
+            assertThat(pageable.getPageSize()).isEqualTo(EstoqueService.LIMITE_EXPORTACAO).isEqualTo(10_000);
+            assertThat(pageable.getSort().getOrderFor("criadoEm").getDirection()).isEqualTo(Sort.Direction.DESC);
+        }
+
+        @Test
+        @DisplayName("últimas do produto: consulta pela loja e pelo produto, recentes primeiro, com limite")
+        void ultimasDoProduto() {
+            when(movimentacaoRepository.findByProdutoIdAndUsuarioCodigo(any(), any(), any(Pageable.class)))
+                    .thenReturn(List.of());
+            ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+
+            service.ultimasDoProduto(4, 7, 20);
+
+            verify(movimentacaoRepository).findByProdutoIdAndUsuarioCodigo(eq(4), eq(7), captor.capture());
+            assertThat(captor.getValue().getPageNumber()).isZero();
+            assertThat(captor.getValue().getPageSize()).isEqualTo(20);
+            assertThat(captor.getValue().getSort().getOrderFor("criadoEm").getDirection())
+                    .isEqualTo(Sort.Direction.DESC);
+            assertThat(captor.getValue().getSort().getOrderFor("id").getDirection()).isEqualTo(Sort.Direction.DESC);
+        }
+
+        @Test
+        @DisplayName("últimas do produto: limite absurdo ou zero é corrigido")
+        void ultimasDoProdutoLimiteCorrigido() {
+            when(movimentacaoRepository.findByProdutoIdAndUsuarioCodigo(any(), any(), any(Pageable.class)))
+                    .thenReturn(List.of());
+            ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+
+            service.ultimasDoProduto(4, 7, 0);
+            service.ultimasDoProduto(4, 7, 1_000_000);
+
+            verify(movimentacaoRepository, org.mockito.Mockito.times(2))
+                    .findByProdutoIdAndUsuarioCodigo(eq(4), eq(7), captor.capture());
+            assertThat(captor.getAllValues()).extracting(Pageable::getPageSize)
+                    .containsExactly(1, EstoqueService.TAMANHO_MAXIMO_PAGINA);
         }
     }
 }

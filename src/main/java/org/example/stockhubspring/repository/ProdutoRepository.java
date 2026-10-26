@@ -39,7 +39,8 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer>, JpaS
     @EntityGraph(attributePaths = "categoria")
     List<Produto> findByUsuarioCodigoAndAtivoTrue(Integer usuarioCodigo, Pageable pageable);
 
-    /** Lista simples (nome do produto) para o seletor de movimentação. */
+    /** Lista para o seletor de movimentação (nome do produto e da categoria, numa só consulta). */
+    @EntityGraph(attributePaths = "categoria")
     List<Produto> findByUsuarioCodigoAndAtivoTrueOrderByNomeAsc(Integer usuarioCodigo);
 
     long countByCategoriaIdAndUsuarioCodigoAndAtivoTrue(Integer categoriaId, Integer usuarioCodigo);

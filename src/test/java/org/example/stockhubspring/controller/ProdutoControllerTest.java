@@ -4,9 +4,12 @@ import org.example.stockhubspring.dto.ProdutoFiltro;
 import org.example.stockhubspring.dto.ProdutoForm;
 import org.example.stockhubspring.exception.RecursoNaoEncontradoException;
 import org.example.stockhubspring.exception.RegraNegocioException;
+import org.example.stockhubspring.model.MovimentacaoEstoque;
+import org.example.stockhubspring.model.Produto;
 import org.example.stockhubspring.model.Usuario;
 import org.example.stockhubspring.model.NivelEstoque;
 import org.example.stockhubspring.service.ProdutoService.ResultadoExclusao;
+import org.example.stockhubspring.testsupport.Fabrica;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,11 +17,15 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -27,6 +34,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -76,8 +84,8 @@ class ProdutoControllerTest extends ControllerTestBase {
 
         ArgumentCaptor<ProdutoFiltro> filtro = ArgumentCaptor.forClass(ProdutoFiltro.class);
         verify(produtoService).listarPagina(filtro.capture(), eq(7));
-        org.assertj.core.api.Assertions.assertThat(filtro.getValue().nivel()).isEqualTo(NivelEstoque.BAIXO);
-        org.assertj.core.api.Assertions.assertThat(filtro.getValue().pagina()).isEqualTo(1);
+        assertThat(filtro.getValue().nivel()).isEqualTo(NivelEstoque.BAIXO);
+        assertThat(filtro.getValue().pagina()).isEqualTo(1);
     }
 
     @Test
@@ -136,8 +144,8 @@ class ProdutoControllerTest extends ControllerTestBase {
         ArgumentCaptor<Usuario> usuario = ArgumentCaptor.forClass(Usuario.class);
         ArgumentCaptor<ProdutoForm> form = ArgumentCaptor.forClass(ProdutoForm.class);
         verify(produtoService).salvar(form.capture(), usuario.capture());
-        org.assertj.core.api.Assertions.assertThat(usuario.getValue().getCodigo()).isEqualTo(7);
-        org.assertj.core.api.Assertions.assertThat(form.getValue().getNome()).isEqualTo("Caneta");
+        assertThat(usuario.getValue().getCodigo()).isEqualTo(7);
+        assertThat(form.getValue().getNome()).isEqualTo("Caneta");
     }
 
     @Test
@@ -156,7 +164,7 @@ class ProdutoControllerTest extends ControllerTestBase {
 
         ArgumentCaptor<Usuario> usuario = ArgumentCaptor.forClass(Usuario.class);
         verify(produtoService).salvar(any(), usuario.capture());
-        org.assertj.core.api.Assertions.assertThat(usuario.getValue().getCodigo()).isEqualTo(7);
+        assertThat(usuario.getValue().getCodigo()).isEqualTo(7);
     }
 
     @Test
@@ -276,7 +284,7 @@ class ProdutoControllerTest extends ControllerTestBase {
                 .andExpect(redirectedUrl("/produtos"));
         ArgumentCaptor<ProdutoForm> form = ArgumentCaptor.forClass(ProdutoForm.class);
         verify(produtoService).salvar(form.capture(), any());
-        org.assertj.core.api.Assertions.assertThat(form.getValue().getNome()).isEqualTo("<script>alert(1)</script>");
+        assertThat(form.getValue().getNome()).isEqualTo("<script>alert(1)</script>");
     }
 
     @Test
@@ -325,5 +333,126 @@ class ProdutoControllerTest extends ControllerTestBase {
     void idNaoNumericoDa4xx() throws Exception {
         mvc.perform(get("/produtos/abc").with(logadoComo(7)))
                 .andExpect(status().is4xxClientError());
+    }
+
+    // ----- B8: tamanho padrão -----
+
+    @Test
+    @DisplayName("sem o parâmetro tamanho, a listagem usa 25 produtos por página")
+    void tamanhoPadraoDe25() throws Exception {
+        mvc.perform(get("/produtos").with(logadoComo(7)))
+                .andExpect(model().attribute("tamanho", 25));
+        ArgumentCaptor<ProdutoFiltro> filtro = ArgumentCaptor.forClass(ProdutoFiltro.class);
+        verify(produtoService).listarPagina(filtro.capture(), eq(7));
+        assertThat(filtro.getValue().tamanho()).isEqualTo(25);
+    }
+
+    // ----- B3: histórico no detalhe -----
+
+    @Test
+    @DisplayName("detalhe expõe movimentacoesProduto (as últimas 20 do produto, da loja da sessão)")
+    void detalheComMovimentacoes() throws Exception {
+        Produto produto = Fabrica.produto(4, "Caneta", 10, 2, Fabrica.usuario(7));
+        MovimentacaoEstoque mov = new MovimentacaoEstoque();
+        mov.setQuantidadeAnterior(5);
+        mov.setQuantidadeNova(10);
+        when(produtoService.buscarPorId(4, 7)).thenReturn(produto);
+        when(estoqueService.ultimasDoProduto(4, 7, 20)).thenReturn(List.of(mov));
+
+        mvc.perform(get("/produtos/4").with(logadoComo(7)))
+                .andExpect(status().isOk())
+                .andExpect(view().name("produto-detalhe"))
+                .andExpect(model().attribute("produto", produto))
+                .andExpect(model().attribute("movimentacoesProduto", List.of(mov)));
+    }
+
+    @Test
+    @DisplayName("detalhe de produto de outra loja responde 404 e nem consulta o histórico")
+    void detalheDeOutraLojaNaoConsultaHistorico() throws Exception {
+        when(produtoService.buscarPorId(99, 7)).thenThrow(new RecursoNaoEncontradoException("Produto não encontrado."));
+        mvc.perform(get("/produtos/99").with(logadoComo(7)))
+                .andExpect(status().isNotFound());
+        verify(estoqueService, never()).ultimasDoProduto(any(), any(), anyInt());
+    }
+
+    // ----- B4: exportação CSV -----
+
+    private Produto produtoParaCsv(String nome, String descricao, int quantidade) {
+        Usuario loja = Fabrica.usuario(7);
+        Produto produto = Fabrica.produto(4, nome, quantidade, 2, loja);
+        produto.setDescricao(descricao);
+        produto.setPreco(new java.math.BigDecimal("1234.5"));
+        produto.setCategoria(Fabrica.categoria(3, "Papelaria", loja));
+        return produto;
+    }
+
+    @Test
+    @DisplayName("exportar.csv: BOM UTF-8, ';', cabeçalhos em português, decimal com vírgula e anexo com data")
+    void exportarCsvFormato() throws Exception {
+        when(produtoService.listarParaExportar(any(), eq(7)))
+                .thenReturn(new PageImpl<>(List.of(produtoParaCsv("Caneta", "Azul", 3))));
+
+        byte[] corpo = mvc.perform(get("/produtos/exportar.csv").with(logadoComo(7)))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Disposition",
+                        matchesPattern("attachment; filename=\"produtos-\\d{4}-\\d{2}-\\d{2}\\.csv\"")))
+                .andExpect(header().string("Content-Type", containsString("text/csv")))
+                .andExpect(header().string("Content-Type", containsString("charset=UTF-8")))
+                .andReturn().getResponse().getContentAsByteArray();
+
+        assertThat(corpo).startsWith((byte) 0xEF, (byte) 0xBB, (byte) 0xBF);
+        String texto = new String(corpo, 3, corpo.length - 3, StandardCharsets.UTF_8);
+        assertThat(texto.split("\r\n")).containsExactly(
+                "Código;Nome;Descrição;Categoria;Preço (R$);Quantidade;Estoque mínimo;Nível de estoque;Valor em estoque (R$)",
+                "4;Caneta;Azul;Papelaria;1234,50;3;2;Estoque normal;3703,50");
+    }
+
+    @Test
+    @DisplayName("exportar.csv respeita busca, categoria, nível e ordenação da listagem, sem paginação, só da loja da sessão")
+    void exportarCsvRespeitaFiltros() throws Exception {
+        when(produtoService.listarParaExportar(any(), eq(7))).thenReturn(new PageImpl<>(List.of()));
+
+        mvc.perform(get("/produtos/exportar.csv").with(logadoComo(7))
+                        .param("busca", " caneta ").param("categoriaId", "3").param("nivelEstoque", "baixo")
+                        .param("ordenacao", "nome").param("direcao", "asc")
+                        .param("pagina", "9").param("tamanho", "1"))
+                .andExpect(status().isOk());
+
+        ArgumentCaptor<ProdutoFiltro> filtro = ArgumentCaptor.forClass(ProdutoFiltro.class);
+        verify(produtoService).listarParaExportar(filtro.capture(), eq(7));
+        assertThat(filtro.getValue().busca()).isEqualTo("caneta");
+        assertThat(filtro.getValue().categoriaId()).isEqualTo(3);
+        assertThat(filtro.getValue().nivel()).isEqualTo(NivelEstoque.BAIXO);
+        assertThat(filtro.getValue().ordenacao()).isEqualTo("nome");
+        assertThat(filtro.getValue().direcao()).isEqualTo("asc");
+    }
+
+    @Test
+    @DisplayName("exportar.csv protege fórmulas (= + - @ tab CR) e escapa aspas, ';' e quebras nos textos")
+    void exportarCsvProtegeEEscapa() throws Exception {
+        when(produtoService.listarParaExportar(any(), eq(7))).thenReturn(new PageImpl<>(List.of(
+                produtoParaCsv("=1+1", "+cmd|' /C calc'!A0", 1),
+                produtoParaCsv("-5", "@SUM(A1)", 1),
+                produtoParaCsv("\t=x", "\r=y", 1),
+                produtoParaCsv("Caneta \"azul\"; 2 un", "linha1\nlinha2", 1))));
+
+        byte[] corpo = mvc.perform(get("/produtos/exportar.csv").with(logadoComo(7)))
+                .andReturn().getResponse().getContentAsByteArray();
+        String texto = new String(corpo, 3, corpo.length - 3, StandardCharsets.UTF_8);
+
+        assertThat(texto)
+                .contains("4;'=1+1;'+cmd|' /C calc'!A0;Papelaria;")
+                .contains("4;'-5;'@SUM(A1);Papelaria;")
+                .contains("4;'\t=x;\"'\r=y\";Papelaria;")
+                .contains("4;\"Caneta \"\"azul\"\"; 2 un\";\"linha1\nlinha2\";Papelaria;");
+    }
+
+    @Test
+    @DisplayName("exportar.csv não é capturado por /produtos/{id} (não vira erro de id inválido)")
+    void exportarCsvNaoEUmId() throws Exception {
+        when(produtoService.listarParaExportar(any(), eq(7))).thenReturn(new PageImpl<>(List.of()));
+        mvc.perform(get("/produtos/exportar.csv").with(logadoComo(7)))
+                .andExpect(status().isOk());
+        verify(produtoService, never()).buscarPorId(any(), any());
     }
 }

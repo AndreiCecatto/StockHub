@@ -15,7 +15,7 @@ import java.util.Map;
 public record ProdutoFiltro(String busca, Integer categoriaId, NivelEstoque nivel,
                             String ordenacao, String direcao, int pagina, int tamanho) {
 
-    public static final int TAMANHO_PADRAO = 8;
+    public static final int TAMANHO_PADRAO = 25;
     public static final int TAMANHO_MAXIMO = 100;
 
     // Lista branca: campo da tela -> propriedade JPA. Qualquer outro valor cai em "id".

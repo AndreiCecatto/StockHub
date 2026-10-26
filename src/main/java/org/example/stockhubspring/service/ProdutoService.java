@@ -38,6 +38,8 @@ public class ProdutoService {
     }
 
     public static final int TAMANHO_MAXIMO_PAGINA = ProdutoFiltro.TAMANHO_MAXIMO;
+    /** Máximo de linhas de uma exportação CSV de produtos (proteção de memória). */
+    public static final int LIMITE_EXPORTACAO = 10_000;
 
     private final ProdutoRepository produtoRepository;
     private final CategoriaRepository categoriaRepository;
@@ -57,6 +59,24 @@ public class ProdutoService {
     /** Listagem paginada com filtros e ordenação feitos no banco. */
     @Transactional(readOnly = true)
     public Page<Produto> listarPagina(ProdutoFiltro filtro, Integer usuarioCodigo) {
+        Specification<Produto> especificacao = especificacao(filtro, usuarioCodigo);
+        return Paginas.buscar(filtro.pagina(), filtro.tamanho(), TAMANHO_MAXIMO_PAGINA, ordem(filtro),
+                pageable -> produtoRepository.findAll(especificacao, pageable));
+    }
+
+    /**
+     * Produtos para exportação: mesmos filtros e ordenação da listagem, sem paginação, no máximo
+     * {@link #LIMITE_EXPORTACAO} linhas. Se {@code getTotalElements()} for maior que
+     * {@code getNumberOfElements()}, a exportação foi truncada pelo limite.
+     */
+    @Transactional(readOnly = true)
+    public Page<Produto> listarParaExportar(ProdutoFiltro filtro, Integer usuarioCodigo) {
+        return produtoRepository.findAll(especificacao(filtro, usuarioCodigo),
+                PageRequest.of(0, LIMITE_EXPORTACAO, ordem(filtro)));
+    }
+
+    /** Produtos ativos da loja (RN-01, RN-08) com os filtros da listagem. */
+    private Specification<Produto> especificacao(ProdutoFiltro filtro, Integer usuarioCodigo) {
         Specification<Produto> spec = ProdutoSpecs.ativosDoUsuario(usuarioCodigo);
         if (filtro.busca() != null) {
             spec = spec.and(ProdutoSpecs.comBusca(filtro.busca()));
@@ -67,6 +87,10 @@ public class ProdutoService {
         if (filtro.nivel() != null) {
             spec = spec.and(ProdutoSpecs.comNivel(filtro.nivel()));
         }
+        return spec;
+    }
+
+    private Sort ordem(ProdutoFiltro filtro) {
         // Desempate por id mantém a paginação estável quando o campo escolhido tem valores repetidos
         Sort.Order principal = "asc".equals(filtro.direcao())
                 ? Sort.Order.asc(filtro.propriedadeOrdenacao())
@@ -74,11 +98,7 @@ public class ProdutoService {
         if ("nome".equals(filtro.ordenacao()) || "categoria".equals(filtro.ordenacao())) {
             principal = principal.ignoreCase();
         }
-        Sort ordem = "id".equals(filtro.ordenacao()) ? Sort.by(principal) : Sort.by(principal, Sort.Order.asc("id"));
-
-        Specification<Produto> especificacao = spec;
-        return Paginas.buscar(filtro.pagina(), filtro.tamanho(), TAMANHO_MAXIMO_PAGINA, ordem,
-                pageable -> produtoRepository.findAll(especificacao, pageable));
+        return "id".equals(filtro.ordenacao()) ? Sort.by(principal) : Sort.by(principal, Sort.Order.asc("id"));
     }
 
     /** Últimos produtos cadastrados (painel). */

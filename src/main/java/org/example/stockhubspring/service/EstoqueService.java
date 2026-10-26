@@ -1,5 +1,6 @@
 package org.example.stockhubspring.service;
 
+import org.example.stockhubspring.dto.MovimentacaoFiltro;
 import org.example.stockhubspring.exception.RecursoNaoEncontradoException;
 import org.example.stockhubspring.exception.RegraNegocioException;
 import org.example.stockhubspring.model.MovimentacaoEstoque;
@@ -7,13 +8,18 @@ import org.example.stockhubspring.model.Produto;
 import org.example.stockhubspring.model.TipoMovimentacao;
 import org.example.stockhubspring.model.Usuario;
 import org.example.stockhubspring.repository.MovimentacaoEstoqueRepository;
+import org.example.stockhubspring.repository.MovimentacaoSpecs;
 import org.example.stockhubspring.repository.ProdutoRepository;
 import org.example.stockhubspring.util.Paginas;
 import org.example.stockhubspring.util.Textos;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * Único ponto que altera o saldo de um produto (RN-03). Cada movimentação lê o produto com
@@ -30,6 +36,10 @@ public class EstoqueService {
     public static final int SALDO_MAXIMO = 2_000_000_000;
     public static final int OBSERVACAO_MAXIMA = 255;
     public static final int TAMANHO_MAXIMO_PAGINA = 100;
+    /** Máximo de linhas de uma exportação CSV do histórico (proteção de memória). */
+    public static final int LIMITE_EXPORTACAO = 10_000;
+
+    private static final Sort ORDEM_RECENTES = Sort.by(Sort.Order.desc("criadoEm"), Sort.Order.desc("id"));
 
     private final ProdutoRepository produtoRepository;
     private final MovimentacaoEstoqueRepository movimentacaoRepository;
@@ -40,12 +50,44 @@ public class EstoqueService {
         this.movimentacaoRepository = movimentacaoRepository;
     }
 
-    /** Histórico da loja, do mais recente para o mais antigo (página em base 1). */
+    /** Histórico da loja sem filtros, do mais recente para o mais antigo (página em base 1). */
     @Transactional(readOnly = true)
     public Page<MovimentacaoEstoque> listarMovimentacoes(Integer usuarioCodigo, int pagina, int tamanho) {
-        Sort ordem = Sort.by(Sort.Order.desc("criadoEm"), Sort.Order.desc("id"));
-        return Paginas.buscar(pagina, tamanho, TAMANHO_MAXIMO_PAGINA, ordem,
-                pageable -> movimentacaoRepository.findByUsuarioCodigo(usuarioCodigo, pageable));
+        return listarMovimentacoes(usuarioCodigo, MovimentacaoFiltro.VAZIO, pagina, tamanho);
+    }
+
+    /**
+     * Histórico da loja com filtros opcionais (produto, tipo e período), feitos no banco e sempre
+     * escopados à loja (RN-01). Do mais recente para o mais antigo (página em base 1).
+     */
+    @Transactional(readOnly = true)
+    public Page<MovimentacaoEstoque> listarMovimentacoes(Integer usuarioCodigo, MovimentacaoFiltro filtro,
+                                                         int pagina, int tamanho) {
+        Specification<MovimentacaoEstoque> spec = MovimentacaoSpecs.comFiltro(usuarioCodigo, filtro);
+        return Paginas.buscar(pagina, tamanho, TAMANHO_MAXIMO_PAGINA, ORDEM_RECENTES,
+                pageable -> movimentacaoRepository.findAll(spec, pageable));
+    }
+
+    /**
+     * Movimentações para exportação: mesmos filtros do histórico, sem paginação, no máximo
+     * {@link #LIMITE_EXPORTACAO} linhas (as mais recentes). Se {@code getTotalElements()} for maior
+     * que {@code getNumberOfElements()}, a exportação foi truncada pelo limite.
+     */
+    @Transactional(readOnly = true)
+    public Page<MovimentacaoEstoque> listarParaExportar(Integer usuarioCodigo, MovimentacaoFiltro filtro) {
+        return movimentacaoRepository.findAll(MovimentacaoSpecs.comFiltro(usuarioCodigo, filtro),
+                PageRequest.of(0, LIMITE_EXPORTACAO, ORDEM_RECENTES));
+    }
+
+    /**
+     * Últimas movimentações de um produto da loja, da mais recente para a mais antiga. O chamador deve
+     * ter confirmado que o produto é da loja; a consulta também filtra pela loja (RN-01).
+     */
+    @Transactional(readOnly = true)
+    public List<MovimentacaoEstoque> ultimasDoProduto(Integer produtoId, Integer usuarioCodigo, int limite) {
+        int tamanho = Math.max(1, Math.min(limite, TAMANHO_MAXIMO_PAGINA));
+        return movimentacaoRepository.findByProdutoIdAndUsuarioCodigo(produtoId, usuarioCodigo,
+                PageRequest.of(0, tamanho, ORDEM_RECENTES));
     }
 
     /**

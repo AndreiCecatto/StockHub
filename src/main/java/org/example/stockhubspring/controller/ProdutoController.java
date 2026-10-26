@@ -7,10 +7,13 @@ import org.example.stockhubspring.exception.RegraNegocioException;
 import org.example.stockhubspring.model.Produto;
 import org.example.stockhubspring.model.Usuario;
 import org.example.stockhubspring.service.CategoriaService;
+import org.example.stockhubspring.service.EstoqueService;
+import org.example.stockhubspring.service.ExportacaoService;
 import org.example.stockhubspring.service.ProdutoService;
 import org.example.stockhubspring.service.ProdutoService.ResultadoExclusao;
 import org.example.stockhubspring.service.UsuarioAtualService;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -34,16 +37,25 @@ public class ProdutoController {
     private final CategoriaService categoriaService;
     private final UsuarioAtualService usuarioAtualService;
     private final ErrosFormulario errosFormulario;
+    private final EstoqueService estoqueService;
+    private final ExportacaoService exportacaoService;
 
     public ProdutoController(ProdutoService produtoService,
                              CategoriaService categoriaService,
                              UsuarioAtualService usuarioAtualService,
-                             ErrosFormulario errosFormulario) {
+                             ErrosFormulario errosFormulario,
+                             EstoqueService estoqueService,
+                             ExportacaoService exportacaoService) {
         this.produtoService = produtoService;
         this.categoriaService = categoriaService;
         this.usuarioAtualService = usuarioAtualService;
         this.errosFormulario = errosFormulario;
+        this.estoqueService = estoqueService;
+        this.exportacaoService = exportacaoService;
     }
+
+    /** Quantas movimentações recentes o detalhe do produto mostra. */
+    static final int MOVIMENTACOES_NO_DETALHE = 20;
 
     @GetMapping
     public String listar(@RequestParam(required = false) String acao,
@@ -54,7 +66,7 @@ public class ProdutoController {
                          @RequestParam(defaultValue = "id") String ordenacao,
                          @RequestParam(defaultValue = "desc") String direcao,
                          @RequestParam(defaultValue = "1") int pagina,
-                         @RequestParam(defaultValue = "8") int tamanho,
+                         @RequestParam(defaultValue = "25") int tamanho,
                          Model model) {
         if ("novo".equals(acao)) {
             return "redirect:/produtos/novo";
@@ -87,6 +99,22 @@ public class ProdutoController {
         return "produtos";
     }
 
+    /**
+     * Exporta os produtos da loja em CSV, com os mesmos filtros e ordenação da listagem
+     * (sem paginação; há um limite de segurança de linhas).
+     */
+    @GetMapping("/exportar.csv")
+    public ResponseEntity<byte[]> exportarCsv(@RequestParam(required = false) String busca,
+                                              @RequestParam(required = false) Integer categoriaId,
+                                              @RequestParam(required = false) String nivelEstoque,
+                                              @RequestParam(defaultValue = "id") String ordenacao,
+                                              @RequestParam(defaultValue = "desc") String direcao) {
+        Usuario usuario = usuarioAtualService.getUsuarioAtual();
+        ProdutoFiltro filtro = ProdutoFiltro.de(busca, categoriaId, nivelEstoque, ordenacao, direcao, 1,
+                ProdutoFiltro.TAMANHO_PADRAO);
+        return RespostaCsv.de(exportacaoService.exportarProdutos(filtro, usuario.getCodigo()));
+    }
+
     @GetMapping("/novo")
     public String novo(Model model) {
         Usuario usuario = usuarioAtualService.getUsuarioAtual();
@@ -98,7 +126,10 @@ public class ProdutoController {
     @GetMapping("/{id}")
     public String visualizar(@PathVariable Integer id, Model model) {
         Usuario usuario = usuarioAtualService.getUsuarioAtual();
+        // Primeiro confirma que o produto é da loja (senão 404); só então busca o histórico dele
         model.addAttribute("produto", produtoService.buscarPorId(id, usuario.getCodigo()));
+        model.addAttribute("movimentacoesProduto",
+                estoqueService.ultimasDoProduto(id, usuario.getCodigo(), MOVIMENTACOES_NO_DETALHE));
         return "produto-detalhe";
     }
 

@@ -6,6 +6,7 @@ import org.example.stockhubspring.repository.UsuarioRepository;
 import org.example.stockhubspring.service.CategoriaService;
 import org.example.stockhubspring.service.DashboardService;
 import org.example.stockhubspring.service.EstoqueService;
+import org.example.stockhubspring.service.ExportacaoService;
 import org.example.stockhubspring.service.ProdutoService;
 import org.example.stockhubspring.service.UsuarioAtualService;
 import org.example.stockhubspring.service.UsuarioDetailsService;
@@ -34,7 +35,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
  */
 @WebMvcTest
 @Import({ControllerTestBase.HabilitaSeguranca.class, SecurityConfig.class, UsuarioAtualService.class,
-        ErrosFormulario.class, UsuarioDetailsService.class})
+        ErrosFormulario.class, UsuarioDetailsService.class, ExportacaoService.class})
 abstract class ControllerTestBase {
 
     /** O slice @WebMvcTest não liga a segurança sozinho; habilita como a aplicação faz. */
