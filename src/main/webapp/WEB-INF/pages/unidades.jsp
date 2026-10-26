@@ -31,7 +31,7 @@
                             <div class="col-12 col-xl-4">
                                 <article class="cartao-metrica borda-verde card h-100">
                                     <div class="card-body"><span class="nome-metrica">Total de
-                                            unidades</span><strong>${resumo.quantidadeTotalItens}</strong><small>soma de
+                                            unidades</span><strong><c:out value="${resumo.quantidadeTotalItens}" /></strong><small>soma de
                                             todos os produtos</small></div>
                                 </article>
                             </div>
@@ -56,16 +56,16 @@
                                             <tbody>
                                                 <c:forEach var="produto" items="${produtos}">
                                                     <tr>
-                                                        <td><strong>${produto.nome}</strong></td>
-                                                        <td>${produto.categoria.nome}</td>
-                                                        <td>${produto.quantidade} un.</td>
-                                                        <td>${produto.estoqueMinimo}</td>
+                                                        <td><strong><c:out value="${produto.nome}" /></strong></td>
+                                                        <td><c:out value="${produto.categoria.nome}" /></td>
+                                                        <td><c:out value="${produto.quantidade}" /> un.</td>
+                                                        <td><c:out value="${produto.estoqueMinimo}" /></td>
                                                         <td><span
                                                                 class="etiqueta ${produto.quantidade == 0 ? 'etiqueta-sem-estoque' : (produto.estoqueBaixo ? 'etiqueta-alerta' : 'etiqueta-ok')}">${produto.quantidade
                                                                 == 0 ? 'Sem estoque' : (produto.estoqueBaixo ? 'Baixo' :
                                                                 'Ok')}</span></td>
                                                         <td><a class="btn btn-outline-secondary btn-sm"
-                                                                href="${pageContext.request.contextPath}/produtos/${produto.id}"><i
+                                                                href="${pageContext.request.contextPath}/produtos/<c:out value='${produto.id}'/>"><i
                                                                     class="bi bi-eye"></i> Ver</a></td>
                                                     </tr>
                                                 </c:forEach>

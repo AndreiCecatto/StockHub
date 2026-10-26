@@ -61,19 +61,19 @@
                                                 <tbody>
                                                     <c:forEach var="produto" items="${produtos}">
                                                         <tr>
-                                                            <td><strong>${produto.nome}</strong></td>
-                                                            <td>${produto.categoria.nome}</td>
+                                                            <td><strong><c:out value="${produto.nome}" /></strong></td>
+                                                            <td><c:out value="${produto.categoria.nome}" /></td>
                                                             <td>R$
                                                                 <fmt:formatNumber value="${produto.preco}"
                                                                     pattern="#,##0.00" />
                                                             </td>
-                                                            <td>${produto.quantidade} un.</td>
+                                                            <td><c:out value="${produto.quantidade}" /> un.</td>
                                                             <td><span class="etiqueta">R$
                                                                     <fmt:formatNumber value="${produto.valorTotal}"
                                                                         pattern="#,##0.00" />
                                                                 </span></td>
                                                             <td><a class="btn btn-outline-secondary btn-sm"
-                                                                    href="${pageContext.request.contextPath}/produtos/${produto.id}"><i
+                                                                    href="${pageContext.request.contextPath}/produtos/<c:out value='${produto.id}'/>"><i
                                                                         class="bi bi-eye"></i> Ver</a></td>
                                                         </tr>
                                                     </c:forEach>

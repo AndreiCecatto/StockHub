@@ -24,13 +24,13 @@
                         <main class="conteudo-pagina">
                             <section class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-4">
                                 <div class="titulo-pagina">
-                                    <h1>${produto.nome}</h1>
+                                    <h1><c:out value="${produto.nome}" /></h1>
                                     <p>Visualização completa do produto cadastrado no estoque.</p>
                                 </div>
                                 <div class="d-flex gap-2 flex-wrap"><a class="btn btn-outline-secondary"
                                         href="${pageContext.request.contextPath}/produtos"><i
                                             class="bi bi-arrow-left"></i> Voltar</a><a class="btn btn-primary"
-                                        href="${pageContext.request.contextPath}/produtos/${produto.id}/editar"><i
+                                        href="${pageContext.request.contextPath}/produtos/<c:out value='${produto.id}'/>/editar"><i
                                             class="bi bi-pencil"></i> Editar produto</a></div>
                             </section>
                             <section class="row g-4">
@@ -39,9 +39,9 @@
                                         <div class="card-body">
                                             <div
                                                 class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-4">
-                                                <div><span class="rotulo-pagina">Produto #${produto.id}</span>
-                                                    <h2>${produto.nome}</h2><span class="etiqueta"><i
-                                                            class="bi bi-tag"></i> ${produto.categoria.nome}</span>
+                                                <div><span class="rotulo-pagina">Produto #<c:out value="${produto.id}" /></span>
+                                                    <h2><c:out value="${produto.nome}" /></h2><span class="etiqueta"><i
+                                                            class="bi bi-tag"></i> <c:out value="${produto.categoria.nome}" /></span>
                                                 </div><span
                                                     class="etiqueta ${produto.quantidade == 0 ? 'etiqueta-sem-estoque' : (produto.estoqueBaixo ? 'etiqueta-alerta' : 'etiqueta-ok')}"><i
                                                         class="bi ${produto.quantidade == 0 ? 'bi-x-circle' : (produto.estoqueBaixo ? 'bi-exclamation-triangle' : 'bi-check2-circle')}"></i>${produto.quantidade
@@ -50,8 +50,12 @@
                                             </div>
                                             <div class="bloco-descricao">
                                                 <h3>Descrição</h3>
-                                                <p>${empty produto.descricao ? 'Sem descrição cadastrada.' :
-                                                    produto.descricao}</p>
+                                                <p>
+<c:choose>
+<c:when test="${empty produto.descricao}">Sem descrição cadastrada.</c:when>
+<c:otherwise><c:out value="${produto.descricao}" /></c:otherwise>
+</c:choose>
+</p>
                                             </div>
                                         </div>
                                     </article>
@@ -69,7 +73,7 @@
                                         <div class="col">
                                             <article class="cartao-metrica borda-verde card">
                                                 <div class="card-body"><span
-                                                        class="nome-metrica">Quantidade</span><strong>${produto.quantidade}</strong><small>unidades
+                                                        class="nome-metrica">Quantidade</span><strong><c:out value="${produto.quantidade}" /></strong><small>unidades
                                                         disponíveis</small></div>
                                             </article>
                                         </div>
@@ -85,7 +89,7 @@
                                         <div class="col">
                                             <article class="cartao-metrica borda-vermelha card">
                                                 <div class="card-body"><span class="nome-metrica">Estoque
-                                                        mínimo</span><strong>${produto.estoqueMinimo}</strong><small>limite
+                                                        mínimo</span><strong><c:out value="${produto.estoqueMinimo}" /></strong><small>limite
                                                         para alerta</small></div>
                                             </article>
                                         </div>

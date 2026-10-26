@@ -27,7 +27,8 @@
                                     class="bi bi-arrow-left"></i> Voltar</a>
                         </section>
                         <form class="d-grid gap-3" method="post" action="${pageContext.request.contextPath}/produtos">
-                            <input type="hidden" name="id" value="${produto.id}">
+                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+                            <input type="hidden" name="id" value="<c:out value='${produto.id}'/>">
                             <section class="painel card">
                                 <div class="card-body">
                                     <div class="titulo-secao d-flex align-items-center gap-2 mb-3"><i
@@ -35,19 +36,19 @@
                                     <div class="row g-3">
                                         <div class="col-12"><label class="form-label" for="nome">Nome do
                                                 produto</label><input id="nome" class="form-control" type="text"
-                                                name="nome" value="${produto.nome}" placeholder="Ex: Mouse sem fio"
+                                                name="nome" value="<c:out value='${produto.nome}'/>" placeholder="Ex: Mouse sem fio"
                                                 required></div>
                                         <div class="col-12"><label class="form-label"
                                                 for="descricao">Descrição</label><textarea id="descricao"
                                                 class="form-control" name="descricao" rows="5"
-                                                placeholder="Detalhes do produto">${produto.descricao}</textarea></div>
+                                                placeholder="Detalhes do produto"><c:out value="${produto.descricao}" /></textarea></div>
                                         <div class="col-12"><label class="form-label"
                                                 for="categoriaId">Categoria</label><select id="categoriaId"
                                                 class="form-select" name="categoriaId" required>
                                                 <option value="">Selecione uma categoria</option>
                                                 <c:forEach var="categoria" items="${categorias}">
-                                                    <option value="${categoria.id}" ${produto.categoria.id==categoria.id
-                                                        ? 'selected' : '' }>${categoria.nome}</option>
+                                                    <option value="<c:out value='${categoria.id}'/>" ${produto.categoria.id==categoria.id
+                                                        ? 'selected' : '' }><c:out value="${categoria.nome}" /></option>
                                                 </c:forEach>
                                             </select></div>
                                     </div>
@@ -58,16 +59,16 @@
                                     <div class="row g-3">
                                         <div class="col-12 col-md-4"><label class="form-label"
                                                 for="preco">Preço</label><input id="preco" class="form-control"
-                                                type="number" step="0.01" min="0" name="preco" value="${produto.preco}"
+                                                type="number" step="0.01" min="0" name="preco" value="<c:out value='${produto.preco}'/>"
                                                 required></div>
                                         <div class="col-12 col-md-4"><label class="form-label"
                                                 for="quantidade">Quantidade</label><input id="quantidade"
                                                 class="form-control" type="number" min="0" name="quantidade"
-                                                value="${produto.quantidade}" required></div>
+                                                value="<c:out value='${produto.quantidade}'/>" required></div>
                                         <div class="col-12 col-md-4"><label class="form-label"
                                                 for="estoqueMinimo">Estoque mínimo</label><input id="estoqueMinimo"
                                                 class="form-control" type="number" min="0" name="estoqueMinimo"
-                                                value="${produto.estoqueMinimo}" required></div>
+                                                value="<c:out value='${produto.estoqueMinimo}'/>" required></div>
                                     </div>
                                 </div>
                             </section>

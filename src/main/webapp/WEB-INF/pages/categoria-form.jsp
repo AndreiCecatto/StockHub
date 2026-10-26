@@ -28,7 +28,8 @@
                                 Voltar</a>
                         </section>
                         <form class="d-grid gap-3" method="post" action="${pageContext.request.contextPath}/categorias">
-                            <input type="hidden" name="id" value="${categoria.id}">
+                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+                            <input type="hidden" name="id" value="<c:out value='${categoria.id}'/>">
                             <section class="painel card">
                                 <div class="card-body">
                                     <div class="titulo-secao d-flex align-items-center gap-2 mb-3"><i
@@ -36,12 +37,12 @@
                                     <div class="row g-3">
                                         <div class="col-12"><label class="form-label" for="nome">Nome da
                                                 categoria</label><input id="nome" class="form-control" type="text"
-                                                name="nome" value="${categoria.nome}" placeholder="Ex: Eletrônicos"
+                                                name="nome" value="<c:out value='${categoria.nome}'/>" placeholder="Ex: Eletrônicos"
                                                 required></div>
                                         <div class="col-12"><label class="form-label"
                                                 for="descricao">Descrição</label><textarea id="descricao"
                                                 class="form-control" name="descricao" rows="6"
-                                                placeholder="Resumo do tipo de produto desta categoria">${categoria.descricao}</textarea>
+                                                placeholder="Resumo do tipo de produto desta categoria"><c:out value="${categoria.descricao}" /></textarea>
                                         </div>
                                     </div>
                                 </div>

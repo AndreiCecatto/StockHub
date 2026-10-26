@@ -50,7 +50,7 @@
                                                     <span class="nome-metrica">Produtos</span><span
                                                         class="icone-metrica destaque-azul"><i
                                                             class="bi bi-box"></i></span></div>
-                                                <strong>${resumo.totalProdutos}</strong><small>itens cadastrados</small>
+                                                <strong><c:out value="${resumo.totalProdutos}" /></strong><small>itens cadastrados</small>
                                             </div>
                                         </article>
                                     </a></div>
@@ -63,7 +63,7 @@
                                                     <span class="nome-metrica">Categorias</span><span
                                                         class="icone-metrica destaque-roxo"><i
                                                             class="bi bi-tags"></i></span></div>
-                                                <strong>${resumo.totalCategorias}</strong><small>grupos ativos</small>
+                                                <strong><c:out value="${resumo.totalCategorias}" /></strong><small>grupos ativos</small>
                                             </div>
                                         </article>
                                     </a></div>
@@ -76,7 +76,7 @@
                                                     <span class="nome-metrica">Estoque baixo</span><span
                                                         class="icone-metrica destaque-vermelho"><i
                                                             class="bi bi-exclamation-triangle"></i></span></div>
-                                                <strong>${resumo.produtosEstoqueBaixo}</strong><small>produtos em
+                                                <strong><c:out value="${resumo.produtosEstoqueBaixo}" /></strong><small>produtos em
                                                     alerta</small>
                                             </div>
                                         </article>
@@ -90,7 +90,7 @@
                                                     <span class="nome-metrica">Unidades</span><span
                                                         class="icone-metrica destaque-verde"><i
                                                             class="bi bi-stack"></i></span></div>
-                                                <strong>${resumo.quantidadeTotalItens}</strong><small>quantidade
+                                                <strong><c:out value="${resumo.quantidadeTotalItens}" /></strong><small>quantidade
                                                     total</small>
                                             </div>
                                         </article>
@@ -126,11 +126,11 @@
                                             <div class="d-grid gap-2">
                                                 <c:forEach var="produto" items="${produtosRecentes}">
                                                     <a class="linha-estoque text-decoration-none"
-                                                        href="${pageContext.request.contextPath}/produtos/${produto.id}">
+                                                        href="${pageContext.request.contextPath}/produtos/<c:out value='${produto.id}'/>">
                                                         <span class="miniatura-vazia"><i
                                                                 class="bi bi-box-seam"></i></span>
-                                                        <div><span class="titulo-linha">${produto.nome}</span><span
-                                                                class="subtitulo-linha">${produto.categoria.nome}</span>
+                                                        <div><span class="titulo-linha"><c:out value="${produto.nome}" /></span><span
+                                                                class="subtitulo-linha"><c:out value="${produto.categoria.nome}" /></span>
                                                         </div>
                                                         <div
                                                             class="meta-linha d-flex align-items-center gap-2 flex-wrap">
@@ -138,7 +138,7 @@
                                                                 <fmt:formatNumber value="${produto.preco}"
                                                                     pattern="#,##0.00" />
                                                             </span><span
-                                                                class="etiqueta ${produto.quantidade == 0 ? 'etiqueta-sem-estoque' : (produto.estoqueBaixo ? 'etiqueta-alerta' : 'etiqueta-ok')}">${produto.quantidade}
+                                                                class="etiqueta ${produto.quantidade == 0 ? 'etiqueta-sem-estoque' : (produto.estoqueBaixo ? 'etiqueta-alerta' : 'etiqueta-ok')}"><c:out value="${produto.quantidade}" />
                                                                 un.</span></div>
                                                     </a>
                                                 </c:forEach>
@@ -163,16 +163,16 @@
                                             <div class="lista-estoque-baixo-dashboard d-grid gap-2">
                                                 <c:forEach var="produto" items="${produtosEstoqueBaixo}">
                                                     <a class="linha-estoque ${produto.quantidade == 0 ? 'linha-sem-estoque' : 'linha-alerta'} text-decoration-none"
-                                                        href="${pageContext.request.contextPath}/produtos/${produto.id}">
+                                                        href="${pageContext.request.contextPath}/produtos/<c:out value='${produto.id}'/>">
                                                         <span class="miniatura-vazia"><i
                                                                 class="bi bi-exclamation-triangle"></i></span>
-                                                        <div><span class="titulo-linha">${produto.nome}</span><span
-                                                                class="subtitulo-linha">${produto.categoria.nome}</span>
+                                                        <div><span class="titulo-linha"><c:out value="${produto.nome}" /></span><span
+                                                                class="subtitulo-linha"><c:out value="${produto.categoria.nome}" /></span>
                                                         </div>
                                                         <div
                                                             class="meta-linha d-flex align-items-center gap-2 flex-wrap">
                                                             <span
-                                                                class="etiqueta ${produto.quantidade == 0 ? 'etiqueta-sem-estoque' : 'etiqueta-alerta'}">${produto.quantidade}/${produto.estoqueMinimo}</span>
+                                                                class="etiqueta ${produto.quantidade == 0 ? 'etiqueta-sem-estoque' : 'etiqueta-alerta'}"><c:out value="${produto.quantidade}" />/<c:out value="${produto.estoqueMinimo}" /></span>
                                                         </div>
                                                     </a>
                                                 </c:forEach>

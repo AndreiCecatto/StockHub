@@ -37,7 +37,7 @@
                                         <div class="col-12 col-lg-3"><label class="form-label" for="busca">Nome</label>
                                             <div class="input-group"><span class="input-group-text"><i
                                                         class="bi bi-search"></i></span><input class="form-control"
-                                                    id="busca" type="search" name="busca" value="${busca}"
+                                                    id="busca" type="search" name="busca" value="<c:out value='${busca}'/>"
                                                     placeholder="Buscar por nome"></div>
                                         </div>
                                         <div class="col-12 col-lg-2"><label class="form-label"
@@ -45,8 +45,7 @@
                                                 id="categoriaId" name="categoriaId">
                                                 <option value="">Todas</option>
                                                 <c:forEach var="categoria" items="${categorias}">
-                                                    <option value="${categoria.id}" ${categoriaId==categoria.id
-                                                        ? 'selected' : '' }>${categoria.nome}</option>
+                                                    <option value="<c:out value='${categoria.id}'/>" ${categoriaId==categoria.id ? 'selected' : '' }><c:out value="${categoria.nome}" /></option>
                                                 </c:forEach>
                                             </select></div>
                                         <div class="col-12 col-lg-2"><label class="form-label" for="nivelEstoque">Nível
@@ -83,7 +82,7 @@
                                             </select></div>
                                         <div class="col-12 col-lg-2">
                                             <div class="d-flex gap-2"><input type="hidden" name="tamanho"
-                                                    value="${tamanho}"><button class="btn btn-primary flex-fill"
+                                                    value="<c:out value='${tamanho}'/>"><button class="btn btn-primary flex-fill"
                                                     type="submit"><i class="bi bi-funnel"></i> Filtrar</button><a
                                                     class="btn btn-outline-secondary"
                                                     href="${pageContext.request.contextPath}/produtos"
@@ -92,35 +91,64 @@
                                     </form>
                                 </div>
                             </section>
+<%-- URLs de paginacao montadas com c:url/c:param (codificacao automatica) --%>
+<c:url var="urlInverter" value="/produtos">
+<c:param name="pagina" value="${paginaAtual}" />
+<c:param name="direcao" value="${direcaoInversa}" />
+<c:param name="busca" value="${busca}" />
+<c:param name="categoriaId" value="${categoriaId}" />
+<c:param name="nivelEstoque" value="${nivelEstoque}" />
+<c:param name="ordenacao" value="${ordenacao}" />
+<c:param name="tamanho" value="${tamanho}" />
+</c:url>
+<c:url var="urlAnterior" value="/produtos">
+<c:param name="pagina" value="${paginaAtual - 1}" />
+<c:param name="direcao" value="${direcao}" />
+<c:param name="busca" value="${busca}" />
+<c:param name="categoriaId" value="${categoriaId}" />
+<c:param name="nivelEstoque" value="${nivelEstoque}" />
+<c:param name="ordenacao" value="${ordenacao}" />
+<c:param name="tamanho" value="${tamanho}" />
+</c:url>
+<c:url var="urlProxima" value="/produtos">
+<c:param name="pagina" value="${paginaAtual + 1}" />
+<c:param name="direcao" value="${direcao}" />
+<c:param name="busca" value="${busca}" />
+<c:param name="categoriaId" value="${categoriaId}" />
+<c:param name="nivelEstoque" value="${nivelEstoque}" />
+<c:param name="ordenacao" value="${ordenacao}" />
+<c:param name="tamanho" value="${tamanho}" />
+</c:url>
+
                             <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mb-3"><span
-                                    class="etiqueta"><i class="bi bi-list-check"></i> ${totalProdutosFiltro}
+                                    class="etiqueta"><i class="bi bi-list-check"></i> <c:out value="${totalProdutosFiltro}" />
                                     produto(s)</span><a class="btn btn-outline-secondary btn-sm"
-                                    href="${pageContext.request.contextPath}/produtos?pagina=${paginaAtual}&direcao=${direcaoInversa}${parametrosFiltros}"><i
+                                    href="<c:out value='${urlInverter}'/>"><i
                                         class="bi bi-arrow-down-up"></i> Inverter ordem</a></div>
                             <section class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-3">
                                 <c:forEach var="produto" items="${produtos}">
                                     <div class="col">
                                         <article class="cartao-catalogo card h-100">
                                             <div class="card-body">
-                                                <h3>${produto.nome}</h3><span class="preco-produto">R$
+                                                <h3><c:out value="${produto.nome}" /></h3><span class="preco-produto">R$
                                                     <fmt:formatNumber value="${produto.preco}" pattern="#,##0.00" />
                                                 </span>
-                                                <p class="descricao-catalogo">${produto.descricao}</p>
+                                                <p class="descricao-catalogo"><c:out value="${produto.descricao}" /></p>
                                                 <div class="d-flex gap-2 flex-wrap mb-3"><span class="etiqueta"><i
-                                                            class="bi bi-tag"></i> ${produto.categoria.nome}</span><span
+                                                            class="bi bi-tag"></i> <c:out value="${produto.categoria.nome}" /></span><span
                                                         class="etiqueta ${produto.quantidade == 0 ? 'etiqueta-sem-estoque' : (produto.estoqueBaixo ? 'etiqueta-alerta' : 'etiqueta-ok')}"><i
-                                                            class="bi bi-box"></i> ${produto.quantidade} un.</span>
+                                                            class="bi bi-box"></i> <c:out value="${produto.quantidade}" /> un.</span>
                                                 </div>
                                                 <div class="d-flex gap-2 flex-wrap pt-3 border-top border-secondary"><a
                                                         class="btn btn-outline-secondary btn-sm"
-                                                        href="${pageContext.request.contextPath}/produtos/${produto.id}"><i
+                                                        href="${pageContext.request.contextPath}/produtos/<c:out value='${produto.id}'/>"><i
                                                             class="bi bi-eye"></i> Ver</a><a
                                                         class="btn btn-outline-light btn-sm"
-                                                        href="${pageContext.request.contextPath}/produtos/${produto.id}/editar"><i
+                                                        href="${pageContext.request.contextPath}/produtos/<c:out value='${produto.id}'/>/editar"><i
                                                             class="bi bi-pencil"></i> Editar</a>
                                                     <form method="post"
-                                                        action="${pageContext.request.contextPath}/produtos/${produto.id}/excluir"
-                                                        onsubmit="return confirm('Excluir este produto?')"><button
+                                                        action="${pageContext.request.contextPath}/produtos/<c:out value='${produto.id}'/>/excluir"
+                                                        onsubmit="return confirm('Excluir este produto?')"><input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" /><button
                                                             class="btn btn-outline-danger btn-sm" type="submit"><i
                                                                 class="bi bi-trash"></i> Excluir</button></form>
                                                 </div>
@@ -136,17 +164,27 @@
                                 <nav class="mt-3" aria-label="Paginação de produtos">
                                     <ul class="pagination pagination-sm mb-0">
                                         <li class="page-item ${paginaAtual == 1 ? 'disabled' : ''}"><a class="page-link"
-                                                href="${pageContext.request.contextPath}/produtos?pagina=${paginaAtual - 1}&direcao=${direcao}${parametrosFiltros}">Anterior</a>
+                                                href="<c:out value='${urlAnterior}'/>">Anterior</a>
                                         </li>
                                         <c:forEach var="pagina" begin="1" end="${totalPaginas}">
+<c:url var="urlPagina" value="/produtos">
+<c:param name="pagina" value="${pagina}" />
+<c:param name="direcao" value="${direcao}" />
+<c:param name="busca" value="${busca}" />
+<c:param name="categoriaId" value="${categoriaId}" />
+<c:param name="nivelEstoque" value="${nivelEstoque}" />
+<c:param name="ordenacao" value="${ordenacao}" />
+<c:param name="tamanho" value="${tamanho}" />
+</c:url>
+
                                             <li class="page-item ${pagina == paginaAtual ? 'active' : ''}"><a
                                                     class="page-link"
-                                                    href="${pageContext.request.contextPath}/produtos?pagina=${pagina}&direcao=${direcao}${parametrosFiltros}">${pagina}</a>
+                                                    href="<c:out value='${urlPagina}'/>"><c:out value="${pagina}" /></a>
                                             </li>
                                         </c:forEach>
                                         <li class="page-item ${paginaAtual == totalPaginas ? 'disabled' : ''}"><a
                                                 class="page-link"
-                                                href="${pageContext.request.contextPath}/produtos?pagina=${paginaAtual + 1}&direcao=${direcao}${parametrosFiltros}">Próxima</a>
+                                                href="<c:out value='${urlProxima}'/>">Próxima</a>
                                         </li>
                                     </ul>
                                 </nav>

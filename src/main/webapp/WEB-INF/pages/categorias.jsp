@@ -29,22 +29,22 @@
                         </section>
                         <form class="row g-2 mb-3" method="get" action="${pageContext.request.contextPath}/categorias">
                             <div class="col-12 col-lg"><input class="form-control" type="search" name="busca"
-                                    value="${busca}" placeholder="Buscar por nome"></div>
+                                    value="<c:out value='${busca}'/>" placeholder="Buscar por nome"></div>
                             <div class="col-12 col-lg-auto"><button class="btn btn-outline-light w-100" type="submit"><i
                                         class="bi bi-search"></i> Buscar</button></div>
                         </form>
                         <c:if test="${not empty erro}">
-                            <div class="alert alert-danger">${erro}</div>
+                            <div class="alert alert-danger" role="alert"><c:out value="${erro}" /></div>
                         </c:if>
                         <section class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-3">
                             <c:forEach var="categoria" items="${categorias}">
                                 <div class="col">
                                     <article class="cartao-catalogo card h-100">
                                         <div class="card-body">
-                                            <h3>${categoria.nome}</h3>
-                                            <p class="descricao-catalogo">${categoria.descricao}</p>
+                                            <h3><c:out value="${categoria.nome}" /></h3>
+                                            <p class="descricao-catalogo"><c:out value="${categoria.descricao}" /></p>
                                             <div class="d-flex gap-2 flex-wrap mb-3"><span class="etiqueta"><i
-                                                        class="bi bi-boxes"></i> ${categoria.totalProdutos}
+                                                        class="bi bi-boxes"></i> <c:out value="${categoria.totalProdutos}" />
                                                     produtos</span></div>
                                             <div class="d-flex gap-2 flex-wrap pt-3 border-top border-secondary"><a
                                                     class="btn btn-outline-light btn-sm"
@@ -52,7 +52,7 @@
                                                         class="bi bi-pencil"></i> Editar</a>
                                                 <form method="post"
                                                     action="${pageContext.request.contextPath}/categorias/${categoria.id}/excluir"
-                                                    onsubmit="return confirm('Excluir esta categoria?')"><button
+                                                    onsubmit="return confirm('Excluir esta categoria?')"><input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" /><button
                                                         class="btn btn-outline-danger btn-sm" type="submit"><i
                                                             class="bi bi-trash"></i> Excluir</button></form>
                                             </div>

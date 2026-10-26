@@ -27,8 +27,8 @@
                 </a>
             </section>
 
-            <c:if test="${not empty mensagem}"><div class="alert alert-success">${mensagem}</div></c:if>
-            <c:if test="${not empty erro}"><div class="alert alert-danger">${erro}</div></c:if>
+            <c:if test="${not empty mensagem}"><div class="alert alert-success" role="status"><c:out value="${mensagem}" /></div></c:if>
+            <c:if test="${not empty erro}"><div class="alert alert-danger" role="alert"><c:out value="${erro}" /></div></c:if>
 
             <section class="row g-4">
                 <div class="col-12 col-xl-4">
@@ -39,12 +39,13 @@
                         </div>
                         <div class="card-body">
                             <form class="d-grid gap-3" method="post" action="${pageContext.request.contextPath}/estoque/movimentar">
+                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
                                 <div>
                                     <label class="form-label" for="produtoId">Produto</label>
                                     <select class="form-select" id="produtoId" name="produtoId" required>
                                         <option value="">Selecione um produto</option>
                                         <c:forEach var="produto" items="${produtos}">
-                                            <option value="${produto.id}">${produto.nome} - atual: ${produto.quantidade} un.</option>
+                                            <option value="<c:out value='${produto.id}'/>"><c:out value="${produto.nome}" /> - atual: <c:out value="${produto.quantidade}" /> un.</option>
                                         </c:forEach>
                                     </select>
                                 </div>
@@ -52,7 +53,7 @@
                                     <label class="form-label" for="tipo">Tipo</label>
                                     <select class="form-select" id="tipo" name="tipo" required>
                                         <c:forEach var="tipo" items="${tipos}">
-                                            <option value="${tipo}">${tipo}</option>
+                                            <option value="<c:out value='${tipo}'/>"><c:out value="${tipo}" /></option>
                                         </c:forEach>
                                     </select>
                                 </div>
@@ -79,7 +80,7 @@
                                 <h2><i class="bi bi-clock-history"></i> Histórico</h2>
                                 <p>Últimas entradas, saídas e ajustes registrados.</p>
                             </div>
-                            <span class="etiqueta"><i class="bi bi-list-check"></i> ${movimentacoes.size()} registro(s)</span>
+                            <span class="etiqueta"><i class="bi bi-list-check"></i> <c:out value="${movimentacoes.size()}" /> registro(s)</span>
                         </div>
                         <div class="table-responsive">
                             <table class="table tabela-sistema align-middle">
@@ -95,13 +96,13 @@
                                 <tbody>
                                 <c:forEach var="mov" items="${movimentacoes}">
                                     <tr>
-                                        <td>${mov.criadoEm}</td>
-                                        <td><strong>${mov.produto.nome}</strong><span class="subtitulo-linha">${mov.produto.categoria.nome}</span></td>
+                                        <td><c:out value="${mov.criadoEm}" /></td>
+                                        <td><strong><c:out value="${mov.produto.nome}" /></strong><span class="subtitulo-linha"><c:out value="${mov.produto.categoria.nome}" /></span></td>
                                         <td>
-                                            <span class="etiqueta ${mov.tipo == 'ENTRADA' ? 'etiqueta-ok' : (mov.tipo == 'SAIDA' ? 'etiqueta-sem-estoque' : 'etiqueta-alerta')}">${mov.tipo}</span>
+                                            <span class="etiqueta ${mov.tipo == 'ENTRADA' ? 'etiqueta-ok' : (mov.tipo == 'SAIDA' ? 'etiqueta-sem-estoque' : 'etiqueta-alerta')}"><c:out value="${mov.tipo}" /></span>
                                         </td>
-                                        <td>${mov.quantidade} un.</td>
-                                        <td>${mov.observacao}</td>
+                                        <td><c:out value="${mov.quantidade}" /> un.</td>
+                                        <td><c:out value="${mov.observacao}" /></td>
                                     </tr>
                                 </c:forEach>
                                 <c:if test="${empty movimentacoes}">
