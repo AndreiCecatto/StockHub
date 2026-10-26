@@ -84,11 +84,19 @@ class SegurancaWebTest extends ControllerTestBase {
         }
 
         @Test
-        @DisplayName("GET /index.jsp é público e mostra a tela de login")
-        void indexJspPublico() throws Exception {
+        @DisplayName("GET /index.jsp não é rota pública nem tem mapeamento: sem login vai para /login")
+        void indexJspNaoEPublico() throws Exception {
+            // No Tomcat *.jsp cai no JspServlet, então esse mapeamento nunca funcionou fora do teste
             mvc.perform(get("/index.jsp"))
-                    .andExpect(status().isOk())
-                    .andExpect(view().name("login"));
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/login"));
+        }
+
+        @Test
+        @DisplayName("GET /index.jsp logado não é a tela de login (não há mapeamento)")
+        void indexJspLogadoNaoMostraLogin() throws Exception {
+            mvc.perform(get("/index.jsp").with(logadoComo(7)))
+                    .andExpect(status().is4xxClientError());
         }
 
         @Test

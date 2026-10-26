@@ -25,7 +25,7 @@ public class SecurityConfig {
                         // O forward interno para as JSPs (e para /error) acontece depois de a requisicao
                         // original ja ter sido autorizada; sem isso o login redireciona para si mesmo.
                         .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
-                        .requestMatchers("/login", "/index.jsp", "/cadastro", "/error",
+                        .requestMatchers("/login", "/cadastro", "/error",
                                 "/css/**", "/js/**", "/img/**", "/images/**", "/favicon.ico").permitAll()
                         .anyRequest().authenticated())
                 // Login pelo formulario existente (campos "email" e "senha"). O UserDetailsService

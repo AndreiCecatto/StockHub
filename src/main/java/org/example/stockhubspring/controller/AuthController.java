@@ -32,7 +32,7 @@ public class AuthController {
         this.errosFormulario = errosFormulario;
     }
 
-    @GetMapping({"/login", "/index.jsp"})
+    @GetMapping("/login")
     public String login(@RequestParam(required = false) String erro,
                         @RequestParam(required = false) String saiu,
                         @RequestParam(required = false) String cadastrado,
