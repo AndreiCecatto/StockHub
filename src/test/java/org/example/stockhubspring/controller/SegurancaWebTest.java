@@ -42,7 +42,7 @@ class SegurancaWebTest extends ControllerTestBase {
         @ParameterizedTest(name = "GET {0} redireciona para /login")
         @ValueSource(strings = {"/", "/dashboard", "/produtos", "/produtos/novo", "/produtos/1", "/produtos/1/editar",
                 "/categorias", "/categorias/novo", "/categorias/1/editar", "/estoque", "/estoque-baixo",
-                "/unidades", "/valor-estoque"})
+                "/unidades", "/valor-estoque", "/produtos/exportar.csv", "/estoque/exportar.csv"})
         @DisplayName("páginas internas exigem login")
         void paginasInternasRedirecionamParaLogin(String caminho) throws Exception {
             mvc.perform(get(caminho))
@@ -114,6 +114,15 @@ class SegurancaWebTest extends ControllerTestBase {
                 mvc.perform(get(caminho))
                         .andExpect(status().is(not(anyOf(is(302), is(401), is(403)))));
             }
+        }
+
+        @ParameterizedTest(name = "GET {0} (recurso estático do front) não pede login")
+        @ValueSource(strings = {"/vendor/bootstrap/bootstrap.min.css", "/vendor/bootstrap-icons/bootstrap-icons.css",
+                "/vendor/inter/inter.woff2"})
+        @DisplayName("/vendor/** é público: o front carrega Bootstrap, ícones e fonte antes do login")
+        void vendorNaoPedeLogin(String caminho) throws Exception {
+            mvc.perform(get(caminho))
+                    .andExpect(status().is(not(anyOf(is(302), is(401), is(403)))));
         }
 
         @Test

@@ -26,7 +26,7 @@ public class SecurityConfig {
                         // original ja ter sido autorizada; sem isso o login redireciona para si mesmo.
                         .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
                         .requestMatchers("/login", "/cadastro", "/error",
-                                "/css/**", "/js/**", "/img/**", "/images/**", "/favicon.ico").permitAll()
+                                "/css/**", "/js/**", "/vendor/**", "/img/**", "/images/**", "/favicon.ico").permitAll()
                         .anyRequest().authenticated())
                 // Login pelo formulario existente (campos "email" e "senha"). O UserDetailsService
                 // e o PasswordEncoder sao detectados automaticamente como beans.
