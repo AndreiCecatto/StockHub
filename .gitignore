@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# logs, variaveis de ambiente e configuracao local
+*.log
+.env
+*.env
+.claude/settings.local.json
+src/main/resources/application-local.properties
