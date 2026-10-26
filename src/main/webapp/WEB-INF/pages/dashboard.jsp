@@ -1,7 +1,7 @@
 ﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
     <%@ taglib prefix="c" uri="jakarta.tags.core" %>
         <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
-            <c:set var="activePage" value="dashboard" />
+            <c:set var="activePage" value="dashboard" scope="request" />
             <fmt:setLocale value="pt_BR" />
             <!DOCTYPE html>
             <html lang="pt-BR">
@@ -13,7 +13,7 @@
                 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
                     rel="stylesheet">
                 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
-                <title>StockHub - Visão geral</title>
+                <title>Visão geral - StockHub</title>
             </head>
 
             <body>
@@ -32,14 +32,15 @@
                                 </div>
                                 <div class="d-flex gap-2 flex-wrap">
                                     <a class="btn btn-primary" href="${pageContext.request.contextPath}/produtos/novo">
-                                        <i class="bi bi-plus-square"></i> Novo produto
+                                        <i class="bi bi-plus-square" aria-hidden="true"></i> Novo produto
                                     </a>
                                     <a class="btn btn-outline-secondary"
                                         href="${pageContext.request.contextPath}/categorias/novo">
-                                        <i class="bi bi-folder-plus"></i> Nova categoria
+                                        <i class="bi bi-folder-plus" aria-hidden="true"></i> Nova categoria
                                     </a>
                                 </div>
                             </section>
+                            <jsp:include page="../includes/alertas.jsp" />
                             <section class="row row-cols-1 row-cols-md-2 row-cols-xl-5 g-3 mb-4">
                                 <div class="col"><a class="link-cartao text-decoration-none"
                                         href="${pageContext.request.contextPath}/produtos">
@@ -49,7 +50,7 @@
                                                     class="d-flex align-items-center justify-content-between gap-2 mb-3">
                                                     <span class="nome-metrica">Produtos</span><span
                                                         class="icone-metrica destaque-azul"><i
-                                                            class="bi bi-box"></i></span></div>
+                                                            class="bi bi-box" aria-hidden="true"></i></span></div>
                                                 <strong><c:out value="${resumo.totalProdutos}" /></strong><small>itens cadastrados</small>
                                             </div>
                                         </article>
@@ -62,7 +63,7 @@
                                                     class="d-flex align-items-center justify-content-between gap-2 mb-3">
                                                     <span class="nome-metrica">Categorias</span><span
                                                         class="icone-metrica destaque-roxo"><i
-                                                            class="bi bi-tags"></i></span></div>
+                                                            class="bi bi-tags" aria-hidden="true"></i></span></div>
                                                 <strong><c:out value="${resumo.totalCategorias}" /></strong><small>grupos ativos</small>
                                             </div>
                                         </article>
@@ -75,7 +76,7 @@
                                                     class="d-flex align-items-center justify-content-between gap-2 mb-3">
                                                     <span class="nome-metrica">Estoque baixo</span><span
                                                         class="icone-metrica destaque-vermelho"><i
-                                                            class="bi bi-exclamation-triangle"></i></span></div>
+                                                            class="bi bi-exclamation-triangle" aria-hidden="true"></i></span></div>
                                                 <strong><c:out value="${resumo.produtosEstoqueBaixo}" /></strong><small>produtos em
                                                     alerta</small>
                                             </div>
@@ -89,7 +90,7 @@
                                                     class="d-flex align-items-center justify-content-between gap-2 mb-3">
                                                     <span class="nome-metrica">Unidades</span><span
                                                         class="icone-metrica destaque-verde"><i
-                                                            class="bi bi-stack"></i></span></div>
+                                                            class="bi bi-stack" aria-hidden="true"></i></span></div>
                                                 <strong><c:out value="${resumo.quantidadeTotalItens}" /></strong><small>quantidade
                                                     total</small>
                                             </div>
@@ -103,7 +104,7 @@
                                                     class="d-flex align-items-center justify-content-between gap-2 mb-3">
                                                     <span class="nome-metrica">Valor total</span><span
                                                         class="icone-metrica destaque-amarelo"><i
-                                                            class="bi bi-cash-coin"></i></span></div><strong>R$
+                                                            class="bi bi-cash-coin" aria-hidden="true"></i></span></div><strong>R$
                                                     <fmt:formatNumber value="${resumo.valorTotalEstoque}"
                                                         pattern="#,##0.00" />
                                                 </strong><small>preço x quantidade</small>
@@ -117,7 +118,7 @@
                                         <div
                                             class="cabecalho-painel card-header d-flex align-items-center justify-content-between gap-3">
                                             <div>
-                                                <h2><i class="bi bi-clock-history"></i> Produtos recentes</h2>
+                                                <h2><i class="bi bi-clock-history" aria-hidden="true"></i> Produtos recentes</h2>
                                                 <p>Últimos itens adicionados ao catálogo.</p>
                                             </div><a class="btn btn-outline-secondary btn-sm"
                                                 href="${pageContext.request.contextPath}/produtos">Abrir catálogo</a>
@@ -128,7 +129,7 @@
                                                     <a class="linha-estoque text-decoration-none"
                                                         href="${pageContext.request.contextPath}/produtos/<c:out value='${produto.id}'/>">
                                                         <span class="miniatura-vazia"><i
-                                                                class="bi bi-box-seam"></i></span>
+                                                                class="bi bi-box-seam" aria-hidden="true"></i></span>
                                                         <div><span class="titulo-linha"><c:out value="${produto.nome}" /></span><span
                                                                 class="subtitulo-linha"><c:out value="${produto.categoria.nome}" /></span>
                                                         </div>
@@ -139,7 +140,7 @@
                                                                     pattern="#,##0.00" />
                                                             </span><span
                                                                 class="etiqueta ${produto.quantidade == 0 ? 'etiqueta-sem-estoque' : (produto.estoqueBaixo ? 'etiqueta-alerta' : 'etiqueta-ok')}"><c:out value="${produto.quantidade}" />
-                                                                un.</span></div>
+                                                                un.${produto.quantidade == 0 ? ' - Sem estoque' : (produto.estoqueBaixo ? ' - Estoque baixo' : '')}</span></div>
                                                     </a>
                                                 </c:forEach>
                                             </div>
@@ -154,7 +155,7 @@
                                         <div
                                             class="cabecalho-painel card-header d-flex align-items-center justify-content-between gap-3">
                                             <div>
-                                                <h2><i class="bi bi-exclamation-circle"></i> Estoque baixo</h2>
+                                                <h2><i class="bi bi-exclamation-circle" aria-hidden="true"></i> Estoque baixo</h2>
                                                 <p>Produtos abaixo do mínimo definido.</p>
                                             </div><a class="btn btn-outline-secondary btn-sm"
                                                 href="${pageContext.request.contextPath}/estoque-baixo">Ver lista</a>
@@ -165,14 +166,14 @@
                                                     <a class="linha-estoque ${produto.quantidade == 0 ? 'linha-sem-estoque' : 'linha-alerta'} text-decoration-none"
                                                         href="${pageContext.request.contextPath}/produtos/<c:out value='${produto.id}'/>">
                                                         <span class="miniatura-vazia"><i
-                                                                class="bi bi-exclamation-triangle"></i></span>
+                                                                class="bi bi-exclamation-triangle" aria-hidden="true"></i></span>
                                                         <div><span class="titulo-linha"><c:out value="${produto.nome}" /></span><span
                                                                 class="subtitulo-linha"><c:out value="${produto.categoria.nome}" /></span>
                                                         </div>
                                                         <div
                                                             class="meta-linha d-flex align-items-center gap-2 flex-wrap">
                                                             <span
-                                                                class="etiqueta ${produto.quantidade == 0 ? 'etiqueta-sem-estoque' : 'etiqueta-alerta'}"><c:out value="${produto.quantidade}" />/<c:out value="${produto.estoqueMinimo}" /></span>
+                                                                class="etiqueta ${produto.quantidade == 0 ? 'etiqueta-sem-estoque' : 'etiqueta-alerta'}"><c:out value="${produto.quantidade}" />/<c:out value="${produto.estoqueMinimo}" /> - ${produto.quantidade == 0 ? 'Sem estoque' : 'Estoque baixo'}</span>
                                                         </div>
                                                     </a>
                                                 </c:forEach>
@@ -184,7 +185,7 @@
                                     </section>
                                     <section class="painel card">
                                         <div class="cabecalho-painel card-header">
-                                            <h2><i class="bi bi-lightning-charge"></i> Ações rápidas</h2>
+                                            <h2><i class="bi bi-lightning-charge" aria-hidden="true"></i> Ações rápidas</h2>
                                             <p>Atalhos para as rotinas principais.</p>
                                         </div>
                                         <div class="card-body">
@@ -192,19 +193,19 @@
                                                 <div class="col"><a
                                                         class="acao-rapida d-flex align-items-center gap-3 text-decoration-none"
                                                         href="${pageContext.request.contextPath}/produtos/novo"><i
-                                                            class="bi bi-plus-square"></i><span><strong>Cadastrar
+                                                            class="bi bi-plus-square" aria-hidden="true"></i><span><strong>Cadastrar
                                                                 produto</strong><small>Adicionar um novo item ao
                                                                 estoque</small></span></a></div>
                                                 <div class="col"><a
                                                         class="acao-rapida d-flex align-items-center gap-3 text-decoration-none"
                                                         href="${pageContext.request.contextPath}/categorias/novo"><i
-                                                            class="bi bi-folder-plus"></i><span><strong>Cadastrar
+                                                            class="bi bi-folder-plus" aria-hidden="true"></i><span><strong>Cadastrar
                                                                 categoria</strong><small>Organizar produtos por
                                                                 grupo</small></span></a></div>
                                                 <div class="col"><a
                                                         class="acao-rapida d-flex align-items-center gap-3 text-decoration-none"
                                                         href="${pageContext.request.contextPath}/estoque"><i
-                                                            class="bi bi-arrow-left-right"></i><span><strong>Movimentar
+                                                            class="bi bi-arrow-left-right" aria-hidden="true"></i><span><strong>Movimentar
                                                                 estoque</strong><small>Registrar entrada ou
                                                                 saída</small></span></a></div>
                                             </div>
@@ -215,6 +216,7 @@
                         </main>
                     </div>
                 </div>
+                <jsp:include page="../includes/scripts.jsp" />
             </body>
 
             </html>

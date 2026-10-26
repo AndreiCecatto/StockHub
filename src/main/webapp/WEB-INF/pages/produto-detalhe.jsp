@@ -1,7 +1,7 @@
 ﻿<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
     <%@ taglib prefix="c" uri="jakarta.tags.core" %>
         <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
-            <c:set var="activePage" value="produtos" />
+            <c:set var="activePage" value="produtos" scope="request" />
             <fmt:setLocale value="pt_BR" />
             <!DOCTYPE html>
             <html lang="pt-BR">
@@ -13,7 +13,7 @@
                 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
                     rel="stylesheet">
                 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
-                <title>StockHub - Produto</title>
+                <title><c:out value="${produto.nome}" /> - StockHub</title>
             </head>
 
             <body>
@@ -29,10 +29,11 @@
                                 </div>
                                 <div class="d-flex gap-2 flex-wrap"><a class="btn btn-outline-secondary"
                                         href="${pageContext.request.contextPath}/produtos"><i
-                                            class="bi bi-arrow-left"></i> Voltar</a><a class="btn btn-primary"
+                                            class="bi bi-arrow-left" aria-hidden="true"></i> Voltar</a><a class="btn btn-primary"
                                         href="${pageContext.request.contextPath}/produtos/<c:out value='${produto.id}'/>/editar"><i
-                                            class="bi bi-pencil"></i> Editar produto</a></div>
+                                            class="bi bi-pencil" aria-hidden="true"></i> Editar produto</a></div>
                             </section>
+                            <jsp:include page="../includes/alertas.jsp" />
                             <section class="row g-4">
                                 <div class="col-12 col-xl-8">
                                     <article class="painel detalhe-produto card">
@@ -41,10 +42,10 @@
                                                 class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-4">
                                                 <div><span class="rotulo-pagina">Produto #<c:out value="${produto.id}" /></span>
                                                     <h2><c:out value="${produto.nome}" /></h2><span class="etiqueta"><i
-                                                            class="bi bi-tag"></i> <c:out value="${produto.categoria.nome}" /></span>
+                                                            class="bi bi-tag" aria-hidden="true"></i> <c:out value="${produto.categoria.nome}" /></span>
                                                 </div><span
                                                     class="etiqueta ${produto.quantidade == 0 ? 'etiqueta-sem-estoque' : (produto.estoqueBaixo ? 'etiqueta-alerta' : 'etiqueta-ok')}"><i
-                                                        class="bi ${produto.quantidade == 0 ? 'bi-x-circle' : (produto.estoqueBaixo ? 'bi-exclamation-triangle' : 'bi-check2-circle')}"></i>${produto.quantidade
+                                                        class="bi ${produto.quantidade == 0 ? 'bi-x-circle' : (produto.estoqueBaixo ? 'bi-exclamation-triangle' : 'bi-check2-circle')}" aria-hidden="true"></i>${produto.quantidade
                                                     == 0 ? 'Sem estoque' : (produto.estoqueBaixo ? 'Estoque baixo' :
                                                     'Estoque ok')}</span>
                                             </div>
@@ -99,6 +100,7 @@
                         </main>
                     </div>
                 </div>
+                <jsp:include page="../includes/scripts.jsp" />
             </body>
 
             </html>
