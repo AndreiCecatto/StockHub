@@ -1,183 +1,410 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-<c:set var="activePage" value="estoque" scope="request" />
-<%-- Erros por campo do formulario de movimentacao --%>
+<%@ taglib prefix="sh" tagdir="/WEB-INF/tags" %>
+<%--
+    Movimentações (novo design, lote 4): registrar movimentação + histórico.
+    Rotas e campos inalterados: GET /estoque (pagina, produto, tipo, de, ate), GET /estoque/exportar.csv,
+    POST /estoque/movimentar (produtoId, tipo, quantidade, observacao).
+
+    Dados do EstoqueController:
+      produtos (id, nome, quantidade, estoqueMinimo; SEM a categoria, que não é carregada aqui),
+      movimentacoes (criadoEm, produto.id/nome/categoria.nome, tipo, quantidade, quantidadeAnterior, quantidadeNova, observacao),
+      paginaAtual, totalPaginas, totalMovimentacoes, tipos,
+      filtroProduto, filtroTipo, filtroDe, filtroAte, filtrosAtivos, parametrosFiltros,
+      movimentacaoForm, erro, errosCampos (produtoId, tipo, quantidade, observacao), mensagem (flash de sucesso).
+
+    Melhoria progressiva: sem JavaScript o formulário continua completo (select de produto, rádios de tipo,
+    validação nativa, filtros por GET). Com JS (js/combobox-produto.js e js/movimentacao.js) o select vira um
+    seletor com busca (padrão ARIA combobox), a quantidade ganha − e +, aparecem motivos rápidos e a prévia
+    do saldo. O servidor ignora movProduto e movTipo: só o JS os lê e valida.
+    Sem script nem style inline. Todo dado sai por c:out; o único POST leva o token CSRF.
+--%>
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
+
+<%-- Erros por campo (o servidor devolve só depois de recusar o envio) --%>
 <c:set var="eProduto" value="${errosCampos['produtoId']}" />
 <c:set var="eTipo" value="${errosCampos['tipo']}" />
 <c:set var="eQuantidade" value="${errosCampos['quantidade']}" />
 <c:set var="eObservacao" value="${errosCampos['observacao']}" />
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
-    <title>Movimentações - StockHub</title>
-</head>
-<body>
-<div class="estrutura-sistema d-flex min-vh-100">
-    <jsp:include page="../includes/sidebar.jsp" />
-    <div class="conteudo-sistema flex-grow-1">
-        <jsp:include page="../includes/navbar.jsp" />
-        <main class="conteudo-pagina">
-            <section class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-3">
-                <div class="titulo-pagina">
-                    <h1>Movimentações de estoque</h1>
-                    <p>Registre entradas, saídas e ajustes para manter histórico do saldo dos produtos.</p>
+<c:set var="temErrosCampos" value="${not empty eProduto or not empty eTipo or not empty eQuantidade or not empty eObservacao}" />
+
+<%-- Tipo escolhido (Entrada é o padrão) e o que depende dele: tudo também vale sem JavaScript --%>
+<c:set var="tipoSel" value="${empty movimentacaoForm.tipo ? 'ENTRADA' : movimentacaoForm.tipo}" />
+<c:set var="ehAjuste" value="${tipoSel == 'AJUSTE'}" />
+
+<%-- O item mais recente é o primeiro: só destaca depois do redirect de sucesso (flash "mensagem"), página 1 sem filtro --%>
+<c:set var="destacarPrimeiro" value="${not empty mensagem and paginaAtual == 1 and not filtrosAtivos}" />
+
+<fmt:setLocale value="pt_BR" scope="request" />
+
+<sh:layout titulo="Movimentações" ativo="estoque">
+    <jsp:attribute name="scripts">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/lote-estoque.css">
+        <script defer src="${pageContext.request.contextPath}/js/combobox-produto.js"></script>
+        <script defer src="${pageContext.request.contextPath}/js/movimentacao.js"></script>
+    </jsp:attribute>
+    <jsp:body>
+        <sh:cabecalhoPagina titulo="Movimentações" descricao="Registre o que entrou, saiu ou foi corrigido e confira o histórico do saldo.">
+            <a class="btn btn-outline-secondary" href="${ctx}/produtos?tamanho=25">
+                <i class="bi bi-box-seam" aria-hidden="true"></i> Ver produtos
+            </a>
+        </sh:cabecalhoPagina>
+
+        <div class="sh-mov">
+            <%-- ==================== Registrar movimentação ==================== --%>
+            <section id="registrar" class="sh-card sh-mov__registro" aria-labelledby="titulo-registrar">
+                <div class="sh-card__cab">
+                    <div>
+                        <h2 class="sh-card__titulo" id="titulo-registrar">Registrar movimentação</h2>
+                        <p class="sh-card__desc">Entrada soma ao saldo, saída subtrai e ajuste define a contagem final.</p>
+                    </div>
                 </div>
-                <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/produtos">
-                    <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> Ver produtos
-                </a>
-            </section>
+                <div class="sh-card__corpo">
+                    <c:choose>
+                        <%-- Sem produtos não há o que movimentar --%>
+                        <c:when test="${empty produtos}">
+                            <sh:estadoVazio icone="box-seam" titulo="Cadastre um produto para movimentar"
+                                texto="Entradas, saídas e ajustes são sempre feitos sobre um produto."
+                                acaoUrl="/produtos/novo" acaoRotulo="Cadastrar produto" />
+                        </c:when>
+                        <c:otherwise>
+                            <form id="form-movimentacao" class="sh-mov__form" method="post" action="${ctx}/estoque/movimentar"
+                                data-sh-validar data-sh-ctrl-enter data-sh-enviando="Registrando…">
+                                <input type="hidden" name="<c:out value='${_csrf.parameterName}'/>" value="<c:out value='${_csrf.token}'/>" />
 
-            <jsp:include page="../includes/alertas.jsp" />
+                                <%-- Resumo de erros: o servidor preenche quando há erro por campo; o JS preenche ao enviar --%>
+                                <div class="sh-resumo-erros" role="alert" tabindex="-1" data-sh-resumo-erros ${temErrosCampos ? '' : 'hidden'}>
+                                    <p class="sh-resumo-erros__titulo"><c:if test="${temErrosCampos}">Corrija os campos abaixo para continuar:</c:if></p>
+                                    <ul>
+                                        <c:if test="${not empty eProduto}">
+                                            <li><a href="#produtoId" data-sh-ir-campo="produtoId"><c:out value="${eProduto}" /></a></li>
+                                        </c:if>
+                                        <c:if test="${not empty eTipo}">
+                                            <li><a href="#tipo-<c:out value='${tipoSel}'/>" data-sh-ir-campo="tipo-<c:out value='${tipoSel}'/>"><c:out value="${eTipo}" /></a></li>
+                                        </c:if>
+                                        <c:if test="${not empty eQuantidade}">
+                                            <li><a href="#quantidade" data-sh-ir-campo="quantidade"><c:out value="${eQuantidade}" /></a></li>
+                                        </c:if>
+                                        <c:if test="${not empty eObservacao}">
+                                            <li><a href="#observacao" data-sh-ir-campo="observacao"><c:out value="${eObservacao}" /></a></li>
+                                        </c:if>
+                                    </ul>
+                                </div>
 
-            <section class="row g-4">
-                <div class="col-12 col-xl-4">
-                    <section class="painel card h-100">
-                        <div class="cabecalho-painel card-header">
-                            <h2><i class="bi bi-arrow-left-right" aria-hidden="true"></i> Registrar movimento</h2>
-                            <p>Entrada soma, saída subtrai e ajuste define o saldo final.</p>
-                        </div>
-                        <div class="card-body">
-                            <form class="d-grid gap-3" method="post" action="${pageContext.request.contextPath}/estoque/movimentar">
-                                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
-                                <div>
-                                    <label class="form-label" for="produtoId">Produto</label>
+                                <%-- 1. Produto. O select é a fonte dos dados e o campo que vai no POST; com JS fica oculto
+                                     e o seletor com busca (combobox) assume a frente. data-saldo e data-minimo vêm do
+                                     servidor; a categoria não entra porque listarParaSelecao não a carrega. --%>
+                                <div class="sh-combo" data-sh-combo>
+                                    <label class="form-label" for="produtoId">Produto <span class="sh-obrigatorio">(obrigatório)</span></label>
                                     <select class="form-select ${not empty eProduto ? 'is-invalid' : ''}" id="produtoId" name="produtoId" required
-                                        ${not empty eProduto ? 'aria-invalid="true" aria-describedby="erro-produtoId"' : ''}>
+                                        data-sh-msg-obrigatorio="Escolha o produto da movimentação."
+                                        ${not empty eProduto ? 'aria-invalid="true"' : ''}
+                                        aria-describedby="erro-produtoId">
                                         <option value="">Selecione um produto</option>
                                         <c:forEach var="produto" items="${produtos}">
-                                            <option value="<c:out value='${produto.id}'/>" ${movimentacaoForm.produtoId == produto.id ? 'selected' : ''}><c:out value="${produto.nome}" /> - atual: <c:out value="${produto.quantidade}" /> un.</option>
+                                            <option value="<c:out value='${produto.id}'/>"
+                                                data-nome="<c:out value='${produto.nome}'/>"
+                                                data-saldo="<c:out value='${produto.quantidade}'/>"
+                                                data-minimo="<c:out value='${produto.estoqueMinimo}'/>"
+                                                ${movimentacaoForm.produtoId == produto.id ? 'selected' : ''}><c:out value="${produto.nome}" /> (saldo: <c:out value="${produto.quantidade}" /> un.)</option>
                                         </c:forEach>
                                     </select>
-                                    <c:if test="${not empty eProduto}">
-                                        <div id="erro-produtoId" class="invalid-feedback"><c:out value="${eProduto}" /></div>
-                                    </c:if>
+                                    <div id="erro-produtoId" class="sh-erro-campo" ${not empty eProduto ? '' : 'hidden'}>
+                                        <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                                        <span class="sh-erro-campo__texto"><c:out value="${eProduto}" /></span>
+                                    </div>
+                                    <p class="form-text" id="dica-produto" hidden>Digite parte do nome para buscar. Use as setas e Enter para escolher.</p>
                                 </div>
-                                <div>
-                                    <label class="form-label" for="tipo">Tipo</label>
-                                    <select class="form-select ${not empty eTipo ? 'is-invalid' : ''}" id="tipo" name="tipo" required
-                                        ${not empty eTipo ? 'aria-invalid="true" aria-describedby="erro-tipo"' : ''}>
-                                        <c:forEach var="tipo" items="${tipos}">
-                                            <option value="<c:out value='${tipo}'/>" ${movimentacaoForm.tipo == tipo ? 'selected' : ''}>
-                                                <c:choose>
-                                                    <c:when test="${tipo == 'ENTRADA'}">Entrada (soma ao saldo)</c:when>
-                                                    <c:when test="${tipo == 'SAIDA'}">Saída (subtrai do saldo)</c:when>
-                                                    <c:when test="${tipo == 'AJUSTE'}">Ajuste (define o saldo final)</c:when>
-                                                    <c:otherwise><c:out value="${tipo}" /></c:otherwise>
-                                                </c:choose>
-                                            </option>
-                                        </c:forEach>
-                                    </select>
-                                    <c:if test="${not empty eTipo}">
-                                        <div id="erro-tipo" class="invalid-feedback"><c:out value="${eTipo}" /></div>
-                                    </c:if>
-                                </div>
-                                <div>
-                                    <%-- Rotulo, min/max e dica mudam conforme o tipo (js/estoque.js) --%>
-                                    <label class="form-label" for="quantidade" id="rotulo-quantidade">Quantidade</label>
-                                    <input class="form-control ${not empty eQuantidade ? 'is-invalid' : ''}" id="quantidade" type="number"
-                                        min="0" max="1000000" name="quantidade" value="<c:out value='${movimentacaoForm.quantidade}'/>" required
-                                        aria-describedby="dica-quantidade${not empty eQuantidade ? ' erro-quantidade' : ''}"
-                                        ${not empty eQuantidade ? 'aria-invalid="true"' : ''}>
-                                    <div id="dica-quantidade" class="form-text">Mínimo 1 unidade.</div>
-                                    <c:if test="${not empty eQuantidade}">
-                                        <div id="erro-quantidade" class="invalid-feedback"><c:out value="${eQuantidade}" /></div>
-                                    </c:if>
-                                </div>
-                                <div>
-                                    <label class="form-label" for="observacao">Observação
-                                        <span id="obs-obrigatoria" class="text-secondary fw-normal" hidden>(obrigatória no ajuste)</span>
-                                    </label>
-                                    <textarea class="form-control ${not empty eObservacao ? 'is-invalid' : ''}" id="observacao" name="observacao" rows="4"
-                                        maxlength="255" placeholder="Ex: compra de fornecedor, venda, perda ou correção"
-                                        ${not empty eObservacao ? 'aria-invalid="true" aria-describedby="erro-observacao"' : ''}><c:out value="${movimentacaoForm.observacao}" /></textarea>
-                                    <c:if test="${not empty eObservacao}">
-                                        <div id="erro-observacao" class="invalid-feedback"><c:out value="${eObservacao}" /></div>
-                                    </c:if>
-                                </div>
-                                <button class="btn btn-primary" type="submit">
-                                    <i class="bi bi-check2-circle" aria-hidden="true"></i> Registrar movimentação
-                                </button>
-                            </form>
-                        </div>
-                    </section>
-                </div>
 
-                <div class="col-12 col-xl-8">
-                    <section class="painel card">
-                        <div class="cabecalho-painel card-header d-flex align-items-center justify-content-between gap-3">
-                            <div>
-                                <h2><i class="bi bi-clock-history" aria-hidden="true"></i> Histórico</h2>
-                                <p>Entradas, saídas e ajustes registrados, do mais recente ao mais antigo.</p>
-                            </div>
-                            <span class="etiqueta"><i class="bi bi-list-check" aria-hidden="true"></i> <c:out value="${totalMovimentacoes}" /> registro(s)</span>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table tabela-sistema align-middle">
-                                <thead>
-                                <tr>
-                                    <th scope="col">Data</th>
-                                    <th scope="col">Produto</th>
-                                    <th scope="col">Tipo</th>
-                                    <th scope="col">Quantidade</th>
-                                    <th scope="col">Saldo (antes → depois)</th>
-                                    <th scope="col">Observação</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <c:forEach var="mov" items="${movimentacoes}">
-                                    <%--
-                                        criadoEm e LocalDateTime (nao e java.util.Date, entao fmt:formatDate nao serve).
-                                        toString() = "aaaa-MM-ddTHH:mm[:ss[.n]]", sempre com ao menos 16 caracteres,
-                                        entao fn:substring monta dd/MM/aaaa HH:mm de forma segura.
-                                    --%>
-                                    <c:set var="dt" value="${mov.criadoEm}" />
-                                    <tr>
-                                        <td>
-                                            <time datetime="<c:out value='${fn:substring(dt, 0, 16)}'/>"><c:out value="${fn:substring(dt, 8, 10)}/${fn:substring(dt, 5, 7)}/${fn:substring(dt, 0, 4)} ${fn:substring(dt, 11, 16)}" /></time>
-                                        </td>
-                                        <td><strong><c:out value="${mov.produto.nome}" /></strong><span class="subtitulo-linha"><c:out value="${mov.produto.categoria.nome}" /></span></td>
-                                        <td>
-                                            <span class="etiqueta ${mov.tipo == 'ENTRADA' ? 'etiqueta-ok' : (mov.tipo == 'SAIDA' ? 'etiqueta-sem-estoque' : 'etiqueta-alerta')}">
-                                                <c:choose>
-                                                    <c:when test="${mov.tipo == 'ENTRADA'}"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> Entrada</c:when>
-                                                    <c:when test="${mov.tipo == 'SAIDA'}"><i class="bi bi-box-arrow-up" aria-hidden="true"></i> Saída</c:when>
-                                                    <c:otherwise><i class="bi bi-sliders" aria-hidden="true"></i> Ajuste</c:otherwise>
-                                                </c:choose>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <c:out value="${mov.quantidade}" /> un.
-                                            <c:if test="${mov.tipo == 'AJUSTE'}"><span class="subtitulo-linha">contagem final</span></c:if>
-                                        </td>
-                                        <td><c:out value="${mov.quantidadeAnterior}" /> &rarr; <strong><c:out value="${mov.quantidadeNova}" /></strong></td>
-                                        <td><c:out value="${mov.observacao}" /></td>
-                                    </tr>
-                                </c:forEach>
-                                <c:if test="${empty movimentacoes}">
-                                    <tr>
-                                        <td colspan="6"><div class="estado-vazio">Nenhuma movimentação registrada ainda.</div></td>
-                                    </tr>
-                                </c:if>
-                                </tbody>
-                            </table>
-                        </div>
-                        <jsp:include page="../includes/paginacao.jsp">
-                            <jsp:param name="base" value="/estoque" />
-                            <jsp:param name="rotulo" value="Paginação do histórico de movimentações" />
-                        </jsp:include>
-                    </section>
+                                <%-- 2. Tipo (controle segmentado: três rádios com o mesmo name) --%>
+                                <fieldset class="sh-tiposel" aria-describedby="erro-tipo">
+                                    <legend class="form-label">Tipo de movimentação</legend>
+                                    <div class="sh-tiposel__grupo">
+                                        <div class="sh-tiposel__item">
+                                            <input class="sh-tiposel__input" type="radio" name="tipo" id="tipo-ENTRADA" value="ENTRADA" required
+                                                ${tipoSel == 'ENTRADA' ? 'checked' : ''}>
+                                            <label class="sh-tiposel__opcao" for="tipo-ENTRADA">
+                                                <span class="sh-tiposel__visto" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+                                                <i class="bi bi-box-arrow-in-down sh-tiposel__icone" aria-hidden="true"></i>
+                                                <span class="sh-tiposel__nome">Entrada</span>
+                                                <span class="sh-tiposel__dica">soma ao saldo</span>
+                                            </label>
+                                        </div>
+                                        <div class="sh-tiposel__item">
+                                            <input class="sh-tiposel__input" type="radio" name="tipo" id="tipo-SAIDA" value="SAIDA" required
+                                                ${tipoSel == 'SAIDA' ? 'checked' : ''}>
+                                            <label class="sh-tiposel__opcao" for="tipo-SAIDA">
+                                                <span class="sh-tiposel__visto" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+                                                <i class="bi bi-box-arrow-up sh-tiposel__icone" aria-hidden="true"></i>
+                                                <span class="sh-tiposel__nome">Saída</span>
+                                                <span class="sh-tiposel__dica">subtrai do saldo</span>
+                                            </label>
+                                        </div>
+                                        <div class="sh-tiposel__item">
+                                            <input class="sh-tiposel__input" type="radio" name="tipo" id="tipo-AJUSTE" value="AJUSTE" required
+                                                ${tipoSel == 'AJUSTE' ? 'checked' : ''}>
+                                            <label class="sh-tiposel__opcao" for="tipo-AJUSTE">
+                                                <span class="sh-tiposel__visto" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+                                                <i class="bi bi-sliders sh-tiposel__icone" aria-hidden="true"></i>
+                                                <span class="sh-tiposel__nome">Ajuste</span>
+                                                <span class="sh-tiposel__dica">define o saldo final</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div id="erro-tipo" class="sh-erro-campo" ${not empty eTipo ? '' : 'hidden'}>
+                                        <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                                        <span class="sh-erro-campo__texto"><c:out value="${eTipo}" /></span>
+                                    </div>
+                                </fieldset>
+
+                                <%-- 3. Quantidade (no ajuste vira "Contagem final": aceita 0 e vai até 2.000.000.000) --%>
+                                <div>
+                                    <label class="form-label" for="quantidade" id="rotulo-quantidade"><span id="rotulo-quantidade-texto"><c:out value="${ehAjuste ? 'Contagem final' : 'Quantidade'}" /></span> <span class="sh-obrigatorio">(obrigatório)</span></label>
+                                    <div class="sh-qtd">
+                                        <button type="button" class="btn btn-outline-secondary sh-qtd__botao" data-sh-qtd="-1"
+                                            aria-label="Diminuir a quantidade em 1" hidden>
+                                            <i class="bi bi-dash-lg" aria-hidden="true"></i>
+                                        </button>
+                                        <input class="form-control ${not empty eQuantidade ? 'is-invalid' : ''}" id="quantidade" name="quantidade"
+                                            type="number" step="1" inputmode="numeric" autocomplete="off" required
+                                            min="${ehAjuste ? '0' : '1'}" max="${ehAjuste ? '2000000000' : '1000000'}"
+                                            value="<c:out value='${movimentacaoForm.quantidade}'/>"
+                                            data-sh-msg-obrigatorio="${ehAjuste ? 'Informe a contagem final.' : 'Informe a quantidade.'}"
+                                            aria-describedby="dica-quantidade erro-quantidade"
+                                            ${not empty eQuantidade ? 'aria-invalid="true"' : ''}>
+                                        <button type="button" class="btn btn-outline-secondary sh-qtd__botao" data-sh-qtd="1"
+                                            aria-label="Aumentar a quantidade em 1" hidden>
+                                            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                    <div id="erro-quantidade" class="sh-erro-campo" ${not empty eQuantidade ? '' : 'hidden'}>
+                                        <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                                        <span class="sh-erro-campo__texto"><c:out value="${eQuantidade}" /></span>
+                                    </div>
+                                    <p id="dica-quantidade" class="form-text"><c:choose>
+                                        <c:when test="${tipoSel == 'SAIDA'}">Quantidade que saiu do estoque. Mínimo 1.</c:when>
+                                        <c:when test="${ehAjuste}">Saldo que o produto deve ter depois do ajuste (pode ser 0).</c:when>
+                                        <c:otherwise>Quantidade que entrou no estoque. Mínimo 1.</c:otherwise>
+                                    </c:choose></p>
+                                </div>
+
+                                <%-- Prévia "saldo atual → saldo depois" (só com JS) --%>
+                                <div class="sh-previa" id="previa-saldo" hidden>
+                                    <p class="sh-previa__titulo">Saldo depois da movimentação</p>
+                                    <div class="sh-previa__visual" id="previa-visual" aria-hidden="true"></div>
+                                    <p class="sh-previa__aviso" id="previa-aviso" hidden></p>
+                                    <p class="visually-hidden" id="previa-leitor" aria-live="polite" aria-atomic="true"></p>
+                                    <p class="sh-previa__nota">É o saldo desta página; o sistema confere de novo ao registrar.</p>
+                                </div>
+
+                                <%-- Motivos rápidos: preenchem a observação (só com JS). Nunca existe o texto reservado "Estoque inicial". --%>
+                                <div class="sh-motivos" id="motivos" hidden>
+                                    <p class="form-label" id="rotulo-motivos">Motivo rápido <span class="sh-obrigatorio">(opcional)</span></p>
+                                    <div class="sh-chips" role="group" aria-labelledby="rotulo-motivos">
+                                        <button type="button" class="sh-chip" aria-pressed="false" data-motivo="Compra de fornecedor" data-tipo="ENTRADA">Compra de fornecedor</button>
+                                        <button type="button" class="sh-chip" aria-pressed="false" data-motivo="Devolução de cliente" data-tipo="ENTRADA">Devolução de cliente</button>
+                                        <button type="button" class="sh-chip" aria-pressed="false" data-motivo="Reposição" data-tipo="ENTRADA">Reposição</button>
+                                        <button type="button" class="sh-chip" aria-pressed="false" data-motivo="Venda" data-tipo="SAIDA">Venda</button>
+                                        <button type="button" class="sh-chip" aria-pressed="false" data-motivo="Perda" data-tipo="SAIDA">Perda</button>
+                                        <button type="button" class="sh-chip" aria-pressed="false" data-motivo="Quebra" data-tipo="SAIDA">Quebra</button>
+                                        <button type="button" class="sh-chip" aria-pressed="false" data-motivo="Vencimento" data-tipo="SAIDA">Vencimento</button>
+                                        <button type="button" class="sh-chip" aria-pressed="false" data-motivo="Furto ou extravio" data-tipo="SAIDA">Furto ou extravio</button>
+                                        <button type="button" class="sh-chip" aria-pressed="false" data-motivo="Correção de contagem" data-tipo="AJUSTE">Correção de contagem</button>
+                                        <button type="button" class="sh-chip" aria-pressed="false" data-motivo="Inventário" data-tipo="AJUSTE">Inventário</button>
+                                        <button type="button" class="sh-chip" aria-pressed="false" data-motivo="Erro de lançamento" data-tipo="AJUSTE">Erro de lançamento</button>
+                                    </div>
+                                </div>
+
+                                <%-- 4. Observação (obrigatória no ajuste) --%>
+                                <div>
+                                    <label class="form-label" for="observacao">Observação <span class="sh-obrigatorio" id="obs-obrigatoria" ${ehAjuste ? '' : 'hidden'}>(obrigatória no ajuste)</span></label>
+                                    <textarea class="form-control ${not empty eObservacao ? 'is-invalid' : ''}" id="observacao" name="observacao"
+                                        rows="3" maxlength="255" ${ehAjuste ? 'required' : ''}
+                                        placeholder="Ex.: compra do fornecedor, venda, perda ou correção"
+                                        data-sh-contador="contador-observacao"
+                                        data-sh-msg-obrigatorio="Descreva o motivo do ajuste."
+                                        aria-describedby="contador-observacao erro-observacao"
+                                        ${not empty eObservacao ? 'aria-invalid="true"' : ''}><c:out value="${movimentacaoForm.observacao}" /></textarea>
+                                    <div id="erro-observacao" class="sh-erro-campo" ${not empty eObservacao ? '' : 'hidden'}>
+                                        <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                                        <span class="sh-erro-campo__texto"><c:out value="${eObservacao}" /></span>
+                                    </div>
+                                    <div id="contador-observacao" class="sh-contador"></div>
+                                </div>
+
+                                <div class="sh-mov__enviar">
+                                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                                        <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                                        <span id="rotulo-botao">Registrar movimentação</span>
+                                    </button>
+                                    <p class="form-text sh-mov__atalho-dica">Atalho: <kbd class="sh-tecla">Ctrl</kbd> + <kbd class="sh-tecla">Enter</kbd></p>
+                                </div>
+                            </form>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </section>
-        </main>
-    </div>
-</div>
-<jsp:include page="../includes/scripts.jsp" />
-<script src="${pageContext.request.contextPath}/js/estoque.js"></script>
-</body>
-</html>
+
+            <%-- ==================== Histórico ==================== --%>
+            <section class="sh-card sh-mov__historico" aria-labelledby="titulo-historico">
+                <div class="sh-card__cab">
+                    <div>
+                        <h2 class="sh-card__titulo" id="titulo-historico">Histórico</h2>
+                        <p class="sh-card__desc">
+                            <strong><fmt:formatNumber value="${totalMovimentacoes}" pattern="#,##0" /></strong>
+                            <c:out value="${totalMovimentacoes == 1 ? 'registro' : 'registros'}" /><c:if test="${filtrosAtivos}"> com os filtros aplicados</c:if>,
+                            do mais recente ao mais antigo.
+                        </p>
+                    </div>
+                    <c:if test="${totalMovimentacoes > 0}">
+                        <a class="btn btn-outline-secondary btn-sm"
+                            href="<c:out value='${ctx}/estoque/exportar.csv?pagina=1${parametrosFiltros}'/>">
+                            <i class="bi bi-download" aria-hidden="true"></i> Exportar CSV
+                        </a>
+                    </c:if>
+                </div>
+
+                <%-- Filtros (GET, funcionam sem JavaScript): produto, tipo, de, ate --%>
+                <form class="sh-filtros" method="get" action="${ctx}/estoque" aria-label="Filtros do histórico">
+                    <div class="sh-filtros__campo sh-filtros__produto">
+                        <label class="form-label" for="filtro-produto">Produto</label>
+                        <select class="form-select" id="filtro-produto" name="produto">
+                            <option value="">Todos os produtos</option>
+                            <c:set var="produtoNaLista" value="${false}" />
+                            <c:forEach var="produto" items="${produtos}">
+                                <c:if test="${filtroProduto == produto.id}"><c:set var="produtoNaLista" value="${true}" /></c:if>
+                                <option value="<c:out value='${produto.id}'/>" ${filtroProduto == produto.id ? 'selected' : ''}><c:out value="${produto.nome}" /></option>
+                            </c:forEach>
+                            <%-- Produto filtrado que saiu da lista (inativo): mantém o filtro ao reenviar --%>
+                            <c:if test="${not empty filtroProduto and not produtoNaLista}">
+                                <option value="<c:out value='${filtroProduto}'/>" selected>Produto <c:out value="${filtroProduto}" /> (fora da lista)</option>
+                            </c:if>
+                        </select>
+                    </div>
+                    <div class="sh-filtros__campo sh-filtros__tipo">
+                        <label class="form-label" for="filtro-tipo">Tipo</label>
+                        <select class="form-select" id="filtro-tipo" name="tipo">
+                            <option value="">Todos os tipos</option>
+                            <option value="ENTRADA" ${filtroTipo == 'ENTRADA' ? 'selected' : ''}>Entrada</option>
+                            <option value="SAIDA" ${filtroTipo == 'SAIDA' ? 'selected' : ''}>Saída</option>
+                            <option value="AJUSTE" ${filtroTipo == 'AJUSTE' ? 'selected' : ''}>Ajuste</option>
+                        </select>
+                    </div>
+                    <div class="sh-filtros__campo">
+                        <label class="form-label" for="filtro-de">De</label>
+                        <input class="form-control" id="filtro-de" name="de" type="date" value="<c:out value='${filtroDe}'/>">
+                    </div>
+                    <div class="sh-filtros__campo">
+                        <label class="form-label" for="filtro-ate">Até</label>
+                        <input class="form-control" id="filtro-ate" name="ate" type="date" value="<c:out value='${filtroAte}'/>">
+                    </div>
+                    <div class="sh-filtros__acoes">
+                        <button type="submit" class="btn btn-outline-secondary">
+                            <i class="bi bi-funnel" aria-hidden="true"></i> Filtrar
+                        </button>
+                        <c:if test="${filtrosAtivos}">
+                            <a class="btn btn-ghost" href="${ctx}/estoque">
+                                <i class="bi bi-x-lg" aria-hidden="true"></i> Limpar filtros
+                            </a>
+                        </c:if>
+                    </div>
+                </form>
+
+                <c:choose>
+                    <%-- Estados vazios: com filtro e sem filtro --%>
+                    <c:when test="${empty movimentacoes}">
+                        <c:choose>
+                            <c:when test="${filtrosAtivos}">
+                                <sh:estadoVazio icone="funnel" titulo="Nenhuma movimentação com esses filtros"
+                                    texto="Tente outro produto, tipo ou período."
+                                    acaoUrl="/estoque" acaoRotulo="Limpar filtros" />
+                            </c:when>
+                            <c:when test="${empty produtos}">
+                                <sh:estadoVazio icone="clock-history" titulo="Nenhuma movimentação ainda"
+                                    texto="Cadastre um produto e registre a primeira entrada para começar o histórico."
+                                    acaoUrl="/produtos/novo" acaoRotulo="Cadastrar produto" />
+                            </c:when>
+                            <c:otherwise>
+                                <sh:estadoVazio icone="clock-history" titulo="Nenhuma movimentação ainda"
+                                    texto="Registre a primeira entrada, saída ou ajuste para começar o histórico."
+                                    acaoUrl="/estoque#registrar" acaoRotulo="Registrar a primeira" />
+                            </c:otherwise>
+                        </c:choose>
+                    </c:when>
+
+                    <%-- Linha do tempo agrupada por dia. criadoEm é LocalDateTime (não é java.util.Date, então
+                         fmt:formatDate não serve): toString() = "aaaa-MM-ddTHH:mm[:ss[.n]]", sempre com ao menos
+                         16 caracteres, então fn:substring monta dd/MM/aaaa e HH:mm de forma segura. --%>
+                    <c:otherwise>
+                        <div class="sh-card__corpo">
+                            <c:set var="diaAnterior" value="" />
+                            <c:forEach var="mov" items="${movimentacoes}" varStatus="st">
+                                <c:set var="dt" value="${mov.criadoEm}" />
+                                <c:set var="dia" value="${fn:substring(dt, 0, 10)}" />
+                                <c:if test="${dia != diaAnterior}">
+                                    <c:if test="${not st.first}"></ol></section></c:if>
+                                    <section class="sh-mov__dia" aria-labelledby="dia-<c:out value='${dia}'/>">
+                                        <h3 class="sh-timeline__dia" id="dia-<c:out value='${dia}'/>"><time datetime="<c:out value='${dia}'/>"><c:out value="${fn:substring(dt, 8, 10)}/${fn:substring(dt, 5, 7)}/${fn:substring(dt, 0, 4)}" /></time></h3>
+                                        <ol class="sh-timeline" ${destacarPrimeiro and st.first ? 'data-destacar-primeiro' : ''}>
+                                    <c:set var="diaAnterior" value="${dia}" />
+                                </c:if>
+
+                                <c:choose>
+                                    <c:when test="${mov.tipo == 'ENTRADA'}">
+                                        <c:set var="tCls" value="entrada" /><c:set var="tIcone" value="box-arrow-in-down" /><c:set var="tRotulo" value="Entrada" />
+                                    </c:when>
+                                    <c:when test="${mov.tipo == 'SAIDA'}">
+                                        <c:set var="tCls" value="saida" /><c:set var="tIcone" value="box-arrow-up" /><c:set var="tRotulo" value="Saída" />
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:set var="tCls" value="ajuste" /><c:set var="tIcone" value="sliders" /><c:set var="tRotulo" value="Ajuste" />
+                                    </c:otherwise>
+                                </c:choose>
+
+                                <li class="sh-timeline__item sh-mov__item">
+                                    <span class="sh-timeline__icone sh-mov__icone sh-mov__icone--${tCls}" aria-hidden="true">
+                                        <i class="bi bi-${tIcone}"></i>
+                                    </span>
+                                    <div class="sh-mov__corpo">
+                                        <div class="sh-mov__topo">
+                                            <a class="sh-mov__produto" href="<c:out value='${ctx}/produtos/${mov.produto.id}'/>"><c:out value="${mov.produto.nome}" /></a>
+                                            <span class="sh-badge sh-badge--${tCls}"><i class="bi bi-${tIcone}" aria-hidden="true"></i><c:out value="${tRotulo}" /></span>
+                                            <time class="sh-mov__hora" datetime="<c:out value='${fn:substring(dt, 0, 16)}'/>"><span class="visually-hidden">às </span><c:out value="${fn:substring(dt, 11, 16)}" /></time>
+                                        </div>
+                                        <c:if test="${not empty mov.produto.categoria.nome}">
+                                            <div class="sh-mov__cat"><c:out value="${mov.produto.categoria.nome}" /></div>
+                                        </c:if>
+                                        <div class="sh-mov__numeros">
+                                            <span class="sh-timeline__delta sh-mov__delta--${tCls}">
+                                                <c:choose>
+                                                    <c:when test="${mov.tipo == 'ENTRADA'}">+<fmt:formatNumber value="${mov.quantidade}" pattern="#,##0" /> un.</c:when>
+                                                    <c:when test="${mov.tipo == 'SAIDA'}">&minus;<fmt:formatNumber value="${mov.quantidade}" pattern="#,##0" /> un.</c:when>
+                                                    <c:otherwise>=<fmt:formatNumber value="${mov.quantidade}" pattern="#,##0" /> un. <span class="sh-mov__contagem">(contagem final)</span></c:otherwise>
+                                                </c:choose>
+                                            </span>
+                                            <span class="sh-mov__saldo">
+                                                Saldo: <span class="visually-hidden">de </span><fmt:formatNumber value="${mov.quantidadeAnterior}" pattern="#,##0" />
+                                                <span aria-hidden="true">&rarr;</span><span class="visually-hidden"> para </span>
+                                                <strong><fmt:formatNumber value="${mov.quantidadeNova}" pattern="#,##0" /></strong> un.
+                                            </span>
+                                        </div>
+                                        <c:if test="${not empty mov.observacao}">
+                                            <p class="sh-mov__obs"><c:out value="${mov.observacao}" /></p>
+                                        </c:if>
+                                    </div>
+                                </li>
+                            </c:forEach>
+                                </ol>
+                            </section>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
+
+                <sh:paginacao paginaAtual="${paginaAtual}" totalPaginas="${totalPaginas}" totalItens="${totalMovimentacoes}"
+                    tamanho="50" base="/estoque" extra="${parametrosFiltros}" rotulo="Paginação do histórico de movimentações" />
+            </section>
+        </div>
+    </jsp:body>
+</sh:layout>

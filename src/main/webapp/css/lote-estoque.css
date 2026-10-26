@@ -1,0 +1,625 @@
+/*
+ * StockHub: tela de Movimentações (lote 4 do redesenho). Carregado só por estoque.jsp, depois de
+ * tokens.css, layout.css e componentes.css. Só usa tokens (--sh-*) e as classes sh- já existentes
+ * (.sh-card, .sh-badge, .sh-chip, .sh-timeline, .sh-erro-campo...). Nada de cor solta.
+ * Prefixos próprios: sh-mov (página), sh-combo (seletor de produto), sh-tiposel (tipo segmentado),
+ * sh-qtd (quantidade), sh-previa (saldo depois), sh-motivos, sh-filtros.
+ */
+
+/* ============================== Página: formulário + histórico ============================== */
+.sh-mov {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sh-space-6);
+  align-items: start;
+}
+
+/* >= 1200 px: formulário fixo de 380 px à esquerda, histórico à direita */
+@media (min-width: 1200px) {
+  .sh-mov {
+    grid-template-columns: 380px minmax(0, 1fr);
+  }
+}
+
+/* O formulário acompanha a rolagem do histórico, se couber na altura da janela */
+@media (min-width: 1200px) and (min-height: 860px) {
+  .sh-mov__registro {
+    position: sticky;
+    top: calc(56px + var(--sh-space-4));
+  }
+}
+
+.sh-mov__form {
+  display: grid;
+  gap: var(--sh-space-5);
+}
+
+.sh-mov__form .sh-resumo-erros {
+  margin-bottom: 0;
+}
+
+.sh-mov__enviar {
+  display: grid;
+  gap: var(--sh-space-2);
+}
+
+.sh-mov__atalho-dica {
+  margin: 0;
+  text-align: center;
+}
+
+/* Sem teclado físico (celular) a dica do atalho só atrapalha */
+@media (hover: none) {
+  .sh-mov__atalho-dica {
+    display: none;
+  }
+}
+
+/* ============================== Seletor de produto (combobox) ============================== */
+.sh-combo {
+  position: relative;
+}
+
+/* Com JS o select continua no formulário (é ele que vai no POST), mas some da tela e da leitura */
+.sh-combo--ativo > select {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sh-combo__campo {
+  position: relative;
+}
+
+.sh-combo__campo > .bi-search {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: var(--sh-text-subtle);
+  pointer-events: none;
+}
+
+.sh-combo__input {
+  padding-left: 38px;
+}
+
+.sh-combo__popup {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + var(--sh-space-1));
+  left: 0;
+  right: 0;
+  max-height: min(340px, 60vh);
+  overflow-y: auto;
+  border: 1px solid var(--sh-border-strong);
+  border-radius: var(--sh-radius);
+  background: var(--sh-surface);
+  box-shadow: var(--sh-shadow-pop);
+}
+
+.sh-combo__lista {
+  list-style: none;
+  margin: 0;
+  padding: var(--sh-space-1);
+}
+
+.sh-combo__opcao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sh-space-1) var(--sh-space-3);
+  min-height: 44px;
+  padding: var(--sh-space-2) var(--sh-space-3);
+  border-radius: var(--sh-radius-sm);
+  color: var(--sh-text);
+  cursor: pointer;
+}
+
+.sh-combo__opcao:hover {
+  background: var(--sh-surface-2);
+}
+
+/* Opção ativa (aria-activedescendant): fundo + barra lateral, não só cor */
+.sh-combo__opcao[aria-selected="true"] {
+  background: var(--sh-accent-soft);
+  box-shadow: inset 3px 0 0 var(--sh-accent);
+}
+
+.sh-combo__nome {
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* Trecho encontrado: negrito + sublinhado (não depende de cor) */
+.sh-combo__nome mark {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.sh-combo__meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sh-space-1) var(--sh-space-2);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-combo__aviso {
+  margin: 0;
+  padding: var(--sh-space-3) var(--sh-space-4);
+  border-top: 1px solid var(--sh-border);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.sh-combo__lista:empty + .sh-combo__aviso {
+  border-top: 0;
+}
+
+.sh-combo__aviso a {
+  font-weight: 600;
+}
+
+/* Produto escolhido: saldo atual, situação e atalhos */
+.sh-combo__cartao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sh-space-2) var(--sh-space-3);
+  margin-top: var(--sh-space-2);
+  padding: var(--sh-space-3);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius);
+  background: var(--sh-surface-2);
+}
+
+.sh-combo__saldo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sh-space-1) var(--sh-space-2);
+  margin: 0;
+  font-size: var(--sh-text-md);
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-combo__saldo strong {
+  font-size: var(--sh-text-lg);
+}
+
+.sh-combo__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sh-space-1) var(--sh-space-3);
+}
+
+.sh-combo__acoes a {
+  font-size: var(--sh-text-md);
+  font-weight: 600;
+}
+
+/* ============================== Tipo em controle segmentado ============================== */
+.sh-tiposel {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.sh-tiposel legend {
+  float: none;
+  width: auto;
+  padding: 0;
+}
+
+.sh-tiposel__grupo {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sh-space-2);
+}
+
+.sh-tiposel__item {
+  position: relative;
+  min-width: 0;
+}
+
+/* O rádio fica invisível mas continua focável e ouvido pelo leitor de tela (não é display: none) */
+.sh-tiposel__input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+
+.sh-tiposel__opcao {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  height: 100%;
+  min-height: 84px;
+  padding: var(--sh-space-3) var(--sh-space-1);
+  border: 1px solid var(--sh-border-strong);
+  border-radius: var(--sh-radius-sm);
+  background: var(--sh-surface);
+  color: var(--sh-text);
+  text-align: center;
+  cursor: pointer;
+  transition: background-color var(--sh-dur-fast) var(--sh-ease), border-color var(--sh-dur-fast) var(--sh-ease);
+}
+
+.sh-tiposel__opcao:hover {
+  background: var(--sh-surface-2);
+}
+
+.sh-tiposel__icone {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.sh-tiposel__nome {
+  font-size: var(--sh-text-base);
+  font-weight: 700;
+}
+
+.sh-tiposel__dica {
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  line-height: 1.25;
+}
+
+.sh-tiposel__visto {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  display: none;
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+/* Marcado: fundo de acento + ícone de visto + borda reforçada (não só cor) */
+.sh-tiposel__input:checked + .sh-tiposel__opcao {
+  border-color: var(--sh-accent);
+  background: var(--sh-accent-soft);
+  color: var(--sh-accent-text);
+  box-shadow: inset 0 0 0 1px var(--sh-accent);
+}
+
+.sh-tiposel__input:checked + .sh-tiposel__opcao .sh-tiposel__dica {
+  color: var(--sh-accent-text);
+}
+
+.sh-tiposel__input:checked + .sh-tiposel__opcao .sh-tiposel__visto {
+  display: inline-block;
+}
+
+.sh-tiposel__input:focus-visible + .sh-tiposel__opcao {
+  outline: 3px solid var(--sh-focus);
+  outline-offset: 2px;
+}
+
+/* ============================== Quantidade com − e + ============================== */
+.sh-qtd {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sh-space-2);
+}
+
+.sh-qtd .form-control {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 52px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-qtd__botao {
+  flex: 0 0 52px;
+  width: 52px;
+  min-height: 52px;
+  padding: 0;
+  font-size: 1.25rem;
+}
+
+/* Com os botões − e +, as setinhas nativas do campo numérico sobram (a classe vem do JS) */
+.sh-mov--js .sh-qtd .form-control {
+  text-align: center;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.sh-mov--js .sh-qtd .form-control::-webkit-inner-spin-button,
+.sh-mov--js .sh-qtd .form-control::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+/* ============================== Prévia: saldo atual → saldo depois ============================== */
+.sh-previa {
+  padding: var(--sh-space-3) var(--sh-space-4);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius);
+  background: var(--sh-surface-2);
+}
+
+.sh-previa__titulo {
+  margin: 0 0 var(--sh-space-1);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+}
+
+.sh-previa__visual {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sh-space-1) var(--sh-space-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-previa__num {
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.sh-previa__num--antes {
+  color: var(--sh-text-muted);
+  font-weight: 600;
+}
+
+.sh-previa__seta {
+  color: var(--sh-text-muted);
+}
+
+.sh-previa__un {
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.sh-previa__texto {
+  margin: 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.sh-previa__diferenca {
+  width: 100%;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.sh-previa__aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sh-space-2);
+  margin: var(--sh-space-2) 0 0;
+  color: var(--sh-warning-fg);
+  font-size: var(--sh-text-md);
+  font-weight: 600;
+}
+
+.sh-previa__aviso .bi {
+  flex: 0 0 auto;
+  line-height: 1.5;
+}
+
+.sh-previa__nota {
+  margin: var(--sh-space-2) 0 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+/* ============================== Motivos rápidos ============================== */
+.sh-motivos .form-label {
+  display: block;
+}
+
+.sh-motivos .sh-chip {
+  font-family: inherit;
+}
+
+/* ============================== Filtros do histórico ============================== */
+.sh-filtros {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sh-space-3);
+  padding: var(--sh-space-4);
+  border-bottom: 1px solid var(--sh-border);
+  background: var(--sh-surface-2);
+}
+
+.sh-filtros__produto,
+.sh-filtros__tipo,
+.sh-filtros__acoes {
+  grid-column: 1 / -1;
+}
+
+.sh-filtros__campo {
+  min-width: 0;
+}
+
+.sh-filtros__campo .form-label {
+  font-size: var(--sh-text-sm);
+}
+
+.sh-filtros__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sh-space-2);
+}
+
+/* >= 768 px: grade de 6 colunas. Linha 1: produto (4) e tipo (2). Linha 2: de (2), até (2) e ações (2) */
+@media (min-width: 768px) {
+  .sh-filtros {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .sh-filtros__campo {
+    grid-column: span 2;
+  }
+
+  .sh-filtros__produto {
+    grid-column: span 4;
+  }
+
+  .sh-filtros__tipo {
+    grid-column: span 2;
+  }
+
+  .sh-filtros__acoes {
+    grid-column: span 2;
+    align-self: end;
+  }
+}
+
+/* ============================== Histórico em linha do tempo ============================== */
+.sh-mov__dia + .sh-mov__dia {
+  margin-top: var(--sh-space-2);
+}
+
+.sh-mov__dia:first-child .sh-timeline__dia {
+  margin-top: 0;
+}
+
+.sh-mov__dia .sh-timeline__dia {
+  padding-inline: var(--sh-space-3);
+}
+
+/* O primeiro item de cada dia não repete a linha logo abaixo do título do dia */
+.sh-mov__item {
+  padding-inline: var(--sh-space-3);
+}
+
+.sh-mov__item:first-child {
+  border-top: 0;
+}
+
+.sh-mov__icone {
+  border: 1px solid transparent;
+  font-size: 1.0625rem;
+}
+
+.sh-mov__icone--entrada {
+  color: var(--sh-success-fg);
+  background: var(--sh-success-bg);
+  border-color: var(--sh-success-border);
+}
+
+.sh-mov__icone--saida {
+  color: var(--sh-info-fg);
+  background: var(--sh-info-bg);
+  border-color: var(--sh-info-border);
+}
+
+.sh-mov__icone--ajuste {
+  color: var(--sh-text-muted);
+  background: var(--sh-surface-2);
+  border-color: var(--sh-border);
+}
+
+.sh-mov__corpo {
+  min-width: 0;
+}
+
+.sh-mov__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sh-space-1) var(--sh-space-3);
+}
+
+.sh-mov__produto {
+  min-width: 0;
+  color: var(--sh-text);
+  font-weight: 600;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.sh-mov__produto:hover {
+  color: var(--sh-accent-text);
+  text-decoration: underline;
+}
+
+.sh-mov__hora {
+  margin-left: auto;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-mov__cat {
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+.sh-mov__numeros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sh-space-1) var(--sh-space-4);
+  margin-top: var(--sh-space-1);
+  font-size: var(--sh-text-md);
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-mov__delta--entrada {
+  color: var(--sh-success-fg);
+}
+
+.sh-mov__delta--saida {
+  color: var(--sh-info-fg);
+}
+
+.sh-mov__delta--ajuste {
+  color: var(--sh-text);
+}
+
+.sh-mov__contagem {
+  color: var(--sh-text-muted);
+  font-weight: 400;
+}
+
+.sh-mov__saldo {
+  color: var(--sh-text-muted);
+}
+
+.sh-mov__saldo strong {
+  color: var(--sh-text);
+}
+
+.sh-mov__obs {
+  margin: var(--sh-space-1) 0 0;
+  font-size: var(--sh-text-md);
+  overflow-wrap: anywhere;
+}
+
+/* Paginação dentro do cartão do histórico */
+.sh-mov__historico .sh-paginacao {
+  border-top: 1px solid var(--sh-border);
+}
