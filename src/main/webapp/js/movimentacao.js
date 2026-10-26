@@ -1,6 +1,6 @@
 /*
  * StockHub: formulário "Registrar movimentação" (seções 4.9 e 4.10 de docs/design-system.md).
- * Substitui, na tela nova, o js/estoque.js legado (que continua existindo só para a tela antiga).
+ * Substitui o antigo js/estoque.js (removido no lote 5).
  *
  * O que este arquivo faz, tudo como melhoria: sem ele o formulário funciona com os atributos nativos.
  *  - tipo (Entrada, Saída, Ajuste): rótulo, min e max da quantidade, dica, texto do botão e obrigatoriedade

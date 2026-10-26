@@ -1,5 +1,5 @@
 /*
- * StockHub: confirmação de exclusão (seção 4.7 de docs/design-system.md). Substitui o js/app.js antigo.
+ * StockHub: confirmação de exclusão (seção 4.7 de docs/design-system.md)..
  * Contrato mantido: todo <form data-confirmar-exclusao data-tipo="o produto" data-nome="..." data-aviso="...">
  * abre o modal #sh-modal-exclusao e só é enviado (com o token CSRF que ele já tem) depois do clique em
  * "Excluir". O foco inicial vai para "Cancelar" (a ação segura). Sem JavaScript, o formulário envia direto.
