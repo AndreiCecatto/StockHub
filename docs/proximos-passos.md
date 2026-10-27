@@ -4,7 +4,7 @@ Escrito em 2026-10-27 para retomar o trabalho em outra sessão, sem depender da 
 
 ## Estado atual
 - Branch `main`, cerca de 40 commits locais **não enviados** ao GitHub (repositório público). Enviar só com aprovação do dono: `git push origin main`, sem `--force`.
-- Última suíte completa: 1025 testes, 0 falhas, BUILD SUCCESS (antes, 995; os 30 novos são da fatia 1 do item 4) (duas execuções seguidas; uma execução anterior, logo depois do módulo de clientes, deu 9 erros que não se repetiram, causa não identificada: vale reexecutar e, se voltar, olhar `target/surefire-reports`).
+- Última suíte completa: 1149+ testes (antes, 1025; os novos são da personalização do início, item 5 fatia 1; confirmar o total e o BUILD SUCCESS na próxima execução) (na execução de 1025, duas execuções seguidas; uma execução anterior, logo depois do módulo de clientes, deu 9 erros que não se repetiram, causa não identificada: vale reexecutar e, se voltar, olhar `target/surefire-reports`).
 - Clientes concluído (V12, RN-91 a RN-98, AD-16): cadastro completo, busca, filtros, resumo e inativação. Falta ver as telas no navegador. Não existe vínculo venda-cliente (sem tabela de venda), então não há "total gasto em compras".
 - Protótipos das 3 direções visuais prontos em `C:\Users\andre\Documents\StockHub-prototipos\` (A Edição, B Instrumento, C Grafite). O agente recomenda a A (serifa só em títulos). **Aguardando a escolha do dono** para aplicar em tokens, shell, dashboard e listas.
 - Banco local `stockhub` zerado e semeado com 21 lojas de teste (uma por tipo e subtipo). Logins em `C:\Users\andre\Documents\StockHub-logins-teste.txt` (fora do repositório; senha `Teste@1234`). Os testes de concorrência apagam só lojas `@teste.invalid`.
@@ -19,11 +19,13 @@ Escrito em 2026-10-27 para retomar o trabalho em outra sessão, sem depender da 
 4. **Loja por ramo (subtipo de verdade).** Cada ramo precisa de campos e blocos próprios, opcionais, sem quebrar lojas existentes.
    - **Fatia 1 concluída** (V13, AD-17, RN-99 a RN-103, 9+ commits locais): produto com tamanho e cor (vestuário), lote e validade (farmácia), validade (mercado, que é o ramo de "alimentos"; não existe subtipo ALIMENTOS) e número de série (informática), pelo mapa `CamposRamo`.
    - **Fatia 2 em andamento** (V14, AD-18, RN-104 a RN-108): oficina com placa e modelo no `equipamento_cliente`, só em MECANICA e MOTO. Plano de execução: banco-migrations (V14), dev-backend, designer-ui, testador-qa.
-   - **Pendências da fatia 1:** (a) as JSPs de produto ainda não têm teste de renderização real (só testes de controller/modelo); (b) a lista de produtos não recebe `camposRamo` em todos os caminhos de renderização; (c) o fluxo de funcionário (membro da loja) segue sem teste dos campos por ramo.
+   - **Pendências da fatia 1:** (a) as JSPs de produto ainda não têm teste de renderização real (só testes de controller/modelo); (b) a lista de produtos não recebe `camposRamo` em todos os caminhos de renderização; (c) o fluxo de funcionário (membro da loja) segue sem teste dos campos por ramo e sem teste sem mock; (d) o aviso de veículo já cadastrado (RN-107) ainda precisa de verificação.
 5. **Personalização pelo dono ("modular").** Modelo decidido: AD-19 e RN-109 a RN-114 (tabela `preferencia_bloco` por loja e tela, ausência de linha = comportamento atual, lista fechada de blocos no enum `BlocoTela`, só DONO/GERENTE gravam, upsert sem DELETE). Execução fatiada:
-   - **Fatia 1 (próxima):** ocultar/mostrar blocos do Início (V15, `PersonalizacaoService`, tela em `/conta/personalizacao`, `c:if` no `dashboard.jsp`). Usa só classes CSS existentes; a identidade visual segue em aberto.
-   - **Fatia 2:** colunas visíveis na lista de produtos (mesma tabela, `tela = PRODUTOS`).
+   - **Fatia 1 concluída:** ocultar/mostrar blocos do Início (V15, AD-19, RN-109 a RN-114; `PersonalizacaoService`, tela em `/conta/personalizacao`, `c:if` no `dashboard.jsp`, testes incluídos). Usa só classes CSS existentes; a identidade visual segue em aberto.
+   - **Fatia 2 (próxima):** colunas visíveis na lista de produtos (mesma tabela, `tela = PRODUTOS`).
    - **Fatia 3:** ordem dos blocos (coluna `ordem`) e atalhos por lista fechada de destinos.
+   - **Pendência técnica (anterior à fatia 1):** o papel fica guardado no `UsuarioPrincipal` desde o login, então um gerente rebaixado mantém o acesso até sair e entrar de novo (`MembroAtivoFilter` só confere se o membro está ativo). Vale reler o papel a cada requisição ou invalidar a sessão ao rebaixar.
+   - **Falta verificar no navegador:** layout, teclado e responsividade da tela de personalização; perfis GERENTE; capa com `FAZER_AGORA` e `HOJE_NA_LOJA` ocultos.
    - Só reaplicar o visual da personalização depois que o dono escolher a direção visual (item 1).
    - Decisões já tomadas na revisão do item 4: a OS antiga continua mostrando placa e modelo após trocar o subtipo (RN-108); placa e modelo ficam só em MECANICA e MOTO.
 
