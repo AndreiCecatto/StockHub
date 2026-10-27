@@ -16,6 +16,7 @@ Data do download: 26/10/2026.
 | Bootstrap Icons | 1.11.3 | MIT | `https://registry.npmjs.org/bootstrap-icons/-/bootstrap-icons-1.11.3.tgz` | `+3lpHrCw/it2/7lBL15VR0HEumaBss0+f/Lb6ZvHISn1mlK83jjFpooTLsMWbIjJMDjDjOExMsTxnXSIT4k4ww==` |
 | Inter (variável, subset latino) | 5.3.0 do pacote `@fontsource-variable/inter` (metadados do pacote: origem Google Fonts, "v20", eixo de peso 100 a 900) | SIL OFL 1.1 | `https://registry.npmjs.org/@fontsource-variable/inter/-/inter-5.3.0.tgz` | `OupL48va4JNofb97w6NYeF9S7W/kHNKM0Er8Dem5nqi4jeOLrVJDoE8tZEpnMJmtkvNbB1EIPPwHcdkF6b1oUA==` |
 | Geist Mono (variável, eixo de peso, subset latino) | 5.3.0 do pacote `@fontsource-variable/geist-mono` (v3 do design, 26/10/2026) | SIL OFL 1.1 | `https://registry.npmjs.org/@fontsource-variable/geist-mono/-/geist-mono-5.3.0.tgz` | `vBbuwDEo9AkrqADMXOrlAR3DFcJi4/JxeuU43FoiQERnNwsfXNnvxvReZG02cQKmyk4DZkZdBZX3oTDvy2zBAw==` |
+| GSAP + ScrollTrigger (só na apresentação pública) | 3.15.0 | GSAP Standard "no charge" license (https://gsap.com/standard-license): uso gratuito, inclusive comercial; não é código aberto e proíbe criar ferramentas visuais de animação que concorram com o Webflow | `https://registry.npmjs.org/gsap/-/gsap-3.15.0.tgz` | `dMW4CWBTUK1AEEDeZc1g4xpPGIrSf9fJF960qbTZmN/QwZIWY5wgliS6JWl9/25fpTGJrMRtSjGtOmPnfjZB+A==` |
 
 ## Arquivos
 
@@ -32,6 +33,8 @@ Data do download: 26/10/2026.
 | `inter/OFL.txt` | `package/LICENSE` (texto da SIL OFL 1.1) | 4477 | `3b0a5fca3d17942cde889069889dedbbbd075e9b599968c82a95f4d944e9b345` |
 | `geist-mono/geist-mono-latin-wght-normal.woff2` | `package/files/geist-mono-latin-wght-normal.woff2` | 23128 | `684ad5b531f81d43c1e8c7038262d5db7cdc1f68006e04d6c7769efa8d33c8cc` |
 | `geist-mono/OFL.txt` | `package/LICENSE` (texto da SIL OFL 1.1) | 4498 | `cc815ed4fc045f0e991abb10395b7932bd028c6a067deb13316d6002105074e6` |
+| `gsap-3.15.0/gsap.min.js` | `package/dist/gsap.min.js` | 72927 | `92bb9a96476f983d212a2bc4f54c889039c1696dd4461d40a736860938570fbb` |
+| `gsap-3.15.0/ScrollTrigger.min.js` | `package/dist/ScrollTrigger.min.js` | 44575 | `b0b14d67b55b0c43c756ac0b106cfcb09d0879945f6ead64451065b0672916a2` |
 
 ## Observações
 
@@ -48,3 +51,4 @@ Data do download: 26/10/2026.
 - **Para atualizar:** baixe o `.tgz` do novo pacote, confira o `integrity`, troque a pasta (o número da versão faz parte
   do nome), atualize as referências em `WEB-INF/tags/*.tag` e este arquivo, e recalcule os hashes.
 - **Geist Mono (v3):** fonte monoespaçada usada **só** para valores, códigos, SKUs e atalhos (`--sh-font-mono`). Pacote baixado do registro do npm com `curl`; o SHA-512 do `.tgz` foi calculado com `openssl dgst -sha512 -binary | base64` e é **igual** ao `integrity` do registro. O `@font-face` (família `Geist Mono`, `font-display: swap`, mesmo `unicode-range` latino da Inter) fica em `css/tokens.css`. Arquivo não modificado. A Fraunces (v2) foi removida junto com a direção "caderneta de balcão".
+- **GSAP (apresentação pública, 27/10/2026):** só `gsap.min.js` e `ScrollTrigger.min.js`, usados por `js/apresentacao-gsap.js`. O `.tgz` foi baixado do registro do npm e o SHA-512 calculado com `openssl` é **igual** ao `integrity` do registro. Os arquivos não foram modificados e mantêm o aviso de copyright no topo (a licença proíbe removê-lo). A licença Standard não é de código aberto: ela não aborda de forma explícita guardar a biblioteca em um repositório, e quem reaproveitar o projeto deve ler o texto em https://gsap.com/standard-license. Sem a biblioteca (ou com "menos movimento") a página continua funcionando pelo kit de CSS.
