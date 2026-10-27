@@ -1040,4 +1040,6 @@ Nas telas de compra usamos nomes comuns; o termo fiscal fica só em dica (`title
 
 - CFOP vira texto ("Compra para revenda", "Devolução", "Remessa para conserto") pela tag `sh:cfop` (`WEB-INF/tags/cfop.tag`), o único lugar do mapeamento; o número aparece pequeno e no `title`. Código desconhecido sai como "Operação código NNNN".
 - Frete, desconto, seguro e outras despesas mantêm esses nomes. Seguro e outras despesas só aparecem quando a nota os trouxer.
+- "Frete e outras despesas" (por item) é a parte que coube ao item no rateio e já está no custo. "Como foi pago" lista as formas de pagamento (Boleto, Pix, Cartão de crédito...) e "Parcelas" lista número, vencimento e valor; ambas são só para consulta (`sh:cobrancaNfe`).
+- Nota que não é compra normal (complementar, ajuste, devolução) é recusada no envio com a frase "Esta é uma nota de ...", sem termo fiscal solto.
 - Impostos e demais campos fiscais ficam em seção recolhida (`<details class="nfe-detalhes">`).

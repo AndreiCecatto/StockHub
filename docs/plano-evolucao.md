@@ -33,10 +33,10 @@ Modelo: `tipo_loja` (grande) + `subtipo` (ramo), guardados na conta (Flyway V6, 
 - Consultas agregadas no banco; isolamento por loja; testes de integração.
 
 ## Etapa 4. Complementos da NF-e
-- Rateio de frete, seguro, outras despesas e desconto no custo do produto.
-- Dados de pagamento e vencimentos (base para contas a pagar).
-- Notas de devolução e complementares; evento de cancelamento.
-- Avisos de item com flags estruturadas; `ean` e `ncm` na lista de produtos.
+- [feito] Rateio de frete, seguro e outras despesas no custo do produto (RN-53 a RN-56).
+- [feito] Dados de pagamento e vencimentos, somente leitura (RN-57).
+- [feito em parte] Notas de devolução, complementares e de ajuste são reconhecidas e recusadas com mensagem clara (RN-58). Falta: evento de cancelamento e eventual saída por devolução (decisão do dono).
+- [feito] Avisos de item com flags estruturadas; `ean` e `ncm` na lista de produtos (RN-59).
 - Verificar `_csrf` do envio sem JavaScript em servidor real.
 
 ## Etapa 5. Base para vendas e OS
