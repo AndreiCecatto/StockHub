@@ -232,6 +232,12 @@
 
     var lado = document.createElement('span');
     lado.className = 'sh-paleta__lado';
+    if (item.aproximado) {
+      var parecido = document.createElement('span');
+      parecido.className = 'sh-parecido';
+      parecido.textContent = 'parecido';
+      lado.appendChild(parecido);
+    }
     if (isFinite(item.saldo)) {
       var saldo = document.createElement('span');
       saldo.textContent = item.saldo + ' un.';
@@ -431,6 +437,7 @@
         categoria: typeof it.categoria === 'string' ? it.categoria : '',
         saldo: Number(it.saldo),
         nivel: typeof it.nivel === 'string' ? it.nivel : '',
+        aproximado: it.aproximado === true,
         url: urlSegura(it.url, it.id)
       });
     }

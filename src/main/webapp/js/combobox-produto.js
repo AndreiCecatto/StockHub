@@ -295,7 +295,29 @@
           return produto.mapa.norma.indexOf(palavra) !== -1;
         });
       });
-      return { palavras: palavras, achados: achados };
+      if (!achados.length && palavras.length && SH.buscaDifusa) {
+        // nada contém o texto: tenta nomes parecidos (erro de digitação), do mais ao menos parecido
+        var notas = produtos
+          .map(function (produto) {
+            return { produto: produto, nota: SH.buscaDifusa.pontuar(consulta, produto.nome) };
+          })
+          .filter(function (par) {
+            return par.nota > 0;
+          })
+          .sort(function (a, b) {
+            return b.nota - a.nota;
+          });
+        if (notas.length) {
+          return {
+            palavras: palavras,
+            achados: notas.map(function (par) {
+              return par.produto;
+            }),
+            aproximado: true
+          };
+        }
+      }
+      return { palavras: palavras, achados: achados, aproximado: false };
     }
 
     function definirAtivo(indice) {
@@ -335,7 +357,11 @@
         item.setAttribute('aria-selected', 'false');
         item.setAttribute('data-indice', String(i));
         var nome = elemento('span', 'sh-combo__nome');
-        escreverNome(nome, produto, busca.palavras);
+        escreverNome(nome, produto, busca.aproximado ? [] : busca.palavras);
+        if (busca.aproximado) {
+          nome.appendChild(document.createTextNode(' '));
+          nome.appendChild(elemento('span', 'sh-parecido', 'parecido'));
+        }
         var meta = elemento('span', 'sh-combo__meta');
         meta.appendChild(elemento('span', null, MOV.formatar(produto.saldo) + ' un.'));
         meta.appendChild(MOV.criarBadge(MOV.nivel(produto.saldo, produto.minimo)));
@@ -352,6 +378,10 @@
         aviso.appendChild(link);
         aviso.hidden = false;
         anunciar('Nenhum produto encontrado.');
+      } else if (busca.aproximado) {
+        aviso.textContent = 'Nenhum produto com esse nome. Estes são parecidos com o que você digitou.';
+        aviso.hidden = false;
+        anunciar('Nenhum produto com esse nome. ' + busca.achados.length + ' parecidos.');
       } else if (busca.achados.length > MAXIMO_RESULTADOS) {
         aviso.textContent =
           'Mostrando ' + MAXIMO_RESULTADOS + ' de ' + busca.achados.length + ' produtos. Refine a busca para ver os outros ' +

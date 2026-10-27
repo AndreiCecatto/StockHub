@@ -31,6 +31,7 @@
 <link rel="stylesheet" href="${ctx}/css/impressao.css" media="print">
 <script defer src="${ctx}/vendor/bootstrap-5.3.8/js/bootstrap.bundle.min.js"></script>
 <script defer src="${ctx}/js/nucleo.js"></script>
+<script defer src="${ctx}/js/busca-difusa.js"></script>
 <script defer src="${ctx}/js/toast.js"></script>
 <script defer src="${ctx}/js/atalhos.js"></script>
 <script defer src="${ctx}/js/paleta.js"></script>
