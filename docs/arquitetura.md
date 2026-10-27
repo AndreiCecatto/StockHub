@@ -44,3 +44,9 @@ Cada decisão tem o motivo e as alternativas descartadas. Quando uma decisão mu
 ## AD-08 — Testes
 - **Decisão:** testes unitários de service com Mockito, `@WebMvcTest` com `spring-security-test` nos controllers, e um teste de integração com o banco local para o que depende de SQL.
 - **Motivo:** as regras de estoque estão no service, então é lá que a cobertura vale mais.
+
+## AD-09 — Busca tolerante a erro de digitação feita no código, sem extensão do banco
+- **Decisão:** `GET /api/busca` devolve primeiro os produtos que contêm o texto (como antes). Só quando nenhum contém, completa com os de nome parecido, marcados com `aproximado: true`. A regra é `util/BuscaDifusa` (distância de edição com inversão de letras, por palavra, ignorando caixa e acento). O seletor de produto da tela de movimentações, que já recebe a lista inteira, usa uma cópia da regra em `js/busca-difusa.js`.
+- **Motivo:** com troca de letras ("cenata" por "caneta") o `pg_trgm` do PostgreSQL erra, e usá-lo exigiria ativar uma extensão no banco de quem clonar o projeto. O código é puro, fácil de testar e portátil.
+- **Limites:** o servidor examina no máximo 5.000 nomes por consulta (teto de segurança). Se algum catálogo passar disso, o próximo passo é um índice `pg_trgm` como pré-filtro. Misturar exatos com parecidos foi descartado: "cane" passava a achar "caderno" e só atrapalhava.
+- **Não usa IA externa:** nenhum dado do estoque sai do servidor.
