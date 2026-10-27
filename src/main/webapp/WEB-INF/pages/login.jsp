@@ -32,7 +32,7 @@
     <div class="sh-auth">
         <%-- Palco: só em telas largas (no celular fica só o formulário) --%>
         <section class="sh-auth__palco" aria-label="Sobre o StockHub">
-            <a class="sh-auth__marca" href="${ctx}/login">
+            <a class="sh-auth__marca" href="${ctx}/" aria-label="StockHub, voltar à página inicial">
                 <sh:marca tamanho="32" />
                 <span>StockHub</span>
             </a>
@@ -66,10 +66,10 @@
             </div>
 
             <div class="sh-auth__caixa">
-                <div class="sh-auth__logo-mobile">
+                <a class="sh-auth__logo-mobile" href="${ctx}/" aria-label="StockHub, voltar à página inicial">
                     <sh:marca tamanho="32" />
                     <span>StockHub</span>
-                </div>
+                </a>
 
                 <div>
                     <h1 class="sh-auth__titulo"><c:out value="${modoCadastro ? 'Criar conta' : 'Entrar'}" /></h1>
@@ -279,6 +279,8 @@
                         </c:otherwise>
                     </c:choose>
                 </p>
+
+                <a class="sh-auth__voltar" href="${ctx}/">Voltar ao início</a>
             </div>
         </div>
     </div>
