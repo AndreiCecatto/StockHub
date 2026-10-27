@@ -348,6 +348,16 @@ public class EstoqueService {
     /** Igual à anterior; o preço de venda informado fica gravado na saída (RN-68). */
     @Transactional
     public MovimentacaoEstoque baixarReserva(Integer reservaId, Usuario usuario, BigDecimal precoUnitario) {
+        return baixarReserva(reservaId, usuario, precoUnitario, null);
+    }
+
+    /** Igual à anterior; o custo informado (o gravado no documento) também fica na saída (RN-52, RN-83). */
+    @Transactional
+    public MovimentacaoEstoque baixarReserva(Integer reservaId, Usuario usuario, BigDecimal precoUnitario,
+                                             BigDecimal custoUnitario) {
+        if (custoUnitario != null && custoUnitario.signum() < 0) {
+            throw new RegraNegocioException("O custo não pode ser negativo.");
+        }
         if (precoUnitario != null && precoUnitario.signum() < 0) {
             throw new RegraNegocioException("O preço não pode ser negativo.");
         }
@@ -358,7 +368,7 @@ public class EstoqueService {
                 ? "Baixa da reserva da OS " + reserva.getDocumentoId()
                 : "Baixa da reserva da venda " + reserva.getDocumentoId();
         return registrar(new Pedido(reserva.getProduto().getId(), TipoMovimentacao.SAIDA, reserva.getQuantidade(),
-                observacao, usuario, reserva.getDocumentoTipo(), reserva.getDocumentoId(), null, precoUnitario,
+                observacao, usuario, reserva.getDocumentoTipo(), reserva.getDocumentoId(), custoUnitario, precoUnitario,
                 null));
     }
 
