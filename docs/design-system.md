@@ -1072,3 +1072,22 @@ Padrões novos (bloco "Refino v4" no fim de `css/componentes.css`):
 **Correção:** o botão "Desfazer" agora aparece na linha que `js/v3-estoque.js` insere logo depois de lançar um movimento. A página informa o papel em `data-v3e-pode-desfazer` (`EstoqueController` envia `podeDesfazer`); o JS só mostra o botão quando o papel pode e o saldo mudou (mesma regra de `EstoqueService.estornaveis`, que continua sendo a decisão final no servidor).
 
 **Verificação:** Edge + Playwright contra a aplicação real (porta 8082), 1440 e 390 px, claro e escuro, em `/`, `/login`, `/cadastro`, início, produtos, movimentações, análises, NF-e, equipe, categorias, estoque baixo, unidades e valor do estoque: sem rolagem horizontal e sem erro de console. **Não verificado:** telas de OS e clientes (a loja demo não tem esses módulos e criar outra conta exige aprovação), Safari e Firefox.
+
+## 15. Formulários próprios (27/10/2026)
+
+Feedback: o Bootstrap deixava campos, seletores e botões com cara genérica. Agora a **aparência** de todo formulário vem de `css/formularios.css` (só tokens de `tokens.css`) e o **comportamento** extra, de `js/formularios.js` (segunda parte do arquivo, depois da validação). Ambos são carregados por `includes/sh/head.jsp` (o CSS por último entre os globais). O Bootstrap segue só como grade e utilitários; as classes `.form-control`, `.form-select`, `.form-check-*` e `.btn*` continuam existindo na marcação como **ganchos** (nenhum nome de campo, rota ou regra mudou), mas não definem mais o visual.
+
+| Peça | Como é | Onde |
+|---|---|---|
+| Campo de texto | 44 px de altura, raio 10, borda 1 px (`--sh-border-strong`, 3:1), foco com borda do acento e **anel suave de 4 px** (28% do acento) | `.form-control` |
+| Rótulo, ajuda, erro | rótulo acima (600), "(obrigatório)"/"(opcional)" escritos, ajuda em `--sh-text-muted`, erro com ícone e entrada curta; borda vermelha e anel vermelho no foco | `.form-label`, `.form-text`, `.sh-erro-campo` |
+| Lista suspensa | `.sh-sel`: botão `role="combobox"` + painel `role="listbox"` (`aria-activedescendant`, `aria-expanded`, grupos com `role="group"`), teclado completo (setas, Home/End, Enter/Espaço, Esc, digitar para saltar, Tab), **busca embutida quando há mais de 8 opções**, abre para cima se faltar espaço, fecha ao rolar. O `<select>` nativo continua no DOM (oculto, `aria-hidden`) e é ele que vai no POST; `value`/`selectedIndex` alterados por outros scripts são refletidos | `montarSelect` |
+| Ramo da loja | no cadastro, o tipo da loja já era em cartões; o **ramo** virou **chips** (`role="radiogroup"`, setas movem e marcam) que mostram só os grupos do tipo escolhido (títulos dos grupos aparecem quando há mais de um, caso "Comércio e serviços"), com entrada curta. O select `subtipo` continua mandando o valor e `js/tipo-loja.js` continua filtrando os grupos | `montarChips`, `.sh-chip` |
+| Marcar | caixas 22 px (raio 7) e rádios próprios, check em SVG; **interruptor** 44×26 (`.form-switch`) | `.form-check-input` |
+| Segmentado | `.sh-seg` (rádios nativos + rótulos) para 2 a 4 opções; a decisão por item da NF-e continua com `.nfe-seg` | `.sh-seg` |
+| Botões | **primário** (acento cheio), **secundário** (`.btn-outline-secondary`, contorno fino), **discreto** (`.btn-ghost`, só texto), perigo (`.btn-danger`, `.btn-outline-danger`, `.btn-ghost--perigo`); 44 px (32 px os `.btn-sm` no desktop), pressão `scale(.985)` | `.btn*` |
+| Quantidade | inteiros ganham `−` e `+` (`.sh-stepper`, respeita `min`/`max`, dispara `input`/`change`); campos com `step="0.01"` mostram duas casas ao sair do campo. Fora: `.v3e-qtd` (lançar movimento, já tem os seus), `.input-group`, `data-sh-sem-stepper` | `montarPasso` |
+
+**Progressive enhancement:** sem JS o select nativo aparece com a mesma pele (seta própria, 44 px) e o ramo vira a lista agrupada de antes; a validação do servidor não mudou. Para um select ficar nativo de propósito: `data-sh-nativo`. **Acessibilidade:** rótulo associado por `for` (e `aria-labelledby` no botão do select), foco visível, alvos de 44 px, `aria-invalid` e `aria-describedby` espelhados do select no botão, contraste dos tokens (nenhuma cor nova). **Movimento:** transições de 120 a 240 ms e todas zeradas em `prefers-reduced-motion`. **Temas:** claro, escuro e escuro sem JS (a seta do select tem versão para cada).
+
+Pontos de atenção: o painel da lista suspensa é anexado ao `<body>` (posição fixa) para não ser cortado por tabelas e modais; rótulo flutuante não foi adotado (rótulo acima lê melhor em formulários longos e com texto de ajuda).
