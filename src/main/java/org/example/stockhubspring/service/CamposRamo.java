@@ -9,11 +9,12 @@ import java.util.Set;
 
 /**
  * Mapa fechado "subtipo da loja -> campos de produto permitidos" (AD-17, RN-100). É código, não tabela:
- * subtipo sem entrada não tem campos extras. A oficina fica para a fatia 2.
+ * subtipo sem entrada não tem campos extras. Inclui também o veículo (placa e modelo) do equipamento do cliente
+ * nas lojas MECANICA e MOTO (AD-18).
  */
 public final class CamposRamo {
 
-    /** Campos opcionais do produto que dependem do ramo. */
+    /** Campos opcionais que dependem do ramo: os cinco primeiros são do produto; PLACA e MODELO, do equipamento. */
     public enum Campo {
         TAMANHO, COR, LOTE, VALIDADE, NUMERO_SERIE,
         /** Veículo do equipamento do cliente (AD-18), só MECANICA e MOTO. */

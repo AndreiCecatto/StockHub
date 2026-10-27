@@ -14,7 +14,8 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
-/** Equipamento ou veículo de um cliente (RN-79): descrição livre e identificador opcional (placa, série). */
+/** Equipamento ou veículo de um cliente (RN-79): descrição livre, identificador opcional (série, IMEI) e,
+ * nas lojas MECANICA e MOTO, placa e modelo do veículo (AD-18). */
 @Entity
 @Table(name = "equipamento_cliente")
 public class EquipamentoCliente {
