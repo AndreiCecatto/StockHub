@@ -568,6 +568,18 @@ class NfeControllerTest extends ControllerTestBase {
     }
 
     @Test
+    @DisplayName("nota de devolução enviada: a tela recebe a mensagem clara e nada é criado")
+    void devolucaoRecusadaComMensagemClara() throws Exception {
+        when(importacaoNfeService.enviar(any(byte[].class), any(Usuario.class)))
+                .thenThrow(new RegraNegocioException(org.example.stockhubspring.nfe.FinalidadeNfe.DEVOLUCAO.mensagemDeRecusa()));
+
+        mvc.perform(envio(arquivo("<x/>".getBytes(StandardCharsets.UTF_8)))
+                        .with(logadoComo(49)).with(csrf()).header("X-Requested-With", "XMLHttpRequest"))
+                .andExpect(status().is4xxClientError())
+                .andExpect(content().string(containsString("nota de devolução")));
+    }
+
+    @Test
     @DisplayName("a resposta de erro nunca ecoa o conteúdo do XML")
     void semEcoDoConteudo() throws Exception {
         when(importacaoNfeService.enviar(any(byte[].class), any(Usuario.class)))

@@ -371,9 +371,12 @@ public final class NfeParser {
         if (!"55".equals(modelo)) {
             throw new RegraNegocioException("Só é aceita NF-e modelo 55.");
         }
-        if (!"1".equals(texto(ide, "finNFe", 10))) {
-            throw new RegraNegocioException("Só é aceita NF-e normal. Notas de devolução, complementares "
-                    + "ou de ajuste não entram no estoque por aqui.");
+        FinalidadeNfe finalidade = FinalidadeNfe.doCodigo(texto(ide, "finNFe", 10));
+        if (finalidade == null) {
+            throw new RegraNegocioException("O tipo desta nota não é reconhecido. Só é aceita NF-e normal de compra.");
+        }
+        if (finalidade != FinalidadeNfe.NORMAL) {
+            throw new RegraNegocioException(finalidade.mensagemDeRecusa());
         }
         if (!"1".equals(texto(ide, "tpNF", 10))) {
             throw new RegraNegocioException("A nota é de entrada (tpNF=0). Só são aceitas notas de saída do "

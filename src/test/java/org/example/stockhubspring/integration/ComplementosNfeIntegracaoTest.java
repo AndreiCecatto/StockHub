@@ -145,4 +145,25 @@ class ComplementosNfeIntegracaoTest extends IntegracaoBase {
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.detalhe(salva.getId(), outra.getCodigo()))
                 .isInstanceOf(org.example.stockhubspring.exception.RecursoNaoEncontradoException.class);
     }
+
+    @Test
+    @DisplayName("RN-58: nota de devolução é recusada no envio e não deixa importação pendente nem mexe no estoque")
+    void devolucaoNaoGeraNada() {
+        long antes = contarImportacoes();
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> service.enviar(NfeXml.nota().finalidade("4").item(NfeXml.item()).bytes(), loja))
+                .isInstanceOf(org.example.stockhubspring.exception.RegraNegocioException.class)
+                .hasMessageContaining("nota de devolução");
+
+        assertThat(contarImportacoes()).isEqualTo(antes);
+        assertThat(jdbc.queryForObject("select count(*) from movimentacao_estoque where usuario_codigo = ?",
+                Long.class, loja.getCodigo())).isZero();
+    }
+
+    private long contarImportacoes() {
+        em.flush();
+        return jdbc.queryForObject("select count(*) from importacao_nfe where usuario_codigo = ?", Long.class,
+                loja.getCodigo());
+    }
 }

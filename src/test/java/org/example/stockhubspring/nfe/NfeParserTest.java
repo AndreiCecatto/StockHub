@@ -635,4 +635,40 @@ class NfeParserTest {
             recusa(pagamentos.bytes(), NfeParser.MENSAGEM_INVALIDA);
         }
     }
+
+    @Nested
+    @DisplayName("tipo da nota, finNFe (RN-58)")
+    class Finalidade {
+
+        @Test
+        @DisplayName("cada tipo diferente de compra normal é reconhecido e recusado com mensagem própria")
+        void mensagensPorTipo() {
+            recusa(NfeXml.notaComUmItem().finalidade("2").bytes(), "nota complementar");
+            recusa(NfeXml.notaComUmItem().finalidade("3").bytes(), "nota de ajuste");
+            recusa(NfeXml.notaComUmItem().finalidade("4").bytes(), "nota de devolução");
+            recusa(NfeXml.notaComUmItem().finalidade("4").bytes(), "não dá baixa no estoque sozinho");
+        }
+
+        @Test
+        @DisplayName("código fora do layout (0, 5, texto) não é reconhecido")
+        void desconhecido() {
+            for (String codigo : new String[]{"0", "5", "9", "x"}) {
+                recusa(NfeXml.notaComUmItem().finalidade(codigo).bytes(), "não é reconhecido");
+            }
+        }
+
+        @Test
+        @DisplayName("a nota normal (1) continua sendo aceita")
+        void normal() {
+            assertThat(ler(NfeXml.notaComUmItem().finalidade("1")).itens()).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("a mensagem de recusa nunca repete o conteúdo do arquivo")
+        void semEco() {
+            NfeXml nota = NfeXml.nota().item(NfeXml.item().descricao("SEGREDO-ABC123")).finalidade("4");
+
+            assertThatThrownBy(() -> NfeParser.ler(nota.bytes())).hasMessageNotContaining("SEGREDO-ABC123");
+        }
+    }
 }
