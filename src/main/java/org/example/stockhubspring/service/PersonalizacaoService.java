@@ -61,15 +61,16 @@ public class PersonalizacaoService {
             throw new RegraNegocioException("Tela inválida para personalizar.");
         }
         List<BlocoTela> aplicaveis = BlocoTela.daTela(tela, tipoDaLoja(lojaCodigo));
-        Set<String> escolhidos = marcados == null ? Set.of() : marcados;
-        for (String codigo : escolhidos) {
+        Set<BlocoTela> escolhidos = new java.util.HashSet<>();
+        for (String codigo : marcados == null ? Set.<String>of() : marcados) {
             BlocoTela bloco = BlocoTela.de(codigo);
             if (bloco == null || !aplicaveis.contains(bloco)) {
                 throw new RegraNegocioException("Bloco inválido para esta loja: escolha só os blocos da lista.");
             }
+            escolhidos.add(bloco);
         }
         for (BlocoTela bloco : aplicaveis) {
-            repository.gravar(lojaCodigo, tela.name(), bloco.name(), escolhidos.contains(bloco.name()), membroId);
+            repository.gravar(lojaCodigo, tela.name(), bloco.name(), escolhidos.contains(bloco), membroId);
         }
     }
 

@@ -142,6 +142,15 @@ class PersonalizacaoServiceTest {
     }
 
     @Test
+    @DisplayName("salvar trata código com espaço ('ATALHOS ') igual na validação e na gravação")
+    void codigoComEspacoVisivel() {
+        service.salvar(LOJA, PapelMembro.DONO, MEMBRO, TelaPersonalizavel.INICIO, Set.of("ATALHOS "));
+
+        verify(repository).gravar(LOJA, "INICIO", "ATALHOS", true, MEMBRO);
+        verify(repository).gravar(LOJA, "INICIO", "TOTAIS", false, MEMBRO);
+    }
+
+    @Test
     @DisplayName("RN-113: salvar nunca apaga (nenhum delete no repositório)")
     void salvarNaoFazDelete() {
         service.salvar(LOJA, PapelMembro.GERENTE, MEMBRO, TelaPersonalizavel.INICIO, Set.of());
