@@ -78,9 +78,21 @@ abstract class ControllerTestBase {
     @MockitoBean
     protected org.example.stockhubspring.service.OrdemServicoService ordemServicoService;
 
+    @MockitoBean
+    protected org.example.stockhubspring.service.PersonalizacaoService personalizacaoService;
+
     @BeforeEach
     void montarMockMvc() {
         mvc = MockMvcBuilders.webAppContextSetup(contexto).apply(springSecurity()).build();
+        // Sem preferencia gravada todo bloco do inicio aparece (RN-109); o OS depende do modulo, entao fica de fora
+        java.util.Map<String, Boolean> todosBlocos = new java.util.LinkedHashMap<>();
+        for (org.example.stockhubspring.model.BlocoTela b : org.example.stockhubspring.model.BlocoTela.values()) {
+            if (b.getModuloExigido() == null) {
+                todosBlocos.put(b.name(), true);
+            }
+        }
+        org.mockito.Mockito.when(personalizacaoService.blocosVisiveis(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any()))
+                .thenReturn(todosBlocos);
         // Por padrao todo membro esta ativo; o teste de desativacao troca isso
         org.mockito.Mockito.when(membroLojaRepository.existsByIdAndAtivoTrue(org.mockito.ArgumentMatchers.anyInt()))
                 .thenReturn(true);

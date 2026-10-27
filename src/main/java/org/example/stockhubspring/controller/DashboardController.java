@@ -1,12 +1,15 @@
 package org.example.stockhubspring.controller;
 
 import org.example.stockhubspring.dto.ProdutoFiltro;
+import org.example.stockhubspring.model.BlocoTela;
+import org.example.stockhubspring.model.TelaPersonalizavel;
 import org.example.stockhubspring.model.Produto;
 import org.example.stockhubspring.model.Usuario;
 import org.example.stockhubspring.model.StatusOs;
 import org.example.stockhubspring.service.DashboardService;
 import org.example.stockhubspring.service.EstoqueService;
 import org.example.stockhubspring.service.OrdemServicoService;
+import org.example.stockhubspring.service.PersonalizacaoService;
 import org.example.stockhubspring.service.ProdutoService;
 import org.example.stockhubspring.service.UsuarioAtualService;
 import org.springframework.data.domain.Page;
@@ -35,31 +38,44 @@ public class DashboardController {
     private final DashboardService dashboardService;
     private final EstoqueService estoqueService;
     private final OrdemServicoService ordemServicoService;
+    private final PersonalizacaoService personalizacaoService;
 
     public DashboardController(UsuarioAtualService usuarioAtualService,
                                ProdutoService produtoService,
                                DashboardService dashboardService,
                                EstoqueService estoqueService,
-                               OrdemServicoService ordemServicoService) {
+                               OrdemServicoService ordemServicoService,
+                               PersonalizacaoService personalizacaoService) {
         this.usuarioAtualService = usuarioAtualService;
         this.produtoService = produtoService;
         this.dashboardService = dashboardService;
         this.estoqueService = estoqueService;
         this.ordemServicoService = ordemServicoService;
+        this.personalizacaoService = personalizacaoService;
     }
 
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
         Usuario usuario = usuarioAtualService.getUsuarioAtual();
+        // Blocos visíveis (AD-19): sem preferência gravada, tudo aparece. Bloco oculto não tem dados consultados.
+        Map<String, Boolean> blocos =
+                personalizacaoService.blocosVisiveis(usuario.getCodigo(), TelaPersonalizavel.INICIO);
+        model.addAttribute("blocos", blocos);
+        model.addAttribute("podeGerenciar", usuario.getPapel() != null && usuario.getPapel().gerenciaLoja());
+        // Resumo e estoque baixo alimentam a capa (título e frase do dia), que não pode ser ocultada
         model.addAttribute("resumo", dashboardService.buscarResumo(usuario.getCodigo()));
-        model.addAttribute("produtosRecentes", produtoService.listarRecentes(LIMITE_PAINEL, usuario.getCodigo()));
         model.addAttribute("produtosEstoqueBaixo",
                 produtoService.listarEstoqueBaixo(usuario.getCodigo(), 1, LIMITE_PAINEL).getContent());
+        if (visivel(blocos, BlocoTela.CADASTRADOS_ULTIMO)) {
+            model.addAttribute("produtosRecentes", produtoService.listarRecentes(LIMITE_PAINEL, usuario.getCodigo()));
+        }
         // Linha do tempo do dia: últimas movimentações da loja (o produto já vem junto na consulta)
-        model.addAttribute("movimentacoesRecentes",
-                estoqueService.listarMovimentacoes(usuario.getCodigo(), 1, LIMITE_LINHA_TEMPO).getContent());
-        // Só lojas com o módulo OS (o mapa "modulos" vem do GlobalModelAdvice): fluxo por situação e OS em andamento
-        if (moduloLigado(model, "OS")) {
+        if (visivel(blocos, BlocoTela.HOJE_NA_LOJA)) {
+            model.addAttribute("movimentacoesRecentes",
+                    estoqueService.listarMovimentacoes(usuario.getCodigo(), 1, LIMITE_LINHA_TEMPO).getContent());
+        }
+        // OS_FLUXO só existe no mapa das lojas com o módulo OS: fluxo por situação e OS em andamento
+        if (visivel(blocos, BlocoTela.OS_FLUXO)) {
             model.addAttribute("osPorStatus", ordemServicoService.contarPorStatus(usuario.getCodigo()));
             model.addAttribute("osAndamento", ordemServicoService.listar(usuario.getCodigo(), null).stream()
                     .filter(os -> OS_EM_ANDAMENTO.contains(os.getStatus()))
@@ -69,8 +85,8 @@ public class DashboardController {
         return "dashboard";
     }
 
-    private static boolean moduloLigado(Model model, String nome) {
-        return model.asMap().get("modulos") instanceof Map<?, ?> mapa && Boolean.TRUE.equals(mapa.get(nome));
+    private static boolean visivel(Map<String, Boolean> blocos, BlocoTela bloco) {
+        return Boolean.TRUE.equals(blocos.get(bloco.name()));
     }
 
     @GetMapping("/estoque-baixo")

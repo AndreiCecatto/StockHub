@@ -53,6 +53,9 @@ class DashboardEErrosWebTest extends ControllerTestBase {
     @DisplayName("GET /dashboard de oficina traz o fluxo de OS e só as OS em andamento")
     void painelDeOficinaTrazOs() throws Exception {
         when(usuarioRepository.findTipoLojaByCodigo(7)).thenReturn(java.util.Optional.of(TipoLoja.OFICINA));
+        // Oficina tem o módulo OS, então o mapa de blocos inclui OS_FLUXO
+        when(personalizacaoService.blocosVisiveis(7, org.example.stockhubspring.model.TelaPersonalizavel.INICIO))
+                .thenReturn(java.util.Map.of("OS_FLUXO", true));
         when(ordemServicoService.contarPorStatus(7)).thenReturn(new java.util.EnumMap<>(StatusOs.class));
         OrdemServico emExecucao = new OrdemServico();
         emExecucao.setStatus(StatusOs.EM_EXECUCAO);
