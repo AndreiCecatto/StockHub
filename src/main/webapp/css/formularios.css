@@ -1,0 +1,946 @@
+/*
+ * StockHub: camada de formulários própria (seção 15 de docs/design-system.md).
+ * Carregada DEPOIS de componentes.css e das telas: a aparência de campos, botões, caixas de marcar, interruptores,
+ * lista suspensa e chips vem daqui, só com tokens (css/tokens.css). O Bootstrap fica como grade e utilitários;
+ * as classes .form-control, .form-select, .form-check-*, .btn* continuam como ganchos de marcação (não mudam nomes
+ * nem rotas), mas nada do visual vem do Bootstrap.
+ * Progressive enhancement: sem JavaScript o select nativo aparece com esta mesma pele; js/formularios.js
+ * troca por componentes quando disponível (.sh-sel, .sh-chips, .sh-stepper).
+ */
+
+:root {
+  --f-altura: 44px;
+  --f-raio: 10px;
+  --f-borda: var(--sh-border-strong);
+  --f-anel: color-mix(in srgb, var(--sh-focus) 28%, transparent);
+  --f-anel-erro: color-mix(in srgb, var(--sh-danger-fg) 24%, transparent);
+  --f-seta: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%2362666E' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+}
+
+:root[data-bs-theme="dark"] {
+  --f-seta: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%23B0B4BB' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-bs-theme]) {
+    --f-seta: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%23B0B4BB' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+  }
+}
+
+/* ============================== Rótulo, ajuda e erro ============================== */
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--sh-text);
+  font-size: var(--sh-text-md);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.sh-obrigatorio,
+.sh-opcional {
+  margin-left: 4px;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-weight: 400;
+}
+
+.form-text {
+  margin-top: 6px;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  line-height: 1.45;
+}
+
+.sh-erro-campo {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 6px;
+  color: var(--sh-danger-fg);
+  font-size: var(--sh-text-sm);
+  font-weight: 500;
+  line-height: 1.4;
+  animation: f-erro-entra var(--sh-t-2) var(--sh-ease-out);
+}
+
+@keyframes f-erro-entra {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ============================== Campos de texto ============================== */
+.form-control,
+.form-select {
+  display: block;
+  width: 100%;
+  min-height: var(--f-altura);
+  padding: 0 14px;
+  border: 1px solid var(--f-borda);
+  border-radius: var(--f-raio);
+  background-color: var(--sh-surface);
+  color: var(--sh-text);
+  font-family: inherit;
+  font-size: 1rem; /* 16 px: o iOS não dá zoom ao focar */
+  font-weight: 400;
+  line-height: 1.35;
+  box-shadow: none;
+  outline: 0;
+  transition: border-color var(--sh-t-1) var(--sh-ease), box-shadow var(--sh-t-2) var(--sh-ease-out),
+    background-color var(--sh-t-1) var(--sh-ease);
+}
+
+@media (min-width: 992px) {
+  .form-control,
+  .form-select {
+    font-size: var(--sh-text-base);
+  }
+}
+
+input.form-control,
+.form-select {
+  height: var(--f-altura);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 96px;
+  padding: 10px 14px;
+  resize: vertical;
+}
+
+.form-control::placeholder {
+  color: var(--sh-text-subtle);
+  opacity: 1;
+}
+
+.form-control:hover:not(:disabled):not([readonly]),
+.form-select:hover:not(:disabled) {
+  border-color: var(--sh-text-subtle);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--sh-focus);
+  background-color: var(--sh-surface);
+  color: var(--sh-text);
+  box-shadow: 0 0 0 4px var(--f-anel);
+  outline: 0;
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  border-color: var(--sh-border);
+  background-color: var(--sh-surface-2);
+  color: var(--sh-text-subtle);
+  cursor: not-allowed;
+}
+
+.form-control[readonly] {
+  padding-left: 0;
+  border-color: transparent;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid,
+.was-validated .form-control:invalid,
+.form-control[aria-invalid="true"],
+.form-select[aria-invalid="true"] {
+  padding-right: 14px;
+  border-color: var(--sh-danger-fg);
+  background-image: none;
+  box-shadow: none;
+}
+
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus,
+.form-control[aria-invalid="true"]:focus,
+.form-select[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 4px var(--f-anel-erro);
+}
+
+input[type="number"].form-control {
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+input[type="number"].form-control::-webkit-outer-spin-button,
+input[type="number"].form-control::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+/* Select nativo (sem JS, ou antes do script rodar): seta própria */
+.form-select {
+  padding-right: 40px;
+  background-image: var(--f-seta);
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.form-select.is-invalid,
+.form-select[aria-invalid="true"] {
+  padding-right: 40px;
+  background-image: var(--f-seta);
+}
+
+/* Adornos (R$, unidade) grudados no campo */
+.input-group {
+  flex-wrap: nowrap;
+}
+
+.input-group-text {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--f-altura);
+  padding: 0 12px;
+  border: 1px solid var(--f-borda);
+  border-radius: var(--f-raio);
+  background: var(--sh-surface-2);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-base);
+  font-weight: 500;
+}
+
+.input-group > .form-control:not(:last-child),
+.input-group > .input-group-text:not(:last-child) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.input-group > .form-control:not(:first-child),
+.input-group > .input-group-text:not(:first-child) {
+  margin-left: -1px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.input-group > .form-control:focus {
+  position: relative;
+  z-index: 3;
+}
+
+/* Campo de senha */
+.sh-senha .form-control {
+  padding-right: 52px;
+}
+
+.sh-senha__alternar {
+  width: var(--f-altura);
+  height: var(--f-altura);
+  border-radius: 0 var(--f-raio) var(--f-raio) 0;
+}
+
+/* ============================== Botões ============================== */
+.btn {
+  --fb-bg: var(--sh-surface);
+  --fb-cor: var(--sh-text);
+  --fb-borda: var(--f-borda);
+  --fb-bg-hover: var(--sh-surface-2);
+  --fb-sombra: var(--sh-shadow-1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--f-altura);
+  padding: 0 18px;
+  border: 1px solid var(--fb-borda);
+  border-radius: var(--f-raio);
+  background: var(--fb-bg);
+  color: var(--fb-cor);
+  font-family: inherit;
+  font-size: var(--sh-text-base);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.008em;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: var(--fb-sombra);
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--sh-t-1) var(--sh-ease), border-color var(--sh-t-1) var(--sh-ease),
+    color var(--sh-t-1) var(--sh-ease), transform var(--sh-t-1) var(--sh-ease-out), box-shadow var(--sh-t-2) var(--sh-ease-out);
+}
+
+.btn:hover:not(:disabled):not(.disabled),
+.btn:first-child:hover:not(:disabled):not(.disabled) {
+  border-color: var(--fb-borda);
+  background: var(--fb-bg-hover);
+  color: var(--fb-cor);
+}
+
+.btn:active:not(:disabled):not(.disabled),
+.btn:first-child:active:not(:disabled):not(.disabled),
+:not(.btn-check) + .btn:active:not(:disabled):not(.disabled) {
+  border-color: var(--fb-borda);
+  background: var(--fb-bg-hover);
+  color: var(--fb-cor);
+  transform: scale(0.985);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--sh-focus);
+  outline-offset: 2px;
+  box-shadow: var(--fb-sombra);
+}
+
+.btn:disabled,
+.btn.disabled,
+fieldset:disabled .btn {
+  --fb-bg: var(--sh-surface-2);
+  --fb-bg-hover: var(--sh-surface-2);
+  --fb-cor: var(--sh-text-subtle);
+  --fb-borda: var(--sh-border);
+  --fb-sombra: none;
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+.btn-sm {
+  padding: 0 12px;
+  font-size: var(--sh-text-md);
+  border-radius: 8px;
+}
+
+@media (min-width: 992px) {
+  .btn-sm {
+    min-height: 32px;
+  }
+}
+
+.btn-lg {
+  padding: 0 24px;
+  font-size: var(--sh-text-lg);
+  border-radius: 12px;
+}
+
+/* Primário: o acento, cheio */
+.btn-primary,
+.btn-success,
+.btn-danger {
+  --fb-cor: #fff;
+  --fb-sombra: inset 0 1px 0 rgba(255, 255, 255, .16), 0 1px 2px rgba(16, 24, 40, .12);
+}
+
+.btn-primary {
+  --fb-bg: var(--sh-accent);
+  --fb-bg-hover: var(--sh-accent-hover);
+  --fb-borda: var(--sh-accent);
+}
+
+.btn-primary:hover:not(:disabled):not(.disabled) {
+  --fb-borda: var(--sh-accent-hover);
+}
+
+.btn-success {
+  --fb-bg: var(--sh-success-solid);
+  --fb-bg-hover: var(--sh-success-solid-hover);
+  --fb-borda: var(--sh-success-solid);
+}
+
+.btn-danger {
+  --fb-bg: var(--sh-danger-solid);
+  --fb-bg-hover: var(--sh-danger-solid-hover);
+  --fb-borda: var(--sh-danger-solid);
+}
+
+/* Secundário: contorno fino */
+.btn-secondary,
+.btn-outline-secondary,
+.btn-outline-primary {
+  --fb-bg: var(--sh-surface);
+  --fb-bg-hover: var(--sh-surface-2);
+  --fb-cor: var(--sh-text);
+  --fb-borda: var(--f-borda);
+}
+
+.btn-outline-danger {
+  --fb-bg: var(--sh-surface);
+  --fb-bg-hover: var(--sh-danger-bg);
+  --fb-cor: var(--sh-danger-fg);
+  --fb-borda: var(--sh-danger-border);
+}
+
+/* Discreto: só texto */
+.btn-ghost,
+.btn-link {
+  --fb-bg: transparent;
+  --fb-bg-hover: var(--sh-surface-2);
+  --fb-cor: var(--sh-accent-text);
+  --fb-borda: transparent;
+  --fb-sombra: none;
+  text-decoration: none;
+}
+
+.btn-ghost--perigo {
+  --fb-cor: var(--sh-danger-fg);
+  --fb-bg-hover: var(--sh-danger-bg);
+}
+
+/* Ocupado (envio em andamento) */
+.btn[aria-busy="true"] {
+  cursor: progress;
+}
+
+/* ============================== Marcar e escolher ============================== */
+.form-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 24px;
+  margin: 0;
+  padding: 0;
+}
+
+.form-check-input {
+  --f-marca: none;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  border: 1.5px solid var(--f-borda);
+  border-radius: 7px;
+  background-color: var(--sh-surface);
+  background-image: var(--f-marca);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 14px;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  transition: background-color var(--sh-t-1) var(--sh-ease), border-color var(--sh-t-1) var(--sh-ease),
+    box-shadow var(--sh-t-2) var(--sh-ease-out);
+}
+
+.form-check-input[type="radio"] {
+  border-radius: 50%;
+}
+
+.form-check-input:hover:not(:disabled) {
+  border-color: var(--sh-text-subtle);
+}
+
+.form-check-input:checked,
+.form-check-input:indeterminate {
+  border-color: var(--sh-accent);
+  background-color: var(--sh-accent);
+}
+
+.form-check-input[type="checkbox"]:checked {
+  --f-marca: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3.5 8.5 3 3 6-7'/%3E%3C/svg%3E");
+}
+
+.form-check-input[type="checkbox"]:indeterminate {
+  --f-marca: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M4 8h8'/%3E%3C/svg%3E");
+}
+
+.form-check-input[type="radio"]:checked {
+  --f-marca: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='3.2' fill='%23fff'/%3E%3C/svg%3E");
+  background-size: 100%;
+}
+
+.form-check-input:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 4px var(--f-anel);
+  border-color: var(--sh-focus);
+}
+
+.form-check-input:disabled {
+  border-color: var(--sh-border);
+  background-color: var(--sh-surface-2);
+  cursor: not-allowed;
+}
+
+.form-check-input:disabled:checked {
+  background-color: var(--sh-text-subtle);
+  border-color: var(--sh-text-subtle);
+}
+
+.form-check-input.is-invalid {
+  border-color: var(--sh-danger-fg);
+}
+
+.form-check-label {
+  color: var(--sh-text);
+  font-size: var(--sh-text-base);
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+/* Interruptor */
+.form-switch {
+  padding: 0;
+}
+
+.form-switch .form-check-input {
+  --f-marca: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3E%3Ccircle r='3.2' fill='%23fff'/%3E%3C/svg%3E");
+  width: 44px;
+  height: 26px;
+  border-color: var(--f-borda);
+  border-radius: 999px;
+  background-color: var(--f-borda);
+  background-image: var(--f-marca);
+  background-position: left 3px center;
+  background-size: 20px;
+  transition: background-position var(--sh-t-2) var(--sh-ease-out-forte), background-color var(--sh-t-1) var(--sh-ease),
+    border-color var(--sh-t-1) var(--sh-ease), box-shadow var(--sh-t-2) var(--sh-ease-out);
+}
+
+.form-switch .form-check-input:checked {
+  --f-marca: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3E%3Ccircle r='3.2' fill='%23fff'/%3E%3C/svg%3E");
+  background-color: var(--sh-accent);
+  background-position: right 3px center;
+  background-size: 20px;
+}
+
+/* ============================== Controle segmentado e cartões ============================== */
+.sh-seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--sh-border);
+  border-radius: 12px;
+  background: var(--sh-surface-2);
+}
+
+.sh-seg > input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sh-seg > label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 9px;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--sh-t-2) var(--sh-ease), color var(--sh-t-1) var(--sh-ease), box-shadow var(--sh-t-2) var(--sh-ease);
+}
+
+.sh-seg > input:checked + label {
+  background: var(--sh-surface);
+  color: var(--sh-text);
+  box-shadow: 0 0 0 1px var(--sh-border), var(--sh-shadow-1);
+}
+
+.sh-seg > input:focus-visible + label {
+  outline: 2px solid var(--sh-focus);
+  outline-offset: 2px;
+}
+
+/* Cartões de tipo da loja (cadastro): refino sobre entrar.css */
+.sh-tipos legend {
+  float: none;
+  width: auto;
+  padding: 0;
+}
+
+.sh-tipo__corpo {
+  border-radius: 14px;
+  transition: border-color var(--sh-t-2) var(--sh-ease), background-color var(--sh-t-2) var(--sh-ease),
+    box-shadow var(--sh-t-2) var(--sh-ease-out);
+}
+
+.sh-tipo input:checked + .sh-tipo__corpo {
+  box-shadow: 0 0 0 1px var(--sh-accent), 0 0 0 5px var(--f-anel);
+}
+
+.sh-tipo input:focus-visible + .sh-tipo__corpo {
+  outline: 2px solid var(--sh-focus);
+  outline-offset: 3px;
+}
+
+/* ============================== Chips (ramo da loja) ============================== */
+.sh-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sh-chips__grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  animation: f-chips-entra var(--sh-t-3) var(--sh-ease-out);
+}
+
+.sh-chips__grupo[hidden] {
+  display: none;
+}
+
+.sh-chips__titulo {
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+}
+
+.sh-chips__lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sh-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--f-borda);
+  border-radius: 999px;
+  background: var(--sh-surface);
+  color: var(--sh-text);
+  font-family: inherit;
+  font-size: var(--sh-text-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--sh-t-1) var(--sh-ease), border-color var(--sh-t-1) var(--sh-ease),
+    color var(--sh-t-1) var(--sh-ease), transform var(--sh-t-1) var(--sh-ease-out);
+}
+
+.sh-chip:hover {
+  border-color: var(--sh-text-subtle);
+  background: var(--sh-surface-2);
+}
+
+.sh-chip[aria-checked="true"] {
+  border-color: var(--sh-accent);
+  background: var(--sh-accent-soft);
+  color: var(--sh-accent-text);
+  font-weight: 600;
+}
+
+.sh-chip:focus-visible {
+  outline: 2px solid var(--sh-focus);
+  outline-offset: 2px;
+}
+
+.sh-chip:active {
+  transform: scale(0.97);
+}
+
+@keyframes f-chips-entra {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ============================== Lista suspensa própria ============================== */
+.sh-sel {
+  position: relative;
+}
+
+.sh-sel > select {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.sh-sel__botao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: var(--f-altura);
+  padding: 0 12px 0 14px;
+  border: 1px solid var(--f-borda);
+  border-radius: var(--f-raio);
+  background: var(--sh-surface);
+  color: var(--sh-text);
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--sh-t-1) var(--sh-ease), box-shadow var(--sh-t-2) var(--sh-ease-out);
+}
+
+@media (min-width: 992px) {
+  .sh-sel__botao { font-size: var(--sh-text-base); }
+}
+
+.sh-sel__botao:hover:not(:disabled) {
+  border-color: var(--sh-text-subtle);
+}
+
+.sh-sel__botao:focus-visible,
+.sh-sel__botao[aria-expanded="true"] {
+  border-color: var(--sh-focus);
+  box-shadow: 0 0 0 4px var(--f-anel);
+  outline: 0;
+}
+
+.sh-sel__botao:disabled {
+  border-color: var(--sh-border);
+  background: var(--sh-surface-2);
+  color: var(--sh-text-subtle);
+  cursor: not-allowed;
+}
+
+.sh-sel__botao[aria-invalid="true"] {
+  border-color: var(--sh-danger-fg);
+}
+
+.sh-sel__botao[aria-invalid="true"]:focus-visible {
+  box-shadow: 0 0 0 4px var(--f-anel-erro);
+}
+
+.sh-sel__valor {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sh-sel__valor--vazio {
+  color: var(--sh-text-subtle);
+}
+
+.sh-sel__seta {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  background: var(--f-seta) center / 16px no-repeat;
+  transition: transform var(--sh-t-2) var(--sh-ease-out);
+}
+
+.sh-sel__botao[aria-expanded="true"] .sh-sel__seta {
+  transform: rotate(180deg);
+}
+
+.sh-sel__painel {
+  position: fixed;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--sh-border);
+  border-radius: 14px;
+  background: var(--sh-surface);
+  box-shadow: var(--sh-shadow-pop);
+  animation: f-painel-entra var(--sh-t-2) var(--sh-ease-out-forte);
+  transform-origin: top center;
+}
+
+.sh-sel__painel[hidden] {
+  display: none;
+}
+
+.sh-sel__painel--acima {
+  transform-origin: bottom center;
+}
+
+@keyframes f-painel-entra {
+  from { opacity: 0; transform: translateY(-4px) scale(.98); }
+  to { opacity: 1; transform: none; }
+}
+
+.sh-sel__busca {
+  flex: 0 0 auto;
+  padding: 8px;
+  border-bottom: 1px solid var(--sh-border);
+}
+
+.sh-sel__busca input {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--sh-border);
+  border-radius: 9px;
+  background: var(--sh-surface-2);
+  color: var(--sh-text);
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.sh-sel__busca input:focus {
+  border-color: var(--sh-focus);
+  background: var(--sh-surface);
+  box-shadow: 0 0 0 3px var(--f-anel);
+  outline: 0;
+}
+
+.sh-sel__lista {
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  list-style: none;
+  overscroll-behavior: contain;
+}
+
+.sh-sel__grupo {
+  padding: 8px 10px 4px;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+}
+
+.sh-sel__opcao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 10px;
+  border-radius: 9px;
+  color: var(--sh-text);
+  font-size: var(--sh-text-base);
+  cursor: pointer;
+}
+
+.sh-sel__opcao[data-ativa] {
+  background: var(--sh-surface-2);
+}
+
+.sh-sel__opcao[aria-selected="true"] {
+  color: var(--sh-accent-text);
+  font-weight: 600;
+}
+
+.sh-sel__opcao[aria-selected="true"]::after {
+  content: "";
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 8.5 3.2 3.2L13 4.5'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 8.5 3.2 3.2L13 4.5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.sh-sel__opcao[aria-disabled="true"] {
+  color: var(--sh-text-subtle);
+  cursor: not-allowed;
+}
+
+.sh-sel__nada {
+  padding: 14px 12px;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+  text-align: center;
+}
+
+/* ============================== Seletor de quantidade ============================== */
+.sh-stepper {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+
+.sh-stepper > .form-control {
+  flex: 1 1 auto;
+  min-width: 0;
+  border-radius: 0;
+  text-align: center;
+}
+
+.sh-stepper__botao {
+  flex: 0 0 var(--f-altura);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--f-altura);
+  padding: 0;
+  border: 1px solid var(--f-borda);
+  background: var(--sh-surface-2);
+  color: var(--sh-text);
+  font-size: 1.125rem;
+  cursor: pointer;
+  transition: background-color var(--sh-t-1) var(--sh-ease);
+}
+
+.sh-stepper__botao:first-child {
+  margin-right: -1px;
+  border-radius: var(--f-raio) 0 0 var(--f-raio);
+}
+
+.sh-stepper__botao:last-child {
+  margin-left: -1px;
+  border-radius: 0 var(--f-raio) var(--f-raio) 0;
+}
+
+.sh-stepper__botao:hover:not(:disabled) {
+  background: var(--sh-surface-3);
+}
+
+.sh-stepper__botao:disabled {
+  color: var(--sh-text-subtle);
+  cursor: not-allowed;
+}
+
+.sh-stepper__botao:focus-visible {
+  position: relative;
+  z-index: 3;
+  outline: 2px solid var(--sh-focus);
+  outline-offset: 1px;
+}
+
+.sh-stepper > .form-control:focus {
+  position: relative;
+  z-index: 2;
+}
+
+/* ============================== Foco: anel suave do acento ============================== */
+/* tokens.css força contorno de 2 px com !important em tudo; nos campos o anel suave (4 px) toma o lugar */
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus-visible,
+.sh-sel__botao:focus-visible,
+.sh-sel__botao[aria-expanded="true"],
+.sh-sel__busca input:focus {
+  outline: 0 !important;
+  box-shadow: 0 0 0 4px var(--f-anel) !important;
+}
+
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus,
+.form-control[aria-invalid="true"]:focus,
+.sh-sel__botao[aria-invalid="true"]:focus-visible {
+  box-shadow: 0 0 0 4px var(--f-anel-erro) !important;
+}
+
+/* ============================== Movimento reduzido ============================== */
+@media (prefers-reduced-motion: reduce) {
+  .form-control,
+  .form-select,
+  .btn,
+  .form-check-input,
+  .sh-chip,
+  .sh-sel__botao,
+  .sh-sel__seta,
+  .sh-sel__painel,
+  .sh-chips__grupo,
+  .sh-erro-campo,
+  .sh-seg > label,
+  .sh-stepper__botao {
+    transition: none;
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .sh-chip[aria-checked="true"],
+  .sh-sel__opcao[aria-selected="true"] {
+    outline: 2px solid Highlight;
+  }
+}

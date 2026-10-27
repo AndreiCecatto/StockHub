@@ -28,6 +28,7 @@
 <link rel="stylesheet" href="${ctx}/css/rolagem.css">
 <link rel="stylesheet" href="${ctx}/css/peek.css">
 <link rel="stylesheet" href="${ctx}/css/paleta.css">
+<link rel="stylesheet" href="${ctx}/css/formularios.css">
 <link rel="stylesheet" href="${ctx}/css/impressao.css" media="print">
 <script defer src="${ctx}/vendor/bootstrap-5.3.8/js/bootstrap.bundle.min.js"></script>
 <script defer src="${ctx}/js/nucleo.js"></script>
