@@ -1,18 +1,20 @@
 /*
- * StockHub v2 "caderneta de balcão": tokens de design (seção "v2: com personalidade" de docs/design-system.md).
- * Ordem de carregamento: Bootstrap, Bootstrap Icons, tokens.css, layout.css, componentes.css, identidade.css, paleta.css (e inicio.css ou entrar.css por tela).
+ * StockHub v3 "central de operações": tokens de design (seção "v3: central de operações" de docs/design-system.md).
+ * Ordem de carregamento: Bootstrap, Bootstrap Icons, tokens.css, layout.css, componentes.css, movimento.css,
+ * rolagem.css, peek.css, paleta.css (e entrar.css, inicio.css etc. por tela).
  *
- * Os nomes --sh-* da v1 foram mantidos (as telas ainda não migradas continuam funcionando com os valores novos).
- * Tokens novos da v2: --sh-font-display, --sh-terra*, --sh-kraft*, --sh-papel, --sh-pauta, --sh-marca-texto,
- * --sh-dur-*, --sh-ease-*, --sh-stagger.
+ * Os nomes --sh-* da v1/v2 foram mantidos (as telas ainda não migradas continuam funcionando com os valores novos).
+ * Tokens novos da v3: --sh-surface-2 (já existia) e --sh-surface-3 (derivado), --sh-font-mono, --sh-fs-* (escala fluida),
+ * --sh-track-*, --sh-t-1..4 (durações), --sh-ease-*, --sh-shadow-1/pop/modal, --sh-scrim, --sh-glass*,
+ * --sh-radius-* (6 a 10 px) e os do kit de rolagem (ver css/rolagem.css).
  *
  * Os valores de cor dos dois temas aparecem em três blocos (GERADOS por um script a partir de uma só tabela de
- * paleta; ao mudar um valor, mude nos três):
- *   1. :root / [data-bs-theme="light"]   tema claro "papel" (padrão)
- *   2. [data-bs-theme="dark"]            tema escuro "grafite quente" (js/tema-init.js define o atributo antes de pintar)
+ * paleta, a mesma da tabela de contraste do design-system.md; ao mudar um valor, mude nos três):
+ *   1. :root / [data-bs-theme="light"]   tema claro (padrão)
+ *   2. [data-bs-theme="dark"]            tema escuro "grafite" (js/tema-init.js define o atributo antes de pintar)
  *   3. @media (prefers-color-scheme: dark) com :root:not([data-bs-theme])
  *                                        mesmo escuro, para quem está sem JavaScript
- * Todos os pares de contraste foram calculados (tabela na seção v2 do design-system.md).
+ * Todos os pares de contraste foram calculados (tabela na seção v3 do design-system.md).
  */
 
 /* ---------- Fontes locais (subset latino, variáveis) ---------- */
@@ -27,14 +29,14 @@
                  U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* Fraunces "soft" (eixos de peso e SOFT): títulos, saudação e números grandes */
+/* Geist Mono: só para valores, códigos, SKUs e atalhos (nunca em texto corrido) */
 @font-face {
-  font-family: "Fraunces";
+  font-family: "Geist Mono";
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url("../vendor/fraunces/fraunces-latin-soft-normal.woff2") format("woff2-variations"),
-       url("../vendor/fraunces/fraunces-latin-soft-normal.woff2") format("woff2");
+  src: url("../vendor/geist-mono/geist-mono-latin-wght-normal.woff2") format("woff2-variations"),
+       url("../vendor/geist-mono/geist-mono-latin-wght-normal.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
                  U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -42,9 +44,11 @@
 /* ---------- Tokens que não mudam com o tema ---------- */
 :root {
   --sh-font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --sh-font-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --sh-font-mono: "Geist Mono", ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  /* Legado v2: a fonte de display deixou de existir; o nome aponta para a Inter para as telas antigas não quebrarem */
+  --sh-font-display: var(--sh-font);
 
-  /* Escala tipográfica (raiz em 16 px; corpo em 15 px) */
+  /* Escala da interface (raiz em 16 px; corpo em 15 px) */
   --sh-text-sm: 0.8125rem;
   --sh-text-md: 0.875rem;
   --sh-text-base: 0.9375rem;
@@ -52,8 +56,31 @@
   --sh-text-xl: 1.375rem;
   --sh-text-2xl: 1.75rem;
   --sh-text-metric: 2rem;
-  --sh-text-hero: clamp(1.9rem, 1.2rem + 3vw, 3.1rem);
-  --sh-text-numero: clamp(1.9rem, 1.3rem + 1.6vw, 2.6rem);
+  --sh-text-hero: clamp(1.9rem, 1.2rem + 3vw, 3.1rem);   /* legado v1/v2 (dashboard atual) */
+  --sh-text-numero: clamp(1.9rem, 1.3rem + 1.6vw, 2.6rem); /* legado v1/v2 (dashboard atual) */
+
+  /* Escala fluida v3 (clamp): títulos de página, seção e tamanhos "hero" para a apresentação */
+  --sh-fs-micro: 0.6875rem;
+  --sh-fs-pagina: clamp(1.625rem, 1.35rem + 0.9vw, 2.25rem);
+  --sh-fs-secao: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+  --sh-fs-display: clamp(2.25rem, 1.4rem + 3.4vw, 4rem);
+  --sh-fs-hero: clamp(2.75rem, 1.2rem + 6.2vw, 6rem);
+  --sh-fs-hero-xl: clamp(3.25rem, 0.8rem + 10vw, 9rem);
+  --sh-fs-numero: clamp(2rem, 1.2rem + 2.4vw, 3.25rem);
+  --sh-fs-numero-xl: clamp(2.75rem, 1rem + 6vw, 6.5rem);
+  --sh-fs-lead: clamp(1.0625rem, 0.98rem + 0.45vw, 1.375rem);
+
+  /* Tracking (espaçamento entre letras): quanto maior o texto, mais apertado */
+  --sh-track-hero: -0.045em;
+  --sh-track-display: -0.035em;
+  --sh-track-titulo: -0.022em;
+  --sh-track-corpo: -0.006em;
+  --sh-track-rotulo: 0.07em;
+
+  /* Altura de linha dos títulos */
+  --sh-lh-hero: 1.02;
+  --sh-lh-display: 1.07;
+  --sh-lh-titulo: 1.15;
 
   /* Espaço (base de 4 px) */
   --sh-space-1: 4px;
@@ -65,180 +92,194 @@
   --sh-space-8: 32px;
   --sh-space-10: 40px;
   --sh-space-12: 48px;
+  --sh-space-16: 64px;
+  --sh-space-24: 96px;
   --sh-gutter: 16px;
 
-  /* Raios: "folha de caderno" (o canto de baixo à esquerda é mais seco) */
-  --sh-radius-sm: 8px;
-  --sh-radius: 12px;
-  --sh-radius-lg: 18px;
+  /* Raios discretos: 6 (controles), 8 (cartões), 10 (painéis e diálogos) */
+  --sh-radius-xs: 4px;
+  --sh-radius-sm: 6px;
+  --sh-radius: 8px;
+  --sh-radius-lg: 10px;
   --sh-radius-pill: 999px;
-  --sh-radius-folha: 14px 14px 14px 5px;
+  --sh-radius-folha: var(--sh-radius); /* legado v2 */
 
-  /* Movimento (tokens da v2; os nomes antigos continuam) */
-  --sh-dur-instante: 90ms;
-  --sh-dur-fast: 140ms;
-  --sh-dur: 220ms;
-  --sh-dur-slow: 360ms;
-  --sh-dur-lenta: 640ms;
+  /* Movimento v3: 120 / 180 / 240 / 400 ms, sempre com desaceleração (sem overshoot, sem bounce) */
+  --sh-t-1: 120ms;
+  --sh-t-2: 180ms;
+  --sh-t-3: 240ms;
+  --sh-t-4: 400ms;
+  --sh-dur-instante: var(--sh-t-1); /* nomes antigos, mesmos valores novos */
+  --sh-dur-fast: var(--sh-t-1);
+  --sh-dur: var(--sh-t-2);
+  --sh-dur-slow: var(--sh-t-3);
+  --sh-dur-lenta: var(--sh-t-4);
   --sh-ease-out: cubic-bezier(.2, .8, .2, 1);
+  --sh-ease-out-forte: cubic-bezier(.16, 1, .3, 1);
   --sh-ease-in: cubic-bezier(.4, 0, 1, 1);
   --sh-ease: cubic-bezier(.4, 0, .2, 1);
-  --sh-ease-mola: cubic-bezier(.34, 1.56, .64, 1);
-  --sh-stagger: 45ms;
+  --sh-ease-mola: var(--sh-ease-out); /* legado v2: a "mola" virou desaceleração simples */
+  --sh-stagger: 40ms;
+  --sh-dist-entrada: 6px; /* deslocamento das entradas (fade + translateY de 4 a 8 px) */
 
-  /* Alvo de toque mínimo (44 px no celular, 40 px no desktop) */
+  /* Alvo de toque mínimo (44 px no celular, 36 px no desktop com mouse) */
   --sh-alvo: 44px;
+
+  /* Estrutura */
+  --sh-lateral-w: 232px;
+  --sh-lateral-w-recolhida: 64px;
+  --sh-topbar-h: 56px;
 }
 
 @media (min-width: 992px) {
   :root {
     --sh-gutter: 28px;
-    --sh-alvo: 40px;
+    --sh-alvo: 36px;
   }
 }
 
+/* ---------- Tokens derivados (valem nos dois temas) ---------- */
+:root {
+  --sh-surface-3: color-mix(in srgb, var(--sh-surface-2) 82%, var(--sh-border));
+  --sh-glass: var(--sh-bg);
+  --sh-glass-borda: var(--sh-border);
+
+  /* Barra lateral: a mesma cor do fundo, separada por uma linha fina; item atual vira "cartão" */
+  --sh-side-bg: var(--sh-bg);
+  --sh-side-text: var(--sh-text-muted);
+  --sh-side-muted: var(--sh-text-subtle);
+  --sh-side-active-bg: var(--sh-surface);
+  --sh-side-marker: var(--sh-accent);
+
+  /* Legado v2 (papel, terracota, kraft, mascote): valores neutros só para as telas antigas não quebrarem.
+     Nada novo deve usar estes nomes. */
+  --sh-terra: var(--sh-accent);
+  --sh-terra-text: var(--sh-accent-text);
+  --sh-terra-soft: var(--sh-accent-soft);
+  --sh-marca-texto: var(--sh-accent-soft);
+  --sh-kraft: var(--sh-border-strong);
+  --sh-kraft-escuro: var(--sh-text-subtle);
+  --sh-kraft-claro: var(--sh-surface-2);
+  --sh-tinta: var(--sh-text);
+  --sh-papel: none;
+  --sh-pauta: var(--sh-border);
+}
+
+/* Vidro fosco: só onde agrega (barra superior e paleta). Sem suporte, a cor sólida acima continua valendo. */
+@supports (backdrop-filter: blur(1px)) {
+  :root {
+    --sh-glass: color-mix(in srgb, var(--sh-bg) 72%, transparent);
+    --sh-glass-borda: color-mix(in srgb, var(--sh-border) 80%, transparent);
+  }
+}
+
+/* Cores dos dois temas */
 :root,
 [data-bs-theme="light"] {
   color-scheme: light;
 
-  /* Neutros quentes, marca (verde-musgo) e foco */
-  --sh-bg: #F3EDDF;
-  --sh-surface: #FBF8F0;
-  --sh-surface-2: #EAE2D0;
-  --sh-border: #D8CDB6;
-  --sh-border-strong: #857A62;
-  --sh-text: #261F16;
-  --sh-text-muted: #54493A;
-  --sh-text-subtle: #675A44;
-  --sh-accent: #3E5A2F;
-  --sh-accent-hover: #2F4624;
-  --sh-accent-text: #3E5A2F;
-  --sh-accent-soft: #E1E7CE;
-  --sh-focus: #3E5A2F;
-
-  /* v2: terracota (só decoração e destaque; nunca estado de estoque), papel, kraft do mascote */
-  --sh-terra: #A34622;
-  --sh-terra-text: #A34622;
-  --sh-terra-soft: #F3D9C8;
-  --sh-marca-texto: #F1E3A0;
-  --sh-kraft: #D9AE72;
-  --sh-kraft-escuro: #B98A4C;
-  --sh-kraft-claro: #EBCF9F;
-  --sh-tinta: #2B2118;
-  --sh-papel: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.26 0 0 0 0 0.15 0 0 0 0.20 0'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23n)'/%3E%3C/svg%3E");
-  --sh-pauta: rgba(90, 67, 38, .13);
-
-  /* Barra lateral: "capa" verde-musgo escura (nos dois temas) */
-  --sh-side-bg: #26301C;
-  --sh-side-text: #D9DEC8;
-  --sh-side-muted: #A9B091;
-  --sh-side-active-bg: #36432A;
-  --sh-side-marker: #E7B48B;
+  /* Neutros, acento (cobalto sóbrio) e foco */
+  --sh-bg: #F5F5F7;
+  --sh-surface: #FFFFFF;
+  --sh-surface-2: #EEEFF2;
+  --sh-border: #E2E4E8;
+  --sh-border-strong: #80868F;
+  --sh-text: #1D1D1F;
+  --sh-text-muted: #4D5158;
+  --sh-text-subtle: #62666E;
+  --sh-accent: #1D55C4;
+  --sh-accent-hover: #173F94;
+  --sh-accent-text: #1D55C4;
+  --sh-accent-soft: #E8EFFC;
+  --sh-focus: #1D55C4;
 
   /* Semânticas: texto, fundo tonal e borda decorativa */
-  --sh-success-fg: #1B6B3F;
-  --sh-success-bg: #E3F1E0;
-  --sh-success-border: #A5D3AC;
+  --sh-success-fg: #146B3C;
+  --sh-success-bg: #E5F4EA;
+  --sh-success-border: #A9D6B8;
   --sh-warning-fg: #7A4100;
-  --sh-warning-bg: #FBEBC4;
-  --sh-warning-border: #E9C77B;
-  --sh-danger-fg: #A8281C;
-  --sh-danger-bg: #F9E1DB;
-  --sh-danger-border: #EDA79C;
-  --sh-info-fg: #1C5A8C;
-  --sh-info-bg: #DEEBF3;
-  --sh-info-border: #A3C6DD;
+  --sh-warning-bg: #FCEFCF;
+  --sh-warning-border: #E8C679;
+  --sh-danger-fg: #B3261E;
+  --sh-danger-bg: #FCE9E7;
+  --sh-danger-border: #EDA7A1;
+  --sh-info-fg: #0B6478;
+  --sh-info-bg: #E1F2F6;
+  --sh-info-border: #9CCBD6;
 
   /* Botões sólidos (texto branco): só para confirmar ação */
   --sh-danger-solid: #C0261B;
   --sh-danger-solid-hover: #A31F15;
   --sh-success-solid: #15803D;
-  --sh-success-solid-hover: #116A32;
+  --sh-success-solid-hover: #106A32;
 
-  /* Medidor de saldo, barra de saúde e gráfico */
-  --sh-meter-track: #D4C9AE;
-  --sh-meter-normal: #2E7D4F;
-  --sh-meter-baixo: #A25406;
-  --sh-meter-sem: #C0261B;
+  /* Medidor de saldo, barra de saúde e gráficos */
+  --sh-meter-track: #DCDFE4;
+  --sh-meter-normal: #1F8A4F;
+  --sh-meter-baixo: #B45F08;
+  --sh-meter-sem: #C42B1F;
 
-  /* Sombras (só em elementos que flutuam; sombra quente, de papel) */
-  --sh-shadow-pop: 0 8px 24px rgba(60, 40, 15, .16);
-  --sh-shadow-modal: 0 16px 48px rgba(60, 40, 15, .26);
+  /* Sobreposições: sombras em camadas (só para o que flutua) e véu */
+  --sh-shadow-1: 0 1px 2px rgba(16, 24, 40, .06);
+  --sh-shadow-pop: 0 0 0 1px rgba(16, 24, 40, .06), 0 2px 4px rgba(16, 24, 40, .06), 0 12px 32px -4px rgba(16, 24, 40, .16);
+  --sh-shadow-modal: 0 0 0 1px rgba(16, 24, 40, .06), 0 4px 8px rgba(16, 24, 40, .06), 0 32px 72px -8px rgba(16, 24, 40, .32);
+  --sh-scrim: rgba(16, 17, 20, .38);
 
   /* Trios RGB e variáveis que o Bootstrap 5.3 usa em foco, links e utilitários */
-  --bs-primary-rgb: 62, 90, 47;
+  --bs-primary-rgb: 29, 85, 196;
   --bs-success-rgb: 21, 128, 61;
-  --bs-warning-rgb: 162, 84, 6;
+  --bs-warning-rgb: 180, 95, 8;
   --bs-danger-rgb: 192, 38, 27;
-  --bs-info-rgb: 28, 90, 140;
-  --bs-body-bg-rgb: 243, 237, 223;
-  --bs-body-color-rgb: 38, 31, 22;
-  --bs-link-color-rgb: 62, 90, 47;
-  --bs-link-hover-color-rgb: 47, 70, 36;
-  --bs-success-text-emphasis: #1B6B3F;
-  --bs-success-bg-subtle: #E3F1E0;
+  --bs-info-rgb: 11, 100, 120;
+  --bs-body-bg-rgb: 245, 245, 247;
+  --bs-body-color-rgb: 29, 29, 31;
+  --bs-link-color-rgb: 29, 85, 196;
+  --bs-link-hover-color-rgb: 23, 63, 148;
+  --bs-success-text-emphasis: #146B3C;
+  --bs-success-bg-subtle: #E5F4EA;
   --bs-success-border-subtle: var(--sh-success-border);
   --bs-warning-text-emphasis: #7A4100;
-  --bs-warning-bg-subtle: #FBEBC4;
+  --bs-warning-bg-subtle: #FCEFCF;
   --bs-warning-border-subtle: var(--sh-warning-border);
-  --bs-danger-text-emphasis: #A8281C;
-  --bs-danger-bg-subtle: #F9E1DB;
+  --bs-danger-text-emphasis: #B3261E;
+  --bs-danger-bg-subtle: #FCE9E7;
   --bs-danger-border-subtle: var(--sh-danger-border);
-  --bs-info-text-emphasis: #1C5A8C;
-  --bs-info-bg-subtle: #DEEBF3;
+  --bs-info-text-emphasis: #0B6478;
+  --bs-info-bg-subtle: #E1F2F6;
   --bs-info-border-subtle: var(--sh-info-border);
 }
 
 [data-bs-theme="dark"] {
   color-scheme: dark;
 
-  /* Neutros quentes, marca (verde-musgo) e foco */
-  --sh-bg: #1A1612;
-  --sh-surface: #241F19;
-  --sh-surface-2: #2E2820;
-  --sh-border: #403829;
-  --sh-border-strong: #8F8370;
-  --sh-text: #F0E8D8;
-  --sh-text-muted: #C5BAA5;
-  --sh-text-subtle: #A89D88;
-  --sh-accent: #4F7040;
-  --sh-accent-hover: #436036;
-  --sh-accent-text: #A9C98F;
-  --sh-accent-soft: #2B3822;
-  --sh-focus: #B9D79E;
-
-  /* v2: terracota (só decoração e destaque; nunca estado de estoque), papel, kraft do mascote */
-  --sh-terra: #E58B63;
-  --sh-terra-text: #E58B63;
-  --sh-terra-soft: #3F2418;
-  --sh-marca-texto: #6B5A1E;
-  --sh-kraft: #C9985A;
-  --sh-kraft-escuro: #A47A41;
-  --sh-kraft-claro: #DDB67A;
-  --sh-tinta: #2B2118;
-  --sh-papel: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.94 0 0 0 0 0.88 0 0 0 0 0.75 0 0 0 0.12 0'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23n)'/%3E%3C/svg%3E");
-  --sh-pauta: rgba(240, 224, 192, .10);
-
-  /* Barra lateral: "capa" verde-musgo escura (nos dois temas) */
-  --sh-side-bg: #120F0B;
-  --sh-side-text: #CFC5B0;
-  --sh-side-muted: #A0957F;
-  --sh-side-active-bg: #231D15;
-  --sh-side-marker: #E9A57A;
+  /* Neutros, acento (cobalto sóbrio) e foco */
+  --sh-bg: #101113;
+  --sh-surface: #17181B;
+  --sh-surface-2: #202125;
+  --sh-border: #2B2D32;
+  --sh-border-strong: #6F747D;
+  --sh-text: #ECEDEF;
+  --sh-text-muted: #B0B4BB;
+  --sh-text-subtle: #8C9199;
+  --sh-accent: #2D68D6;
+  --sh-accent-hover: #2559BD;
+  --sh-accent-text: #8DB3FF;
+  --sh-accent-soft: #16233E;
+  --sh-focus: #8DB3FF;
 
   /* Semânticas: texto, fundo tonal e borda decorativa */
-  --sh-success-fg: #7BD99F;
-  --sh-success-bg: #14301F;
-  --sh-success-border: #2F7050;
-  --sh-warning-fg: #F2C46B;
-  --sh-warning-bg: #3A2A0C;
+  --sh-success-fg: #6FD39B;
+  --sh-success-bg: #10271A;
+  --sh-success-border: #2A6B47;
+  --sh-warning-fg: #F0BE62;
+  --sh-warning-bg: #2D2209;
   --sh-warning-border: #7A5A1C;
-  --sh-danger-fg: #FFA89C;
-  --sh-danger-bg: #411814;
+  --sh-danger-fg: #FF9E94;
+  --sh-danger-bg: #341513;
   --sh-danger-border: #85332C;
-  --sh-info-fg: #8CC4F0;
-  --sh-info-bg: #12293D;
-  --sh-info-border: #2D5F8A;
+  --sh-info-fg: #7CCDE4;
+  --sh-info-bg: #0E2830;
+  --sh-info-border: #2A6575;
 
   /* Botões sólidos (texto branco): só para confirmar ação */
   --sh-danger-solid: #CC3226;
@@ -246,37 +287,39 @@
   --sh-success-solid: #1A7F45;
   --sh-success-solid-hover: #156C3A;
 
-  /* Medidor de saldo, barra de saúde e gráfico */
-  --sh-meter-track: #403829;
+  /* Medidor de saldo, barra de saúde e gráficos */
+  --sh-meter-track: #2B2D32;
   --sh-meter-normal: #4CC38A;
   --sh-meter-baixo: #E8A93A;
   --sh-meter-sem: #F0645A;
 
-  /* Sombras (só em elementos que flutuam; sombra quente, de papel) */
-  --sh-shadow-pop: 0 8px 24px rgba(0, 0, 0, .5);
-  --sh-shadow-modal: 0 16px 48px rgba(0, 0, 0, .6);
+  /* Sobreposições: sombras em camadas (só para o que flutua) e véu */
+  --sh-shadow-1: 0 1px 2px rgba(0, 0, 0, .4);
+  --sh-shadow-pop: 0 0 0 1px rgba(255, 255, 255, .06), 0 2px 4px rgba(0, 0, 0, .4), 0 12px 32px -4px rgba(0, 0, 0, .55);
+  --sh-shadow-modal: 0 0 0 1px rgba(255, 255, 255, .07), 0 4px 8px rgba(0, 0, 0, .4), 0 32px 72px -8px rgba(0, 0, 0, .7);
+  --sh-scrim: rgba(0, 0, 0, .62);
 
   /* Trios RGB e variáveis que o Bootstrap 5.3 usa em foco, links e utilitários */
-  --bs-primary-rgb: 79, 112, 64;
+  --bs-primary-rgb: 45, 104, 214;
   --bs-success-rgb: 26, 127, 69;
   --bs-warning-rgb: 232, 169, 58;
   --bs-danger-rgb: 204, 50, 38;
-  --bs-info-rgb: 140, 196, 240;
-  --bs-body-bg-rgb: 26, 22, 18;
-  --bs-body-color-rgb: 240, 232, 216;
-  --bs-link-color-rgb: 169, 201, 143;
-  --bs-link-hover-color-rgb: 198, 224, 176;
-  --bs-success-text-emphasis: #7BD99F;
-  --bs-success-bg-subtle: #14301F;
+  --bs-info-rgb: 124, 205, 228;
+  --bs-body-bg-rgb: 16, 17, 19;
+  --bs-body-color-rgb: 236, 237, 239;
+  --bs-link-color-rgb: 141, 179, 255;
+  --bs-link-hover-color-rgb: 141, 179, 255;
+  --bs-success-text-emphasis: #6FD39B;
+  --bs-success-bg-subtle: #10271A;
   --bs-success-border-subtle: var(--sh-success-border);
-  --bs-warning-text-emphasis: #F2C46B;
-  --bs-warning-bg-subtle: #3A2A0C;
+  --bs-warning-text-emphasis: #F0BE62;
+  --bs-warning-bg-subtle: #2D2209;
   --bs-warning-border-subtle: var(--sh-warning-border);
-  --bs-danger-text-emphasis: #FFA89C;
-  --bs-danger-bg-subtle: #411814;
+  --bs-danger-text-emphasis: #FF9E94;
+  --bs-danger-bg-subtle: #341513;
   --bs-danger-border-subtle: var(--sh-danger-border);
-  --bs-info-text-emphasis: #8CC4F0;
-  --bs-info-bg-subtle: #12293D;
+  --bs-info-text-emphasis: #7CCDE4;
+  --bs-info-bg-subtle: #0E2830;
   --bs-info-border-subtle: var(--sh-info-border);
 }
 
@@ -285,53 +328,34 @@
   :root:not([data-bs-theme]) {
     color-scheme: dark;
 
-    /* Neutros quentes, marca (verde-musgo) e foco */
-    --sh-bg: #1A1612;
-    --sh-surface: #241F19;
-    --sh-surface-2: #2E2820;
-    --sh-border: #403829;
-    --sh-border-strong: #8F8370;
-    --sh-text: #F0E8D8;
-    --sh-text-muted: #C5BAA5;
-    --sh-text-subtle: #A89D88;
-    --sh-accent: #4F7040;
-    --sh-accent-hover: #436036;
-    --sh-accent-text: #A9C98F;
-    --sh-accent-soft: #2B3822;
-    --sh-focus: #B9D79E;
-
-    /* v2: terracota (só decoração e destaque; nunca estado de estoque), papel, kraft do mascote */
-    --sh-terra: #E58B63;
-    --sh-terra-text: #E58B63;
-    --sh-terra-soft: #3F2418;
-    --sh-marca-texto: #6B5A1E;
-    --sh-kraft: #C9985A;
-    --sh-kraft-escuro: #A47A41;
-    --sh-kraft-claro: #DDB67A;
-    --sh-tinta: #2B2118;
-    --sh-papel: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.94 0 0 0 0 0.88 0 0 0 0 0.75 0 0 0 0.12 0'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23n)'/%3E%3C/svg%3E");
-    --sh-pauta: rgba(240, 224, 192, .10);
-
-    /* Barra lateral: "capa" verde-musgo escura (nos dois temas) */
-    --sh-side-bg: #120F0B;
-    --sh-side-text: #CFC5B0;
-    --sh-side-muted: #A0957F;
-    --sh-side-active-bg: #231D15;
-    --sh-side-marker: #E9A57A;
+    /* Neutros, acento (cobalto sóbrio) e foco */
+    --sh-bg: #101113;
+    --sh-surface: #17181B;
+    --sh-surface-2: #202125;
+    --sh-border: #2B2D32;
+    --sh-border-strong: #6F747D;
+    --sh-text: #ECEDEF;
+    --sh-text-muted: #B0B4BB;
+    --sh-text-subtle: #8C9199;
+    --sh-accent: #2D68D6;
+    --sh-accent-hover: #2559BD;
+    --sh-accent-text: #8DB3FF;
+    --sh-accent-soft: #16233E;
+    --sh-focus: #8DB3FF;
 
     /* Semânticas: texto, fundo tonal e borda decorativa */
-    --sh-success-fg: #7BD99F;
-    --sh-success-bg: #14301F;
-    --sh-success-border: #2F7050;
-    --sh-warning-fg: #F2C46B;
-    --sh-warning-bg: #3A2A0C;
+    --sh-success-fg: #6FD39B;
+    --sh-success-bg: #10271A;
+    --sh-success-border: #2A6B47;
+    --sh-warning-fg: #F0BE62;
+    --sh-warning-bg: #2D2209;
     --sh-warning-border: #7A5A1C;
-    --sh-danger-fg: #FFA89C;
-    --sh-danger-bg: #411814;
+    --sh-danger-fg: #FF9E94;
+    --sh-danger-bg: #341513;
     --sh-danger-border: #85332C;
-    --sh-info-fg: #8CC4F0;
-    --sh-info-bg: #12293D;
-    --sh-info-border: #2D5F8A;
+    --sh-info-fg: #7CCDE4;
+    --sh-info-bg: #0E2830;
+    --sh-info-border: #2A6575;
 
     /* Botões sólidos (texto branco): só para confirmar ação */
     --sh-danger-solid: #CC3226;
@@ -339,37 +363,39 @@
     --sh-success-solid: #1A7F45;
     --sh-success-solid-hover: #156C3A;
 
-    /* Medidor de saldo, barra de saúde e gráfico */
-    --sh-meter-track: #403829;
+    /* Medidor de saldo, barra de saúde e gráficos */
+    --sh-meter-track: #2B2D32;
     --sh-meter-normal: #4CC38A;
     --sh-meter-baixo: #E8A93A;
     --sh-meter-sem: #F0645A;
 
-    /* Sombras (só em elementos que flutuam; sombra quente, de papel) */
-    --sh-shadow-pop: 0 8px 24px rgba(0, 0, 0, .5);
-    --sh-shadow-modal: 0 16px 48px rgba(0, 0, 0, .6);
+    /* Sobreposições: sombras em camadas (só para o que flutua) e véu */
+    --sh-shadow-1: 0 1px 2px rgba(0, 0, 0, .4);
+    --sh-shadow-pop: 0 0 0 1px rgba(255, 255, 255, .06), 0 2px 4px rgba(0, 0, 0, .4), 0 12px 32px -4px rgba(0, 0, 0, .55);
+    --sh-shadow-modal: 0 0 0 1px rgba(255, 255, 255, .07), 0 4px 8px rgba(0, 0, 0, .4), 0 32px 72px -8px rgba(0, 0, 0, .7);
+    --sh-scrim: rgba(0, 0, 0, .62);
 
     /* Trios RGB e variáveis que o Bootstrap 5.3 usa em foco, links e utilitários */
-    --bs-primary-rgb: 79, 112, 64;
+    --bs-primary-rgb: 45, 104, 214;
     --bs-success-rgb: 26, 127, 69;
     --bs-warning-rgb: 232, 169, 58;
     --bs-danger-rgb: 204, 50, 38;
-    --bs-info-rgb: 140, 196, 240;
-    --bs-body-bg-rgb: 26, 22, 18;
-    --bs-body-color-rgb: 240, 232, 216;
-    --bs-link-color-rgb: 169, 201, 143;
-    --bs-link-hover-color-rgb: 198, 224, 176;
-    --bs-success-text-emphasis: #7BD99F;
-    --bs-success-bg-subtle: #14301F;
+    --bs-info-rgb: 124, 205, 228;
+    --bs-body-bg-rgb: 16, 17, 19;
+    --bs-body-color-rgb: 236, 237, 239;
+    --bs-link-color-rgb: 141, 179, 255;
+    --bs-link-hover-color-rgb: 141, 179, 255;
+    --bs-success-text-emphasis: #6FD39B;
+    --bs-success-bg-subtle: #10271A;
     --bs-success-border-subtle: var(--sh-success-border);
-    --bs-warning-text-emphasis: #F2C46B;
-    --bs-warning-bg-subtle: #3A2A0C;
+    --bs-warning-text-emphasis: #F0BE62;
+    --bs-warning-bg-subtle: #2D2209;
     --bs-warning-border-subtle: var(--sh-warning-border);
-    --bs-danger-text-emphasis: #FFA89C;
-    --bs-danger-bg-subtle: #411814;
+    --bs-danger-text-emphasis: #FF9E94;
+    --bs-danger-bg-subtle: #341513;
     --bs-danger-border-subtle: var(--sh-danger-border);
-    --bs-info-text-emphasis: #8CC4F0;
-    --bs-info-bg-subtle: #12293D;
+    --bs-info-text-emphasis: #7CCDE4;
+    --bs-info-bg-subtle: #0E2830;
     --bs-info-border-subtle: var(--sh-info-border);
   }
 }
@@ -411,7 +437,7 @@
   --bs-link-hover-color: var(--sh-accent-text);
   --bs-focus-ring-color: var(--sh-focus);
   --bs-border-radius: var(--sh-radius-sm);
-  --bs-border-radius-sm: 5px;
+  --bs-border-radius-sm: var(--sh-radius-xs);
   --bs-border-radius-lg: var(--sh-radius);
   --bs-border-radius-xl: var(--sh-radius-lg);
   --bs-border-radius-pill: var(--sh-radius-pill);
@@ -427,24 +453,83 @@ body {
   font-family: var(--sh-font);
   font-size: var(--sh-text-base);
   line-height: 1.5;
+  letter-spacing: var(--sh-track-corpo);
   background-color: var(--sh-bg);
-  background-image: var(--sh-papel);
-  background-size: 180px 180px;
   color: var(--sh-text);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  line-height: 1.2;
+  line-height: var(--sh-lh-titulo);
+  letter-spacing: var(--sh-track-titulo);
+  font-weight: 650;
   color: var(--sh-text);
 }
 
-/* Fonte de display: títulos de página e de seção. Números de tabela e a interface seguem em Inter. */
+/* ---------- Tipografia: utilitários (hierarquia forte, estilo produto) ---------- */
+/* Tamanhos "hero" para a apresentação: enormes, pesados, tracking apertado */
+.sh-hero-xl,
+.sh-hero-texto,
+.sh-display,
+.sh-titulo-pagina {
+  margin: 0;
+  color: var(--sh-text);
+  font-family: var(--sh-font);
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+.sh-hero-xl {
+  font-size: var(--sh-fs-hero-xl);
+  font-weight: 750;
+  line-height: var(--sh-lh-hero);
+  letter-spacing: var(--sh-track-hero);
+}
+
+.sh-hero-texto {
+  font-size: var(--sh-fs-hero);
+  line-height: var(--sh-lh-hero);
+  letter-spacing: var(--sh-track-hero);
+}
+
 .sh-display {
-  font-family: var(--sh-font-display);
-  font-variation-settings: "SOFT" 100;
+  font-size: var(--sh-fs-display);
+  line-height: var(--sh-lh-display);
+  letter-spacing: var(--sh-track-display);
+}
+
+.sh-titulo-pagina {
+  font-size: var(--sh-fs-pagina);
+  line-height: var(--sh-lh-titulo);
+  letter-spacing: var(--sh-track-titulo);
+}
+
+.sh-titulo-secao-v3 {
+  margin: 0;
+  font-size: var(--sh-fs-secao);
+  font-weight: 650;
+  letter-spacing: var(--sh-track-titulo);
+}
+
+/* Texto de apoio: cinza, um pouco maior */
+.sh-lead {
+  color: var(--sh-text-muted);
+  font-size: var(--sh-fs-lead);
+  line-height: 1.45;
+  letter-spacing: -0.012em;
+  text-wrap: pretty;
+}
+
+/* Sobretítulo: caixa-alta pequena, em cinza */
+.sh-eyebrow {
+  margin: 0;
+  color: var(--sh-text-subtle);
+  font-size: var(--sh-text-sm);
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--sh-track-rotulo);
+  text-transform: uppercase;
 }
 
 /* Números que se alinham em colunas */
@@ -452,7 +537,24 @@ h1, h2, h3, h4, h5, h6 {
   font-variant-numeric: tabular-nums;
 }
 
-/* Foco visível em tudo: anel de 3 px com 2 px de afastamento (seção 6.2).
+/* Monoespaçada: só para valores, códigos, SKUs e atalhos */
+.sh-mono,
+code.sh-codigo {
+  font-family: var(--sh-font-mono);
+  font-variant-numeric: tabular-nums slashed-zero;
+  letter-spacing: -0.01em;
+}
+
+code.sh-codigo {
+  padding: 1px 6px;
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-xs);
+  background: var(--sh-surface-2);
+  color: var(--sh-text);
+  font-size: 0.875em;
+}
+
+/* Foco visível em tudo: anel de 2 px com 2 px de afastamento.
    O !important vence o foco próprio do Bootstrap (que troca o contorno por sombra). */
 :focus-visible,
 .btn:focus-visible,
@@ -465,14 +567,14 @@ h1, h2, h3, h4, h5, h6 {
 .btn-close:focus-visible,
 .dropdown-item:focus-visible,
 .accordion-button:focus {
-  outline: 3px solid var(--sh-focus) !important;
+  outline: 2px solid var(--sh-focus) !important;
   outline-offset: 2px;
   box-shadow: none !important;
 }
 
 /* Âncoras com o cabeçalho fixo não escondem o destino */
 :target {
-  scroll-margin-top: 72px;
+  scroll-margin-top: calc(var(--sh-topbar-h) + 16px);
 }
 
 ::selection {
@@ -480,7 +582,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--sh-text);
 }
 
-/* ---------- Menos movimento (obrigatório, seção 5) ---------- */
+/* ---------- Menos movimento (obrigatório) ---------- */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

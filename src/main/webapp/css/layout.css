@@ -1,16 +1,16 @@
 /*
- * StockHub v2: estrutura da página (seção 2 e "v2: com personalidade" de docs/design-system.md).
- * Barra lateral ("capa da caderneta", recolhível), barra superior, barra inferior no celular, cabeçalho da página,
- * barra de ações de formulário e a transição entre páginas (View Transitions entre documentos).
- * As telas de entrada (login e cadastro) ficam em css/entrar.css; o início, em css/inicio.css.
+ * StockHub v3 "central de operações": estrutura da página (seção "v3: central de operações" de docs/design-system.md).
+ * Barra lateral enxuta (recolhível), barra superior com migalhas e BARRA DE COMANDO central, barra inferior no celular,
+ * cabeçalho da página, grade de conteúdo, barra de ações de formulário e a transição entre páginas (View Transitions).
+ * As telas de entrada ficam em css/entrar.css; o início, em css/inicio.css.
  * Tamanhos e cores vêm de tokens.css. Pontos de quebra: 576, 768, 992 e 1200 px (os do Bootstrap).
  */
 
 /* ---------- Transição entre páginas, sem sensação de recarga ----------
    Chrome e Edge (126+) e Safari recente: o navegador guarda uma "foto" da página antiga e anima até a nova.
    As peças que se repetem (barra lateral, barra superior, barra inferior) têm nome, então ficam paradas; só o
-   conteúdo faz fade e desliza um pouco. O marcador do item atual desliza de um item para o outro.
-   Firefox ainda não tem: a regra é ignorada e entra o plano B (js/navegacao.js + .sh-sem-vt mais abaixo).
+   conteúdo faz fade e desliza poucos pixels. O marcador do item atual desliza de um item para o outro.
+   Firefox ainda não tem: a regra é ignorada e entra o plano B (js/navegacao.js + .sh-saindo mais abaixo).
    Honestidade: a próxima página continua sendo carregada do servidor; o que muda é a continuidade visual. */
 @view-transition {
   navigation: auto;
@@ -45,7 +45,7 @@
 
 /* Fundo da página: fade curto (igual dos dois lados, não pisca) */
 ::view-transition-group(root) {
-  animation-duration: var(--sh-dur-fast);
+  animation-duration: var(--sh-t-1);
 }
 
 /* Peças fixas: a nova aparece na hora por cima da antiga (mesmo desenho, sem fade, sem piscar) */
@@ -66,13 +66,13 @@
 
 /* Barra superior: o título e as migalhas mudam, então fade bem curto */
 ::view-transition-group(topo) {
-  animation-duration: var(--sh-dur-fast);
+  animation-duration: var(--sh-t-1);
 }
 
-/* Marcador do menu: desliza de um item ao outro (corpo da peça sem esticar) */
+/* Marcador do menu: desliza de um item ao outro, só com desaceleração */
 ::view-transition-group(marcador) {
-  animation-duration: var(--sh-dur-slow);
-  animation-timing-function: var(--sh-ease-mola);
+  animation-duration: var(--sh-t-3);
+  animation-timing-function: var(--sh-ease-out-forte);
 }
 
 ::view-transition-old(marcador),
@@ -87,14 +87,14 @@
 }
 
 ::view-transition-old(conteudo) {
-  animation: sh-vt-sai var(--sh-dur-fast) var(--sh-ease-in) both;
+  animation: sh-vt-sai var(--sh-t-1) var(--sh-ease-in) both;
 }
 
 ::view-transition-new(conteudo) {
-  animation: sh-vt-entra var(--sh-dur-slow) var(--sh-ease-out) 40ms both;
+  animation: sh-vt-entra var(--sh-t-3) var(--sh-ease-out) 40ms both;
 }
 
-/* Direção: para dentro (lista para detalhe) o conteúdo novo vem da direita; para fora, da esquerda */
+/* Direção: para dentro (lista para detalhe) o conteúdo novo vem da direita; para fora, da esquerda (poucos px) */
 html:active-view-transition-type(para-frente)::view-transition-old(conteudo) {
   animation-name: sh-vt-sai-esq;
 }
@@ -121,48 +121,48 @@ html:active-view-transition-type(para-tras)::view-transition-new(conteudo) {
 @keyframes sh-vt-entra {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
 }
 
 @keyframes sh-vt-sai-esq {
   to {
     opacity: 0;
-    transform: translateX(-18px);
+    transform: translateX(-8px);
   }
 }
 
 @keyframes sh-vt-sai-dir {
   to {
     opacity: 0;
-    transform: translateX(18px);
+    transform: translateX(8px);
   }
 }
 
 @keyframes sh-vt-entra-dir {
   from {
     opacity: 0;
-    transform: translateX(28px);
+    transform: translateX(14px);
   }
 }
 
 @keyframes sh-vt-entra-esq {
   from {
     opacity: 0;
-    transform: translateX(-28px);
+    transform: translateX(-14px);
   }
 }
 
 /* Plano B (sem View Transitions): o conteúdo entra com fade e sobe um pouco, e sai com fade ao clicar.
    js/navegacao-init.js marca o <html> com data-sh-vt quando o navegador faz a transição sozinho. */
 html:not([data-sh-vt]) .sh-main {
-  animation: sh-vt-entra var(--sh-dur-slow) var(--sh-ease-out) both;
+  animation: sh-vt-entra var(--sh-t-3) var(--sh-ease-out) both;
 }
 
 html.sh-saindo:not([data-sh-vt]) .sh-main {
   opacity: 0;
   transform: translateY(-4px);
-  transition: opacity var(--sh-dur-fast) var(--sh-ease-in), transform var(--sh-dur-fast) var(--sh-ease-in);
+  transition: opacity var(--sh-t-1) var(--sh-ease-in), transform var(--sh-t-1) var(--sh-ease-in);
 }
 
 /* ---------- Link "Pular para o conteúdo" (primeiro item da ordem de tabulação) ---------- */
@@ -183,6 +183,20 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
 .sh-pular:focus {
   transform: translateY(0);
   color: #fff;
+}
+
+/* ---------- Marca ---------- */
+.sh-logo {
+  flex: 0 0 auto;
+  display: block;
+}
+
+.sh-logo__fundo {
+  fill: var(--sh-accent);
+}
+
+.sh-logo__barra {
+  fill: #fff;
 }
 
 /* ---------- Moldura ---------- */
@@ -214,6 +228,10 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
   max-width: 960px;
 }
 
+.sh-container--larga {
+  max-width: 1440px;
+}
+
 @media (min-width: 992px) {
   .sh-main {
     padding-top: var(--sh-space-8);
@@ -221,7 +239,36 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
   }
 }
 
-/* ---------- Barra lateral: a "capa" da caderneta (só a partir de 992 px) ---------- */
+/* Grade de conteúdo: 12 colunas a partir de 992 px; abaixo disso, tudo empilha.
+   Uso: <div class="sh-grade"><section class="sh-col-8">...</section><aside class="sh-col-4">...</aside></div> */
+.sh-grade {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--sh-space-4);
+}
+
+.sh-grade > * {
+  grid-column: span 12;
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .sh-grade > .sh-col-md-6 { grid-column: span 6; }
+}
+
+@media (min-width: 992px) {
+  .sh-grade { gap: var(--sh-space-5); }
+  .sh-grade > .sh-col-3 { grid-column: span 3; }
+  .sh-grade > .sh-col-4 { grid-column: span 4; }
+  .sh-grade > .sh-col-5 { grid-column: span 5; }
+  .sh-grade > .sh-col-6 { grid-column: span 6; }
+  .sh-grade > .sh-col-7 { grid-column: span 7; }
+  .sh-grade > .sh-col-8 { grid-column: span 8; }
+  .sh-grade > .sh-col-9 { grid-column: span 9; }
+  .sh-grade > .sh-col-12 { grid-column: span 12; }
+}
+
+/* ---------- Barra lateral enxuta (só a partir de 992 px) ---------- */
 .sh-lateral {
   display: none;
 }
@@ -234,26 +281,20 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
     top: 0;
     height: 100vh;
     height: 100dvh;
-    flex: 0 0 248px;
-    width: 248px;
-    padding: var(--sh-space-5) var(--sh-space-3) var(--sh-space-4);
+    flex: 0 0 var(--sh-lateral-w);
+    width: var(--sh-lateral-w);
+    padding: var(--sh-space-4) var(--sh-space-3) var(--sh-space-3);
     background-color: var(--sh-side-bg);
     color: var(--sh-side-text);
+    border-right: 1px solid var(--sh-border);
     overflow-x: hidden;
     overflow-y: auto;
-    /* costura da capa: pontilhado a 10 px da borda direita */
-    background-image:
-      repeating-linear-gradient(to bottom, rgba(255, 255, 255, .14) 0 6px, transparent 6px 12px);
-    background-size: 2px 100%;
-    background-position: calc(100% - 10px) 0;
-    background-repeat: no-repeat;
-    border-radius: 0 var(--sh-radius-lg) var(--sh-radius-lg) 0;
-    transition: width var(--sh-dur-slow) var(--sh-ease), flex-basis var(--sh-dur-slow) var(--sh-ease);
+    transition: width var(--sh-t-3) var(--sh-ease-out), flex-basis var(--sh-t-3) var(--sh-ease-out);
   }
 
   html[data-sh-lateral="recolhida"] .sh-lateral {
-    flex-basis: 72px;
-    width: 72px;
+    flex-basis: var(--sh-lateral-w-recolhida);
+    width: var(--sh-lateral-w-recolhida);
     padding-inline: var(--sh-space-2);
   }
 }
@@ -262,38 +303,30 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
   display: flex;
   align-items: center;
   gap: var(--sh-space-3);
-  padding: var(--sh-space-1) var(--sh-space-2) var(--sh-space-5);
-  color: #fff;
+  min-height: 40px;
+  padding: 0 var(--sh-space-2);
+  margin-bottom: var(--sh-space-4);
+  color: var(--sh-text);
   text-decoration: none;
 }
 
 .sh-marca:hover,
 .sh-marca:focus-visible {
-  color: #fff;
+  color: var(--sh-text);
 }
 
-/* Quadrinho com ícone (usado pela página de erro ainda na v1) */
+/* Quadrado de acento com ícone (usado pela página de erro, ainda na estrutura v1) */
 .sh-marca__logo {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 36px;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--sh-radius-folha);
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--sh-radius);
   background: var(--sh-accent);
   color: #fff;
-  font-size: 1.125rem;
-}
-
-.sh-marca__mascote {
-  flex: 0 0 44px;
-  width: 44px;
-  transition: transform var(--sh-dur) var(--sh-ease-mola);
-}
-
-.sh-marca:hover .sh-marca__mascote {
-  transform: rotate(-6deg) scale(1.06);
+  font-size: 1rem;
 }
 
 .sh-marca__texto {
@@ -303,24 +336,9 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
 }
 
 .sh-marca__nome {
-  font-family: var(--sh-font-display);
-  font-variation-settings: "SOFT" 100;
-  font-size: 1.375rem;
+  font-size: 1.0625rem;
   font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.sh-marca__sub {
-  margin-top: 3px;
-  color: var(--sh-side-muted);
-  font-size: 0.75rem;
-  white-space: nowrap;
-}
-
-/* Foco nos painéis escuros: anel claro (o anel do tema claro teria pouco contraste contra o fundo escuro) */
-.sh-lateral :focus-visible,
-.sh-auth__marca :focus-visible {
-  outline-color: var(--sh-side-marker) !important;
+  letter-spacing: -0.02em;
 }
 
 .sh-nav__grupo + .sh-nav__grupo {
@@ -330,11 +348,11 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
 .sh-nav__titulo {
   margin: 0 0 var(--sh-space-1);
   padding: 0 var(--sh-space-3);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--sh-side-muted);
+  font-size: var(--sh-fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--sh-track-rotulo);
+  text-transform: uppercase;
 }
 
 .sh-nav__lista {
@@ -349,49 +367,55 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--sh-space-3);
-  min-height: 44px;
-  padding: var(--sh-space-2) var(--sh-space-3);
-  border-radius: 10px 10px 10px 4px;
+  gap: 10px;
+  min-height: 36px;
+  padding: 6px var(--sh-space-3);
+  border-radius: var(--sh-radius-sm);
   color: var(--sh-side-text);
-  font-size: var(--sh-text-base);
+  font-size: var(--sh-text-md);
   font-weight: 500;
+  letter-spacing: -0.006em;
   text-decoration: none;
-  transition: background-color var(--sh-dur-fast) var(--sh-ease), color var(--sh-dur-fast) var(--sh-ease),
-    transform var(--sh-dur) var(--sh-ease-out);
+  transition: background-color var(--sh-t-1) var(--sh-ease), color var(--sh-t-1) var(--sh-ease);
 }
 
 .sh-nav__link .bi {
-  flex: 0 0 20px;
-  font-size: 1.25rem;
+  flex: 0 0 18px;
+  font-size: 1.0625rem;
   line-height: 1;
-  transition: transform var(--sh-dur) var(--sh-ease-mola);
+  color: var(--sh-text-subtle);
+  transition: color var(--sh-t-1) var(--sh-ease);
 }
 
 .sh-nav__link:hover {
-  background: var(--sh-side-active-bg);
-  color: #fff;
+  background: var(--sh-surface-2);
+  color: var(--sh-text);
 }
 
 .sh-nav__link:hover .bi {
-  transform: translateX(2px) rotate(-6deg);
+  color: var(--sh-text-muted);
 }
 
 .sh-nav__link[aria-current="page"] {
   background: var(--sh-side-active-bg);
-  color: #fff;
+  box-shadow: 0 0 0 1px var(--sh-border), var(--sh-shadow-1);
+  color: var(--sh-text);
   font-weight: 600;
 }
 
-/* Marcador do item atual (a "fita" de marcar página). Só existe no item atual; na transição entre páginas ele
+.sh-nav__link[aria-current="page"] .bi {
+  color: var(--sh-accent-text);
+}
+
+/* Marcador do item atual: filete de acento. Só existe no item atual; na transição entre páginas ele
    desliza do item antigo para o novo. */
 .sh-nav__marcador {
   position: absolute;
   left: 0;
-  top: 9px;
-  bottom: 9px;
-  width: 4px;
-  border-radius: 0 4px 4px 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
   background: var(--sh-side-marker);
 }
 
@@ -403,10 +427,10 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
 .sh-lateral__alternar {
   display: flex;
   align-items: center;
-  gap: var(--sh-space-3);
+  gap: 10px;
   width: 100%;
-  min-height: 44px;
-  padding: var(--sh-space-2) var(--sh-space-3);
+  min-height: 36px;
+  padding: 6px var(--sh-space-3);
   border: 0;
   border-radius: var(--sh-radius-sm);
   background: transparent;
@@ -415,18 +439,19 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
   font-size: var(--sh-text-md);
   font-weight: 500;
   text-align: left;
+  transition: background-color var(--sh-t-1) var(--sh-ease), color var(--sh-t-1) var(--sh-ease);
 }
 
 .sh-lateral__alternar:hover {
-  background: var(--sh-side-active-bg);
-  color: #fff;
+  background: var(--sh-surface-2);
+  color: var(--sh-text);
 }
 
 .sh-lateral__alternar .bi {
-  flex: 0 0 20px;
-  font-size: 1.25rem;
+  flex: 0 0 18px;
+  font-size: 1.0625rem;
   line-height: 1;
-  transition: transform var(--sh-dur-slow) var(--sh-ease);
+  transition: transform var(--sh-t-3) var(--sh-ease-out);
 }
 
 /* Recolhida: só os ícones; os rótulos continuam no DOM, visualmente ocultos */
@@ -463,23 +488,36 @@ html[data-sh-lateral="recolhida"] .sh-lateral__alternar .bi {
 html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   margin-top: var(--sh-space-3);
   padding-top: var(--sh-space-3);
-  border-top: 1px solid var(--sh-side-active-bg);
+  border-top: 1px solid var(--sh-border);
 }
 
-/* ---------- Barra superior (60 px, fixa) ---------- */
+/* ---------- Barra superior: migalhas | barra de comando | ações ---------- */
 .sh-topbar {
   position: sticky;
   top: 0;
   z-index: 1020;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--sh-space-3);
+  min-height: var(--sh-topbar-h);
+  padding: var(--sh-space-2) var(--sh-gutter);
+  background-color: var(--sh-glass);
+  border-bottom: 1px solid var(--sh-glass-borda);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .sh-topbar {
+    -webkit-backdrop-filter: saturate(1.5) blur(16px);
+    backdrop-filter: saturate(1.5) blur(16px);
+  }
+}
+
+.sh-topbar__esq {
   display: flex;
   align-items: center;
   gap: var(--sh-space-3);
-  min-height: 60px;
-  padding: var(--sh-space-2) var(--sh-gutter);
-  background-color: var(--sh-bg);
-  background-image: var(--sh-papel);
-  background-size: 180px 180px;
-  border-bottom: 1px solid var(--sh-border);
+  min-width: 0;
 }
 
 .sh-topbar__marca {
@@ -489,16 +527,10 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   flex: 0 0 auto;
   min-height: 44px;
   color: var(--sh-text);
-  font-family: var(--sh-font-display);
-  font-variation-settings: "SOFT" 100;
-  font-size: 1.25rem;
+  font-size: 1.0625rem;
   font-weight: 700;
+  letter-spacing: -0.02em;
   text-decoration: none;
-}
-
-.sh-topbar__marca .sh-marca__mascote {
-  flex-basis: 38px;
-  width: 38px;
 }
 
 .sh-topbar__voltar {
@@ -542,11 +574,24 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   white-space: nowrap;
 }
 
+.sh-migalhas .breadcrumb-item a {
+  color: var(--sh-text-muted);
+  text-decoration: none;
+}
+
+.sh-migalhas .breadcrumb-item a:hover {
+  color: var(--sh-text);
+}
+
 .sh-migalhas .breadcrumb-item.active {
   font-weight: 600;
 }
 
 @media (min-width: 992px) {
+  .sh-topbar {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 520px) minmax(auto, 1fr);
+  }
+
   .sh-topbar__marca,
   .sh-topbar__voltar {
     display: none;
@@ -557,35 +602,32 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   }
 }
 
-/* Gatilho da paleta de comandos: parece um campo de busca, mas é um botão (abre a paleta, Ctrl K) */
+/* BARRA DE COMANDO: o elemento principal da barra superior. Parece um campo, mas é um botão
+   (abre a paleta, Ctrl K). Sem JavaScript, vale a busca comum do <noscript>. */
 .sh-paleta-gatilho {
   display: inline-flex;
   align-items: center;
   gap: var(--sh-space-2);
-  flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
-  max-width: 460px;
-  min-height: 44px;
-  margin-left: auto;
-  padding: 0 var(--sh-space-3);
+  min-height: 40px;
+  padding: 0 var(--sh-space-2) 0 var(--sh-space-3);
   border: 1px solid var(--sh-border-strong);
-  border-radius: 10px 10px 10px 4px;
+  border-radius: var(--sh-radius);
   background: var(--sh-surface);
-  color: var(--sh-text-muted);
+  box-shadow: var(--sh-shadow-1);
+  color: var(--sh-text-subtle);
   font: inherit;
+  font-size: var(--sh-text-md);
   text-align: left;
-  transition: border-color var(--sh-dur-fast) var(--sh-ease), background-color var(--sh-dur-fast) var(--sh-ease),
-    transform var(--sh-dur) var(--sh-ease-out);
+  transition: border-color var(--sh-t-1) var(--sh-ease), color var(--sh-t-1) var(--sh-ease),
+    box-shadow var(--sh-t-2) var(--sh-ease-out);
 }
 
 .sh-paleta-gatilho:hover {
-  border-color: var(--sh-accent);
+  border-color: var(--sh-text-subtle);
   color: var(--sh-text);
-  transform: translateY(-1px);
-}
-
-.sh-paleta-gatilho:active {
-  transform: translateY(1px);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sh-accent) 12%, transparent), var(--sh-shadow-1);
 }
 
 .sh-paleta-gatilho .bi {
@@ -601,18 +643,26 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   white-space: nowrap;
 }
 
+/* Teclas: monoespaçada, pequena, com a "tecla" levemente em relevo */
+.sh-paleta-gatilho__tecla,
+kbd.sh-tecla,
+.sh-paleta__rodape kbd {
+  font-family: var(--sh-font-mono);
+  font-weight: 500;
+}
+
 .sh-paleta-gatilho__tecla {
   display: none;
   flex: 0 0 auto;
-  padding: 1px 7px;
-  border: 1px solid var(--sh-border-strong);
+  padding: 2px 7px;
+  border: 1px solid var(--sh-border);
   border-bottom-width: 2px;
-  border-radius: 5px;
+  border-radius: var(--sh-radius-xs);
   background: var(--sh-surface-2);
   color: var(--sh-text-muted);
-  font: inherit;
-  font-size: var(--sh-text-sm);
-  font-weight: 600;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
 @media (min-width: 768px) {
@@ -624,7 +674,8 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
 /* No celular o gatilho vira só o botão da lupa */
 @media (max-width: 575.98px) {
   .sh-paleta-gatilho {
-    flex: 0 0 44px;
+    width: 44px;
+    min-height: 44px;
     justify-content: center;
     padding: 0;
   }
@@ -638,8 +689,8 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
 .sh-topbar__acoes {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: var(--sh-space-2);
-  margin-left: 0;
 }
 
 .sh-topbar__novo {
@@ -659,11 +710,19 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   min-height: 44px;
   padding: var(--sh-space-1) var(--sh-space-2);
   border: 1px solid transparent;
-  border-radius: var(--sh-radius-pill);
+  border-radius: var(--sh-radius);
   background: transparent;
   color: var(--sh-text);
   font: inherit;
+  font-size: var(--sh-text-md);
   font-weight: 600;
+  transition: background-color var(--sh-t-1) var(--sh-ease);
+}
+
+@media (min-width: 992px) {
+  .sh-usuario {
+    min-height: 36px;
+  }
 }
 
 .sh-usuario:hover {
@@ -674,24 +733,27 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 34px;
-  width: 34px;
-  height: 34px;
-  border-radius: 50% 50% 50% 28%;
-  background: var(--sh-terra-soft);
-  color: var(--sh-terra-text);
-  font-family: var(--sh-font-display);
-  font-variation-settings: "SOFT" 100;
-  font-size: 1.0625rem;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--sh-text);
+  color: var(--sh-bg);
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 
 .sh-usuario__nome {
   display: none;
-  max-width: 180px;
+  max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.sh-usuario .bi {
+  color: var(--sh-text-subtle);
+  font-size: 0.75rem;
 }
 
 @media (min-width: 768px) {
@@ -707,25 +769,27 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
 
 .sh-menu-usuario__loja {
   padding: var(--sh-space-2) var(--sh-space-3);
-  font-size: var(--sh-text-md);
+  font-size: var(--sh-text-sm);
   color: var(--sh-text-muted);
 }
 
 .sh-menu-usuario__loja strong {
   display: block;
   color: var(--sh-text);
-  font-family: var(--sh-font-display);
-  font-variation-settings: "SOFT" 100;
-  font-size: 1.125rem;
+  font-size: var(--sh-text-base);
+  font-weight: 650;
+  letter-spacing: var(--sh-track-titulo);
   overflow-wrap: anywhere;
 }
 
 .sh-menu-usuario__titulo {
   margin: var(--sh-space-2) 0 var(--sh-space-1);
   padding: 0 var(--sh-space-3);
-  font-size: var(--sh-text-sm);
-  font-weight: 500;
-  color: var(--sh-text-muted);
+  font-size: var(--sh-fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--sh-track-rotulo);
+  text-transform: uppercase;
+  color: var(--sh-text-subtle);
 }
 
 .sh-menu-usuario .dropdown-item {
@@ -734,9 +798,10 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   gap: var(--sh-space-2);
   min-height: var(--sh-alvo);
   border-radius: var(--sh-radius-sm);
+  font-size: var(--sh-text-md);
 }
 
-/* Opção de tema marcada: fundo de acento e ícone de visto (não só cor) */
+/* Opção de tema marcada: fundo de acento suave e ícone de visto (não só cor) */
 .sh-tema-opcao .sh-tema-opcao__visto {
   /* opacity (e não visibility): o ícone herda o "escondido" do painel pai, senão vazava para a página */
   opacity: 0;
@@ -765,11 +830,15 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   align-items: stretch;
   height: calc(64px + env(safe-area-inset-bottom, 0px));
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  background-color: var(--sh-surface);
-  background-image: var(--sh-papel);
-  background-size: 180px 180px;
-  border-top: 1px solid var(--sh-border);
-  border-radius: var(--sh-radius-lg) var(--sh-radius-lg) 0 0;
+  background-color: var(--sh-glass);
+  border-top: 1px solid var(--sh-glass-borda);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .sh-inferior {
+    -webkit-backdrop-filter: saturate(1.5) blur(16px);
+    backdrop-filter: saturate(1.5) blur(16px);
+  }
 }
 
 @media (min-width: 992px) {
@@ -784,27 +853,23 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 3px;
   min-width: 44px;
   min-height: 44px;
   border: 0;
   background: transparent;
   color: var(--sh-text-muted);
   font: inherit;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 600;
+  letter-spacing: 0;
   text-decoration: none;
-  transition: color var(--sh-dur-fast) var(--sh-ease);
+  transition: color var(--sh-t-1) var(--sh-ease);
 }
 
 .sh-inferior__item .bi {
-  font-size: 1.375rem;
+  font-size: 1.25rem;
   line-height: 1;
-  transition: transform var(--sh-dur) var(--sh-ease-mola);
-}
-
-.sh-inferior__item:active .bi {
-  transform: scale(.82);
 }
 
 .sh-inferior__item:hover {
@@ -818,11 +883,11 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
 
 .sh-inferior__marcador {
   position: absolute;
-  top: 0;
-  left: 26%;
-  right: 26%;
-  height: 4px;
-  border-radius: 0 0 4px 4px;
+  top: -1px;
+  left: 28%;
+  right: 28%;
+  height: 2px;
+  border-radius: 0 0 2px 2px;
   background: var(--sh-accent-text);
 }
 
@@ -835,19 +900,18 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 38px;
-  margin-top: -16px;
-  border-radius: 16px 16px 16px 6px;
+  width: 48px;
+  height: 32px;
+  margin-top: -10px;
+  border-radius: var(--sh-radius-lg);
   background: var(--sh-accent);
-  box-shadow: 0 3px 0 var(--sh-accent-hover);
+  box-shadow: var(--sh-shadow-1);
   color: #fff;
-  transition: transform var(--sh-dur) var(--sh-ease-mola), box-shadow var(--sh-dur) var(--sh-ease);
+  transition: transform var(--sh-t-1) var(--sh-ease-out), background-color var(--sh-t-1) var(--sh-ease);
 }
 
 .sh-inferior__item--principal:active .sh-inferior__icone {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--sh-accent-hover);
+  transform: scale(.95);
 }
 
 .sh-inferior__item--principal:hover .sh-inferior__icone {
@@ -918,9 +982,11 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
 .sh-mais__titulo {
   margin: var(--sh-space-4) 0 var(--sh-space-1);
   padding: 0 var(--sh-space-2);
-  font-size: var(--sh-text-sm);
-  font-weight: 500;
-  color: var(--sh-text-muted);
+  font-size: var(--sh-fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--sh-track-rotulo);
+  text-transform: uppercase;
+  color: var(--sh-text-subtle);
 }
 
 /* ---------- Cabeçalho da página ---------- */
@@ -940,12 +1006,12 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
 
 .sh-page-header__titulo {
   margin: 0;
-  font-family: var(--sh-font-display);
-  font-variation-settings: "SOFT" 100;
-  font-size: var(--sh-text-2xl);
-  font-weight: 650;
-  letter-spacing: -0.015em;
+  font-size: var(--sh-fs-pagina);
+  font-weight: 700;
+  line-height: var(--sh-lh-titulo);
+  letter-spacing: var(--sh-track-display);
   overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 .sh-page-header__desc {
@@ -958,12 +1024,6 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   display: flex;
   flex-wrap: wrap;
   gap: var(--sh-space-2);
-}
-
-@media (min-width: 992px) {
-  .sh-page-header__titulo {
-    font-size: 2.125rem;
-  }
 }
 
 @media (max-width: 575.98px) {
@@ -987,8 +1047,15 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   gap: var(--sh-space-2);
   margin: var(--sh-space-6) calc(var(--sh-gutter) * -1) calc(var(--sh-space-6) * -1);
   padding: var(--sh-space-3) var(--sh-gutter) calc(var(--sh-space-3) + env(safe-area-inset-bottom, 0px));
-  background: var(--sh-surface);
-  border-top: 1px solid var(--sh-border);
+  background: var(--sh-glass);
+  border-top: 1px solid var(--sh-glass-borda);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .sh-form-actions {
+    -webkit-backdrop-filter: saturate(1.5) blur(16px);
+    backdrop-filter: saturate(1.5) blur(16px);
+  }
 }
 
 @media (max-width: 575.98px) {

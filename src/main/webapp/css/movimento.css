@@ -1,0 +1,224 @@
+/*
+ * StockHub v3: movimento sério e agradável (seção "v3: central de operações" de docs/design-system.md).
+ * Regras: durações de 120 / 180 / 240 / 400 ms (--sh-t-1 a --sh-t-4), easing de desaceleração, sem overshoot, sem bounce,
+ * sem confete. Entradas com fade + translateY de 4 a 8 px; barras que crescem; esqueletos sutis; tudo só em transform e
+ * opacity (a única exceção documentada é o traçado de linhas SVG, que usa stroke-dashoffset).
+ * Menos movimento (prefers-reduced-motion): a regra global de css/tokens.css zera as durações; aqui, os estados finais
+ * ficam visíveis. O kit de rolagem (revelar, cenas, desenhar) fica em css/rolagem.css.
+ */
+
+/* ============================== Entrada: fade + subida curta ============================== */
+@keyframes sh-sobe {
+  from {
+    opacity: 0;
+    transform: translateY(var(--sh-dist-entrada));
+  }
+}
+
+/* Um elemento que entra ao carregar a página. --sh-i (0, 1, 2...) escalona; sem JavaScript, usa a ordem. */
+.sh-entra {
+  animation: sh-sobe var(--sh-t-3) var(--sh-ease-out) calc(var(--sh-stagger) * var(--sh-i, 0)) both;
+}
+
+/* Os filhos de .sh-escalona entram em sequência */
+.sh-escalona > * {
+  animation: sh-sobe var(--sh-t-3) var(--sh-ease-out) both;
+}
+
+.sh-escalona > :nth-child(1) { animation-delay: calc(var(--sh-stagger) * 0 + 40ms); }
+.sh-escalona > :nth-child(2) { animation-delay: calc(var(--sh-stagger) * 1 + 40ms); }
+.sh-escalona > :nth-child(3) { animation-delay: calc(var(--sh-stagger) * 2 + 40ms); }
+.sh-escalona > :nth-child(4) { animation-delay: calc(var(--sh-stagger) * 3 + 40ms); }
+.sh-escalona > :nth-child(5) { animation-delay: calc(var(--sh-stagger) * 4 + 40ms); }
+.sh-escalona > :nth-child(6) { animation-delay: calc(var(--sh-stagger) * 5 + 40ms); }
+.sh-escalona > :nth-child(7) { animation-delay: calc(var(--sh-stagger) * 6 + 40ms); }
+.sh-escalona > :nth-child(8) { animation-delay: calc(var(--sh-stagger) * 7 + 40ms); }
+.sh-escalona > :nth-child(n+9) { animation-delay: calc(var(--sh-stagger) * 8 + 40ms); }
+
+/* Linhas de tabela: entram com 4 px de subida; só as primeiras 8 têm atraso */
+.sh-table tbody tr,
+.table tbody tr {
+  animation: sh-sobe var(--sh-t-2) var(--sh-ease-out) both;
+  --sh-dist-entrada: 4px;
+}
+
+.sh-table tbody tr:nth-child(2),
+.table tbody tr:nth-child(2) { animation-delay: 20ms; }
+.sh-table tbody tr:nth-child(3),
+.table tbody tr:nth-child(3) { animation-delay: 40ms; }
+.sh-table tbody tr:nth-child(4),
+.table tbody tr:nth-child(4) { animation-delay: 60ms; }
+.sh-table tbody tr:nth-child(5),
+.table tbody tr:nth-child(5) { animation-delay: 80ms; }
+.sh-table tbody tr:nth-child(6),
+.table tbody tr:nth-child(6) { animation-delay: 100ms; }
+.sh-table tbody tr:nth-child(7),
+.table tbody tr:nth-child(7) { animation-delay: 120ms; }
+.sh-table tbody tr:nth-child(n+8),
+.table tbody tr:nth-child(n+8) { animation-delay: 140ms; }
+
+/* ============================== Barras que crescem ============================== */
+/* De 0 até a largura final, a partir da esquerda (só transform) */
+@keyframes sh-enche {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.sh-enche,
+.sh-meter__fill,
+.sh-saude__seg {
+  transform-origin: left center;
+  animation: sh-enche var(--sh-t-4) var(--sh-ease-out-forte) 120ms both;
+}
+
+/* Sparkline e barras SVG: ao exibir, a linha se desenha e as barras sobem (uma vez) */
+@keyframes sh-desenha {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes sh-barra-sobe {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes sh-aparece {
+  from {
+    opacity: 0;
+  }
+}
+
+.sh-spark--anima .sh-spark__linha {
+  stroke-dasharray: 1;
+  animation: sh-desenha 700ms var(--sh-ease-out-forte) 100ms both;
+}
+
+.sh-spark--anima .sh-spark__area,
+.sh-spark--anima .sh-spark__ponto {
+  animation: sh-aparece var(--sh-t-4) var(--sh-ease-out) 500ms both;
+}
+
+.sh-minibarras--anima .sh-minibarras__barra {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: sh-barra-sobe var(--sh-t-4) var(--sh-ease-out-forte) calc(60ms + var(--sh-stagger) * var(--sh-i, 0)) both;
+}
+
+/* Escalonamento das barras pela ordem (--sh-i), sem style inline */
+.sh-minibarras__barra:nth-of-type(1) { --sh-i: 0; }
+.sh-minibarras__barra:nth-of-type(2) { --sh-i: 1; }
+.sh-minibarras__barra:nth-of-type(3) { --sh-i: 2; }
+.sh-minibarras__barra:nth-of-type(4) { --sh-i: 3; }
+.sh-minibarras__barra:nth-of-type(5) { --sh-i: 4; }
+.sh-minibarras__barra:nth-of-type(6) { --sh-i: 5; }
+.sh-minibarras__barra:nth-of-type(7) { --sh-i: 6; }
+.sh-minibarras__barra:nth-of-type(8) { --sh-i: 7; }
+.sh-minibarras__barra:nth-of-type(9) { --sh-i: 8; }
+.sh-minibarras__barra:nth-of-type(10) { --sh-i: 9; }
+.sh-minibarras__barra:nth-of-type(11) { --sh-i: 10; }
+.sh-minibarras__barra:nth-of-type(12) { --sh-i: 11; }
+.sh-minibarras__barra:nth-of-type(13) { --sh-i: 12; }
+.sh-minibarras__barra:nth-of-type(14) { --sh-i: 13; }
+.sh-minibarras__barra:nth-of-type(15) { --sh-i: 14; }
+.sh-minibarras__barra:nth-of-type(16) { --sh-i: 15; }
+.sh-minibarras__barra:nth-of-type(17) { --sh-i: 16; }
+.sh-minibarras__barra:nth-of-type(18) { --sh-i: 17; }
+.sh-minibarras__barra:nth-of-type(19) { --sh-i: 18; }
+.sh-minibarras__barra:nth-of-type(20) { --sh-i: 19; }
+.sh-minibarras__barra:nth-of-type(21) { --sh-i: 20; }
+.sh-minibarras__barra:nth-of-type(22) { --sh-i: 21; }
+.sh-minibarras__barra:nth-of-type(23) { --sh-i: 22; }
+.sh-minibarras__barra:nth-of-type(n+24) { --sh-i: 23; }
+
+/* ============================== Esqueletos sutis ============================== */
+/* Cinza de superfície com uma faixa de luz que atravessa devagar (só transform, no pseudo-elemento) */
+.sh-esqueleto,
+.sh-skeleton {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--sh-radius-sm);
+  background-color: var(--sh-surface-2);
+}
+
+.sh-esqueleto::after,
+.sh-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--sh-surface) 55%, transparent) 50%, transparent 100%);
+  transform: translateX(-100%);
+  animation: sh-varre 1.6s var(--sh-ease) infinite;
+}
+
+@keyframes sh-varre {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-esqueleto::after,
+  .sh-skeleton::after {
+    display: none;
+  }
+}
+
+/* ============================== Toasts ============================== */
+.sh-toast {
+  animation: sh-toast-entra var(--sh-t-3) var(--sh-ease-out-forte) both;
+}
+
+.sh-toast.is-saindo {
+  animation: sh-toast-sai var(--sh-t-2) var(--sh-ease-in) both;
+}
+
+@keyframes sh-toast-entra {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(.985);
+  }
+}
+
+@keyframes sh-toast-sai {
+  to {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-toast__tempo {
+    display: none;
+  }
+}
+
+/* ============================== Ilustrações dos estados vazios ============================== */
+/* Os traços se desenham uma vez e depois ficam parados (pathLength="1" no SVG) */
+.il-desenha {
+  stroke-dasharray: 1;
+  animation: sh-desenha 800ms var(--sh-ease-out-forte) 150ms both;
+}
+
+.il-desenha-2 {
+  stroke-dasharray: 1;
+  animation: sh-desenha 800ms var(--sh-ease-out-forte) 350ms both;
+}
+
+.il-surge {
+  animation: sh-sobe var(--sh-t-4) var(--sh-ease-out) 200ms both;
+  --sh-dist-entrada: 6px;
+}
+
+/* ============================== Menos movimento: estados finais visíveis ============================== */
+@media (prefers-reduced-motion: reduce) {
+  .sh-spark--anima .sh-spark__linha,
+  .il-desenha,
+  .il-desenha-2 {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+  }
+}

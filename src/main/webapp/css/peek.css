@@ -1,0 +1,142 @@
+/*
+ * StockHub v3: painel lateral deslizante ("peek"). Usa o <dialog> nativo (camada superior, fundo inerte, Esc nativo).
+ * Comportamento em js/peek.js; esqueleto em WEB-INF/includes/sh/peek.jsp; contrato em docs/design-system.md.
+ * Entra deslizando da direita (transform) e o fundo escurece (opacity); sai mais rápido. Menos movimento: sem deslize.
+ */
+
+dialog.sh-peek {
+  position: fixed;
+  inset: 0 0 0 auto;
+  width: min(480px, 100vw);
+  max-width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid var(--sh-border);
+  background: var(--sh-surface);
+  color: var(--sh-text);
+  box-shadow: var(--sh-shadow-modal);
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  dialog.sh-peek {
+    width: min(520px, 42vw);
+    min-width: 440px;
+    border-radius: var(--sh-radius-lg) 0 0 var(--sh-radius-lg);
+  }
+}
+
+dialog.sh-peek::backdrop {
+  background: var(--sh-scrim);
+}
+
+dialog.sh-peek[open] {
+  display: block;
+  animation: sh-peek-entra var(--sh-t-3) var(--sh-ease-out-forte) both;
+}
+
+dialog.sh-peek[open]::backdrop {
+  animation: sh-peek-fundo var(--sh-t-3) var(--sh-ease-out) both;
+}
+
+dialog.sh-peek[open].is-fechando {
+  animation: sh-peek-sai var(--sh-t-2) var(--sh-ease-in) forwards;
+}
+
+dialog.sh-peek[open].is-fechando::backdrop {
+  animation: sh-peek-fundo-sai var(--sh-t-2) var(--sh-ease-in) forwards;
+}
+
+@keyframes sh-peek-entra {
+  from {
+    opacity: .6;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes sh-peek-sai {
+  to {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+}
+
+@keyframes sh-peek-fundo {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes sh-peek-fundo-sai {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  dialog.sh-peek[open],
+  dialog.sh-peek[open]::backdrop,
+  dialog.sh-peek[open].is-fechando,
+  dialog.sh-peek[open].is-fechando::backdrop {
+    animation: none;
+  }
+}
+
+.sh-peek__caixa {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.sh-peek__cab {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-space-2);
+  flex: 0 0 auto;
+  min-height: var(--sh-topbar-h);
+  padding: var(--sh-space-2) var(--sh-space-3) var(--sh-space-2) var(--sh-space-5);
+  border-bottom: 1px solid var(--sh-border);
+}
+
+.sh-peek__titulo {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--sh-text-lg);
+  font-weight: 650;
+  letter-spacing: var(--sh-track-titulo);
+}
+
+.sh-peek__pagina {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.sh-peek__corpo {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--sh-space-5);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.sh-peek__corpo:focus {
+  outline: none;
+}
+
+/* Região de conteúdo: recebe o foco só por programa (ao terminar de carregar), então não precisa de anel */
+.sh-peek__corpo:focus-visible {
+  outline: none !important;
+}
+
+/* A página por trás não rola enquanto o painel está aberto */
+html.sh-peek-aberto {
+  overflow: hidden;
+}

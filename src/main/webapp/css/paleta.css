@@ -1,50 +1,59 @@
 /*
- * StockHub v2: paleta de comandos (Ctrl+K). Usa o <dialog> nativo (camada superior, fundo inerte, Esc nativo).
- * O gatilho da barra superior está em css/layout.css (.sh-paleta-gatilho).
+ * StockHub v3: barra de comando (paleta, Ctrl+K). Usa o <dialog> nativo (camada superior, fundo inerte, Esc nativo).
+ * O gatilho da barra superior está em css/layout.css (.sh-paleta-gatilho). Vidro fosco só aqui e na barra superior,
+ * com cor sólida como alternativa quando o navegador não tem backdrop-filter.
  */
 
 dialog.sh-paleta {
-  width: min(660px, calc(100vw - 24px));
-  max-height: min(78vh, 600px);
-  margin: 10vh auto auto;
+  width: min(640px, calc(100vw - 24px));
+  max-height: min(78vh, 580px);
+  margin: 12vh auto auto;
   padding: 0;
   border: 1px solid var(--sh-border-strong);
-  border-radius: var(--sh-radius-folha);
+  border-radius: var(--sh-radius-lg);
   background-color: var(--sh-surface);
-  background-image: var(--sh-papel);
   color: var(--sh-text);
   box-shadow: var(--sh-shadow-modal);
   overflow: hidden;
 }
 
+@supports (backdrop-filter: blur(1px)) {
+  dialog.sh-paleta {
+    border-color: color-mix(in srgb, var(--sh-border-strong) 55%, transparent);
+    background-color: color-mix(in srgb, var(--sh-surface) 86%, transparent);
+    -webkit-backdrop-filter: saturate(1.6) blur(24px);
+    backdrop-filter: saturate(1.6) blur(24px);
+  }
+}
+
 dialog.sh-paleta[open] {
   display: block;
-  animation: sh-paleta-entra var(--sh-dur) var(--sh-ease-mola);
+  animation: sh-paleta-entra var(--sh-t-3) var(--sh-ease-out-forte);
 }
 
 dialog.sh-paleta[open].is-fechando {
-  animation: sh-paleta-sai var(--sh-dur-fast) var(--sh-ease-in) forwards;
+  animation: sh-paleta-sai var(--sh-t-1) var(--sh-ease-in) forwards;
 }
 
 dialog.sh-paleta::backdrop {
-  background: rgba(38, 28, 15, .5);
+  background: var(--sh-scrim);
 }
 
 dialog.sh-paleta[open]::backdrop {
-  animation: sh-paleta-fundo var(--sh-dur) var(--sh-ease-out);
+  animation: sh-paleta-fundo var(--sh-t-3) var(--sh-ease-out);
 }
 
 @keyframes sh-paleta-entra {
   from {
     opacity: 0;
-    transform: translateY(-14px) scale(.97);
+    transform: translateY(-6px) scale(.985);
   }
 }
 
 @keyframes sh-paleta-sai {
   to {
     opacity: 0;
-    transform: translateY(-8px) scale(.98);
+    transform: translateY(-4px) scale(.99);
   }
 }
 
@@ -65,12 +74,12 @@ dialog.sh-paleta[open]::backdrop {
   align-items: center;
   gap: var(--sh-space-3);
   padding: 0 var(--sh-space-3) 0 var(--sh-space-4);
-  border-bottom: 1px dashed var(--sh-border-strong);
+  border-bottom: 1px solid var(--sh-border);
 }
 
 .sh-paleta__topo > .bi {
   color: var(--sh-text-subtle);
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
 }
 
 .sh-paleta__entrada {
@@ -82,6 +91,7 @@ dialog.sh-paleta[open]::backdrop {
   color: var(--sh-text);
   font: inherit;
   font-size: var(--sh-text-lg);
+  letter-spacing: -0.01em;
 }
 
 .sh-paleta__entrada::placeholder {
@@ -91,23 +101,23 @@ dialog.sh-paleta[open]::backdrop {
 
 /* O foco do campo é o próprio painel: anel desenhado no contorno interno, nunca escondido */
 .sh-paleta__entrada:focus-visible {
-  outline: 3px solid var(--sh-focus) !important;
-  outline-offset: -3px;
-  border-radius: 6px;
+  outline: 2px solid var(--sh-focus) !important;
+  outline-offset: -2px;
+  border-radius: var(--sh-radius-sm);
 }
 
 .sh-paleta__fechar {
   flex: 0 0 auto;
-  min-height: 32px;
-  padding: 0 9px;
-  border: 1px solid var(--sh-border-strong);
+  min-height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--sh-border);
   border-bottom-width: 2px;
-  border-radius: 6px;
+  border-radius: var(--sh-radius-xs);
   background: var(--sh-surface-2);
   color: var(--sh-text-muted);
-  font: inherit;
-  font-size: var(--sh-text-sm);
-  font-weight: 600;
+  font-family: var(--sh-font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
 }
 
 .sh-paleta__fechar:hover {
@@ -125,35 +135,46 @@ dialog.sh-paleta[open]::backdrop {
 .sh-paleta__grupo-titulo {
   margin: 0;
   padding: var(--sh-space-3) var(--sh-space-3) var(--sh-space-1);
-  color: var(--sh-text-muted);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  color: var(--sh-text-subtle);
+  font-size: var(--sh-fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--sh-track-rotulo);
   text-transform: uppercase;
 }
 
 .sh-paleta__opcao {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--sh-space-3);
-  min-height: 46px;
+  min-height: 44px;
   padding: var(--sh-space-2) var(--sh-space-3);
-  border-radius: 10px 10px 10px 4px;
+  border-radius: var(--sh-radius-sm);
   color: var(--sh-text);
   cursor: pointer;
   scroll-margin: 36px 8px 8px;
 }
 
 .sh-paleta__opcao > .bi {
-  flex: 0 0 22px;
-  color: var(--sh-text-muted);
-  font-size: 1.125rem;
+  flex: 0 0 20px;
+  color: var(--sh-text-subtle);
+  font-size: 1.0625rem;
   text-align: center;
 }
 
 .sh-paleta__opcao[aria-selected="true"] {
   background: var(--sh-accent-soft);
-  box-shadow: inset 4px 0 0 var(--sh-accent);
+}
+
+.sh-paleta__opcao[aria-selected="true"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--sh-accent);
 }
 
 .sh-paleta__opcao[aria-selected="true"] > .bi {
@@ -170,7 +191,8 @@ dialog.sh-paleta[open]::backdrop {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: 600;
+  font-size: var(--sh-text-md);
+  font-weight: 550;
 }
 
 .sh-paleta__sub {
@@ -192,11 +214,16 @@ dialog.sh-paleta[open]::backdrop {
   font-variant-numeric: tabular-nums;
 }
 
+/* Trecho encontrado: sublinhado de acento (sem fundo amarelo) */
 .sh-paleta mark {
   padding: 0;
-  background: var(--sh-marca-texto);
+  background: transparent;
   color: inherit;
-  border-radius: 3px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--sh-accent-text);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
 .sh-paleta__aviso {
@@ -208,12 +235,13 @@ dialog.sh-paleta[open]::backdrop {
   font-size: var(--sh-text-md);
 }
 
+/* Carregando: três pontos que pulsam em opacidade (sem se mover) */
 .sh-paleta__ponto {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: var(--sh-text-muted);
-  animation: sh-paleta-ponto 900ms ease-in-out infinite;
+  animation: sh-paleta-ponto 1000ms ease-in-out infinite;
 }
 
 .sh-paleta__ponto:nth-child(2) {
@@ -226,8 +254,7 @@ dialog.sh-paleta[open]::backdrop {
 
 @keyframes sh-paleta-ponto {
   50% {
-    transform: translateY(-4px);
-    opacity: .4;
+    opacity: .25;
   }
 }
 
@@ -237,18 +264,18 @@ dialog.sh-paleta[open]::backdrop {
   gap: var(--sh-space-4);
   margin: 0;
   padding: var(--sh-space-2) var(--sh-space-4);
-  border-top: 1px dashed var(--sh-border-strong);
+  border-top: 1px solid var(--sh-border);
   color: var(--sh-text-muted);
   font-size: var(--sh-text-sm);
 }
 
 .sh-paleta__rodape kbd {
   padding: 0 5px;
-  border: 1px solid var(--sh-border-strong);
-  border-radius: 4px;
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-xs);
   background: var(--sh-surface-2);
   color: var(--sh-text-muted);
-  font: inherit;
+  font-size: 0.6875rem;
 }
 
 @media (min-width: 768px) {

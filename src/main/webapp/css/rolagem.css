@@ -1,0 +1,419 @@
+/*
+ * StockHub v3: KIT DE ROLAGEM ("rolagem narrativa", estilo página de produto).
+ * Contrato completo e exemplos em docs/design-system.md, seção "v3: central de operações".
+ *
+ * Princípios:
+ *  - NUNCA sequestra a rolagem nativa (sem wheel/touch listeners que a bloqueiem, sem scroll-snap obrigatório, sem
+ *    altura "falsa" que impeça a página de rolar normalmente). A rolagem é do navegador; o kit só LÊ a posição.
+ *  - Modo CSS (Chrome/Edge 115+, Safari 26+): animações dirigidas pela rolagem (animation-timeline: view() e scroll())
+ *    dentro de @supports. Tudo roda fora da thread principal quando possível e só em transform e opacity
+ *    (exceção documentada: linhas SVG usam stroke-dashoffset).
+ *  - Modo JS (Firefox e outros sem animation-timeline): js/rolagem.js liga a classe html.sh-rolagem-js e usa
+ *    IntersectionObserver (revelar, desenhar, crescer) e um ouvinte passivo de scroll (cenas e progresso da página).
+ *  - Menos movimento (prefers-reduced-motion): sem animação nenhuma; tudo aparece já no estado final e as cenas
+ *    fixas viram blocos comuns, um sobre o outro.
+ *  - Sem JavaScript e sem suporte: nada fica escondido (os estados "escondidos" só existem nos dois modos acima).
+ *
+ * Peças: .sh-revelar / .sh-revelar-grupo   (entrar na viewport, com escalonamento)
+ *        .sh-cena / .sh-cena__palco        (cena fixa com progresso de rolagem --sh-progresso de 0 a 1)
+ *        .sh-cena-*                        (efeitos ligados ao progresso: fade, sobe, escala, desenha, cresce)
+ *        .sh-desenhar + .sh-traco/.sh-barra (linhas e barras que se desenham conforme a rolagem)
+ *        .sh-progresso-pagina              (fio de progresso de leitura no topo)
+ *        .sh-flutua                        (deslocamento sutil por profundidade)
+ * Contadores acionados pela rolagem: js/numeros.js ([data-contar] conta uma vez, ao aparecer na viewport).
+ */
+
+/* ============================== Tokens do kit ============================== */
+@property --sh-progresso {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+:root {
+  --sh-revelar-dist: 12px;     /* deslocamento da revelação */
+  --sh-revelar-fim: 55%;       /* até onde da "entrada" a revelação termina (modo CSS) */
+  --sh-rampa: 8;               /* inclinação do fade nas cenas (maior = transição mais curta) */
+}
+
+/* Índice de escalonamento (--sh-i) pela ordem dos filhos de um grupo (sem JavaScript) */
+.sh-revelar-grupo > :nth-child(1)  { --sh-i: 0; }
+.sh-revelar-grupo > :nth-child(2)  { --sh-i: 1; }
+.sh-revelar-grupo > :nth-child(3)  { --sh-i: 2; }
+.sh-revelar-grupo > :nth-child(4)  { --sh-i: 3; }
+.sh-revelar-grupo > :nth-child(5)  { --sh-i: 4; }
+.sh-revelar-grupo > :nth-child(6)  { --sh-i: 5; }
+.sh-revelar-grupo > :nth-child(7)  { --sh-i: 6; }
+.sh-revelar-grupo > :nth-child(8)  { --sh-i: 7; }
+.sh-revelar-grupo > :nth-child(9)  { --sh-i: 8; }
+.sh-revelar-grupo > :nth-child(10) { --sh-i: 9; }
+.sh-revelar-grupo > :nth-child(11) { --sh-i: 10; }
+.sh-revelar-grupo > :nth-child(n+12) { --sh-i: 11; }
+
+/* Variantes de direção (mudam só a posição inicial) */
+.sh-revelar--esquerda { --sh-rx: calc(var(--sh-revelar-dist) * -2); --sh-ry: 0px; }
+.sh-revelar--direita  { --sh-rx: calc(var(--sh-revelar-dist) * 2);  --sh-ry: 0px; }
+.sh-revelar--escala   { --sh-rs: .96; --sh-ry: 0px; }
+.sh-revelar--fade     { --sh-ry: 0px; }
+
+/* ============================== Cena fixa (pinned) ============================== */
+/* <section class="sh-cena"> <div class="sh-cena__palco"> ...conteúdo da cena... </div> </section>
+   A altura da <section> (--sh-cena-altura, padrão 300vh) é o "tempo" da cena: enquanto a página rola por ela,
+   o palco fica preso (position: sticky) e --sh-progresso vai de 0 a 1. A rolagem continua sendo a nativa. */
+.sh-cena {
+  position: relative;
+  height: var(--sh-cena-altura, 300vh);
+}
+
+.sh-cena__palco {
+  position: sticky;
+  top: var(--sh-cena-topo, 0px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: calc(100vh - var(--sh-cena-topo, 0px));
+  height: calc(100svh - var(--sh-cena-topo, 0px));
+  overflow: clip;
+}
+
+/* Efeitos ligados ao progresso. Cada elemento escolhe a janela em que age com --sh-de e --sh-ate (0 a 1):
+     <h2 class="sh-cena-fade" ...>  e, no CSS da página:  .meu-titulo { --sh-de: .1; --sh-ate: .4; }
+   --sh-t é o avanço (0 a 1) dentro da janela; --sh-in sobe de 0 a 1 em --sh-de; --sh-out desce de 1 a 0 em --sh-ate. */
+.sh-cena-fade,
+.sh-cena-sobe,
+.sh-cena-escala,
+.sh-cena-desenha,
+.sh-cena-cresce,
+.sh-cena-cresce--v {
+  --sh-t: clamp(0, calc((var(--sh-progresso) - var(--sh-de, 0)) / (var(--sh-ate, 1) - var(--sh-de, 0))), 1);
+  --sh-in: clamp(0, calc((var(--sh-progresso) - var(--sh-de, 0)) * var(--sh-rampa)), 1);
+  --sh-out: clamp(0, calc((var(--sh-saida, 2) - var(--sh-progresso)) * var(--sh-rampa)), 1);
+}
+
+/* Aparece em --sh-de e (se houver --sh-saida) some de novo; sobe um pouco ao entrar e sai para cima */
+.sh-cena-fade {
+  opacity: min(var(--sh-in), var(--sh-out));
+  transform: translateY(calc((1 - var(--sh-in)) * var(--sh-revelar-dist) - (1 - var(--sh-out)) * var(--sh-revelar-dist)));
+}
+
+/* Sobe de --sh-y0 (padrão 32px) até a posição final conforme o avanço dentro da janela */
+.sh-cena-sobe {
+  opacity: var(--sh-t);
+  transform: translateY(calc((1 - var(--sh-t)) * var(--sh-y0, 32px)));
+}
+
+/* Cresce de --sh-s0 (padrão .88) até 1 */
+.sh-cena-escala {
+  opacity: var(--sh-t);
+  transform: scale(calc(var(--sh-s0, .88) + (1 - var(--sh-s0, .88)) * var(--sh-t)));
+}
+
+/* Linha SVG que se desenha: o elemento precisa de pathLength="1" */
+.sh-cena-desenha {
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - var(--sh-t));
+}
+
+/* Barra que cresce: horizontal (padrão) ou vertical (--v) */
+.sh-cena-cresce {
+  transform-box: fill-box;
+  transform-origin: left center;
+  transform: scaleX(var(--sh-t));
+}
+
+.sh-cena-cresce--v {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  transform: scaleY(var(--sh-t));
+}
+
+/* Modo CSS: o progresso da cena vem da própria rolagem. "contain" vai de quando o topo da cena encosta no topo
+   da viewport até quando a base encosta na base: exatamente o período em que o palco fica preso. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .sh-cena {
+      animation: sh-progresso-cena linear both;
+      animation-timeline: view(block var(--sh-cena-topo, 0px) 0px);
+      animation-range: contain 0% contain 100%;
+    }
+
+    @keyframes sh-progresso-cena {
+      from { --sh-progresso: 0; }
+      to { --sh-progresso: 1; }
+    }
+  }
+}
+
+/* Menos movimento: a cena vira um bloco comum e tudo aparece no estado final */
+@media (prefers-reduced-motion: reduce) {
+  .sh-cena {
+    height: auto;
+    --sh-progresso: 1;
+  }
+
+  .sh-cena__palco {
+    position: static;
+    height: auto;
+    overflow: visible;
+    padding-block: var(--sh-space-8);
+  }
+
+  .sh-cena-fade,
+  .sh-cena-sobe,
+  .sh-cena-escala {
+    opacity: 1;
+    transform: none;
+  }
+
+  .sh-cena-desenha {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+  }
+
+  .sh-cena-cresce,
+  .sh-cena-cresce--v {
+    transform: none;
+  }
+}
+
+/* ============================== Revelar ao entrar na viewport ============================== */
+/* Modo CSS: a revelação acompanha a entrada do elemento (rolar para trás desfaz). O escalonamento (--sh-i)
+   desloca o início da faixa de cada irmão. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .sh-revelar,
+    .sh-revelar-grupo > * {
+      animation: sh-revelar-entra linear both;
+      animation-timeline: view();
+      animation-range: entry calc(var(--sh-i, 0) * 4%) entry calc(var(--sh-revelar-fim) + var(--sh-i, 0) * 4%);
+    }
+
+    @keyframes sh-revelar-entra {
+      from {
+        opacity: 0;
+        transform: translate(var(--sh-rx, 0px), var(--sh-ry, var(--sh-revelar-dist))) scale(var(--sh-rs, 1));
+      }
+    }
+  }
+}
+
+/* Modo JS (Firefox): o escondido só existe com html.sh-rolagem-js; js/rolagem.js marca .is-visivel uma vez */
+@media (prefers-reduced-motion: no-preference) {
+  html.sh-rolagem-js .sh-revelar,
+  html.sh-rolagem-js .sh-revelar-grupo > * {
+    opacity: 0;
+    transform: translate(var(--sh-rx, 0px), var(--sh-ry, var(--sh-revelar-dist))) scale(var(--sh-rs, 1));
+    transition: opacity var(--sh-t-4) var(--sh-ease-out-forte) calc(var(--sh-i, 0) * var(--sh-stagger)),
+      transform var(--sh-t-4) var(--sh-ease-out-forte) calc(var(--sh-i, 0) * var(--sh-stagger));
+  }
+
+  html.sh-rolagem-js .sh-revelar.is-visivel,
+  html.sh-rolagem-js .sh-revelar-grupo > .is-visivel {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ============================== Linhas e barras que se desenham ============================== */
+/* <svg class="sh-desenhar" viewBox="..."> <path class="sh-traco" pathLength="1" d="..."/> <rect class="sh-barra" .../> </svg>
+   O CONTÊINER (.sh-desenhar) mede a posição na viewport; os filhos .sh-traco (linha, precisa de pathLength="1") e
+   .sh-barra (barra: sobe em Y; .sh-barra--h cresce em X) reagem. --sh-i escalona os irmãos. Também funciona com <div>. */
+.sh-desenhar {
+  view-timeline: --sh-desenho block;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .sh-desenhar .sh-traco {
+      stroke-dasharray: 1;
+      animation: sh-traco-desenha linear both;
+      animation-timeline: --sh-desenho;
+      animation-range: entry calc(10% + var(--sh-i, 0) * 4%) cover calc(40% + var(--sh-i, 0) * 4%);
+    }
+
+    .sh-desenhar .sh-barra {
+      transform-box: fill-box;
+      transform-origin: center bottom;
+      animation: sh-barra-cresce-y linear both;
+      animation-timeline: --sh-desenho;
+      animation-range: entry calc(10% + var(--sh-i, 0) * 3%) cover calc(35% + var(--sh-i, 0) * 3%);
+    }
+
+    .sh-desenhar .sh-barra--h {
+      transform-origin: left center;
+      animation-name: sh-barra-cresce-x;
+    }
+
+    @keyframes sh-traco-desenha {
+      from { stroke-dashoffset: 1; }
+      to { stroke-dashoffset: 0; }
+    }
+
+    @keyframes sh-barra-cresce-y {
+      from { transform: scaleY(0); }
+    }
+
+    @keyframes sh-barra-cresce-x {
+      from { transform: scaleX(0); }
+    }
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.sh-rolagem-js .sh-desenhar .sh-traco {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 1.1s var(--sh-ease-out-forte) calc(var(--sh-i, 0) * var(--sh-stagger));
+  }
+
+  html.sh-rolagem-js .sh-desenhar.is-visivel .sh-traco {
+    stroke-dashoffset: 0;
+  }
+
+  html.sh-rolagem-js .sh-desenhar .sh-barra {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    transform: scaleY(0);
+    transition: transform var(--sh-t-4) var(--sh-ease-out-forte) calc(var(--sh-i, 0) * var(--sh-stagger));
+  }
+
+  html.sh-rolagem-js .sh-desenhar .sh-barra--h {
+    transform-origin: left center;
+    transform: scaleX(0);
+  }
+
+  html.sh-rolagem-js .sh-desenhar.is-visivel .sh-barra {
+    transform: none;
+  }
+}
+
+/* Escalonamento das barras e traços pela ordem entre irmãos do mesmo tipo (--sh-i) */
+.sh-desenhar .sh-barra:nth-of-type(1) { --sh-i: 0; }
+.sh-desenhar .sh-barra:nth-of-type(2) { --sh-i: 1; }
+.sh-desenhar .sh-barra:nth-of-type(3) { --sh-i: 2; }
+.sh-desenhar .sh-barra:nth-of-type(4) { --sh-i: 3; }
+.sh-desenhar .sh-barra:nth-of-type(5) { --sh-i: 4; }
+.sh-desenhar .sh-barra:nth-of-type(6) { --sh-i: 5; }
+.sh-desenhar .sh-barra:nth-of-type(7) { --sh-i: 6; }
+.sh-desenhar .sh-barra:nth-of-type(8) { --sh-i: 7; }
+.sh-desenhar .sh-barra:nth-of-type(9) { --sh-i: 8; }
+.sh-desenhar .sh-barra:nth-of-type(10) { --sh-i: 9; }
+.sh-desenhar .sh-barra:nth-of-type(11) { --sh-i: 10; }
+.sh-desenhar .sh-barra:nth-of-type(12) { --sh-i: 11; }
+.sh-desenhar .sh-barra:nth-of-type(13) { --sh-i: 12; }
+.sh-desenhar .sh-barra:nth-of-type(14) { --sh-i: 13; }
+.sh-desenhar .sh-barra:nth-of-type(15) { --sh-i: 14; }
+.sh-desenhar .sh-barra:nth-of-type(16) { --sh-i: 15; }
+.sh-desenhar .sh-barra:nth-of-type(17) { --sh-i: 16; }
+.sh-desenhar .sh-barra:nth-of-type(18) { --sh-i: 17; }
+.sh-desenhar .sh-barra:nth-of-type(19) { --sh-i: 18; }
+.sh-desenhar .sh-barra:nth-of-type(20) { --sh-i: 19; }
+.sh-desenhar .sh-barra:nth-of-type(21) { --sh-i: 20; }
+.sh-desenhar .sh-barra:nth-of-type(22) { --sh-i: 21; }
+.sh-desenhar .sh-barra:nth-of-type(23) { --sh-i: 22; }
+.sh-desenhar .sh-barra:nth-of-type(n+24) { --sh-i: 23; }
+.sh-desenhar .sh-traco:nth-of-type(1) { --sh-i: 0; }
+.sh-desenhar .sh-traco:nth-of-type(2) { --sh-i: 1; }
+.sh-desenhar .sh-traco:nth-of-type(3) { --sh-i: 2; }
+.sh-desenhar .sh-traco:nth-of-type(4) { --sh-i: 3; }
+.sh-desenhar .sh-traco:nth-of-type(5) { --sh-i: 4; }
+.sh-desenhar .sh-traco:nth-of-type(6) { --sh-i: 5; }
+.sh-desenhar .sh-traco:nth-of-type(7) { --sh-i: 6; }
+.sh-desenhar .sh-traco:nth-of-type(n+8) { --sh-i: 7; }
+
+/* ============================== Progresso de leitura da página ============================== */
+/* <div class="sh-progresso-pagina" aria-hidden="true"></div>  (fio de 2 px fixo no topo, cresce com a rolagem) */
+.sh-progresso-pagina {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1100;
+  height: 2px;
+  background: var(--sh-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .sh-progresso-pagina {
+      animation: sh-progresso-pagina linear both;
+      animation-timeline: scroll(root block);
+    }
+
+    @keyframes sh-progresso-pagina {
+      to { transform: scaleX(1); }
+    }
+  }
+}
+
+html.sh-rolagem-js .sh-progresso-pagina {
+  transform: scaleX(var(--sh-progresso-pagina, 0));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-progresso-pagina {
+    display: none;
+  }
+}
+
+/* ============================== Profundidade sutil ============================== */
+/* Um elemento que se desloca devagar em relação à página enquanto cruza a viewport. Distância em --sh-flutua. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .sh-flutua {
+      animation: sh-flutua linear both;
+      animation-timeline: view();
+      animation-range: cover;
+    }
+
+    @keyframes sh-flutua {
+      from { transform: translateY(var(--sh-flutua, 24px)); }
+      to { transform: translateY(calc(var(--sh-flutua, 24px) * -1)); }
+    }
+  }
+}
+
+/* ============================== Impressão ============================== */
+@media print {
+  .sh-cena {
+    height: auto;
+    --sh-progresso: 1;
+  }
+
+  .sh-cena__palco {
+    position: static;
+    height: auto;
+  }
+
+  .sh-revelar,
+  .sh-revelar-grupo > *,
+  .sh-cena-fade,
+  .sh-cena-sobe,
+  .sh-cena-escala,
+  .sh-flutua {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+
+  .sh-desenhar .sh-traco,
+  .sh-cena-desenha {
+    stroke-dasharray: none !important;
+    stroke-dashoffset: 0 !important;
+    animation: none !important;
+  }
+
+  .sh-desenhar .sh-barra,
+  .sh-cena-cresce,
+  .sh-cena-cresce--v {
+    transform: none !important;
+    animation: none !important;
+  }
+
+  .sh-progresso-pagina {
+    display: none;
+  }
+}

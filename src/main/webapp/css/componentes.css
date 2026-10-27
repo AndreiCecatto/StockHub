@@ -1,15 +1,16 @@
 /*
- * StockHub: componentes (seção 4 de docs/design-system.md). Prefixo sh- sobre o Bootstrap 5.3.
- * Visual plano: bordas de 1 px, sem sombra; só o que flutua (menu, toast, modal) tem sombra.
- * Sem animação gratuita: o movimento explica uma mudança (seção 5). Cores sempre por tokens.css.
+ * StockHub v3: componentes (seção "v3: central de operações" de docs/design-system.md). Prefixo sh- sobre o Bootstrap 5.3.
+ * Acabamento: bordas hairline (1 px), raios de 6 a 10 px, sombra só em sobreposições (menu, toast, modal, painel).
+ * O movimento (entradas, esqueletos, barras) fica em css/movimento.css; o kit de rolagem, em css/rolagem.css;
+ * o painel lateral "peek", em css/peek.css. Cores sempre por tokens.css.
  */
 
 /* ============================== Botões ============================== */
 .btn {
-  --bs-btn-font-size: var(--sh-text-base);
-  --bs-btn-font-weight: 600;
-  --bs-btn-padding-x: 1rem;
-  --bs-btn-padding-y: 0.5rem;
+  --bs-btn-font-size: var(--sh-text-md);
+  --bs-btn-font-weight: 550;
+  --bs-btn-padding-x: 0.875rem;
+  --bs-btn-padding-y: 0.4375rem;
   --bs-btn-border-radius: var(--sh-radius-sm);
   display: inline-flex;
   align-items: center;
@@ -17,28 +18,35 @@
   gap: 0.5rem;
   min-height: var(--sh-alvo);
   line-height: 1.25;
-  transition: background-color var(--sh-dur-fast) var(--sh-ease), border-color var(--sh-dur-fast) var(--sh-ease),
-    color var(--sh-dur-fast) var(--sh-ease);
+  letter-spacing: -0.006em;
+  transition: background-color var(--sh-t-1) var(--sh-ease), border-color var(--sh-t-1) var(--sh-ease),
+    color var(--sh-t-1) var(--sh-ease), transform var(--sh-t-1) var(--sh-ease-out),
+    box-shadow var(--sh-t-2) var(--sh-ease-out);
 }
 
-/* sm: 32 px só no desktop; no celular todo botão tem pelo menos 44 px */
+/* sm: 30 px só no desktop; no celular todo botão tem pelo menos 44 px */
 .btn-sm {
   --bs-btn-font-size: var(--sh-text-md);
-  --bs-btn-padding-x: 0.75rem;
+  --bs-btn-padding-x: 0.625rem;
   --bs-btn-padding-y: 0.25rem;
   min-height: 44px;
 }
 
 @media (min-width: 992px) {
   .btn-sm {
-    min-height: 32px;
+    min-height: 30px;
   }
 }
 
 .btn-lg {
-  --bs-btn-font-size: var(--sh-text-lg);
+  --bs-btn-font-size: var(--sh-text-base);
   --bs-btn-padding-x: 1.25rem;
-  min-height: 48px;
+  --bs-btn-border-radius: var(--sh-radius);
+  min-height: 44px;
+}
+
+.btn:active:not(:disabled):not(.disabled) {
+  transform: scale(.985);
 }
 
 .btn-primary {
@@ -55,6 +63,7 @@
   --bs-btn-disabled-bg: var(--sh-accent);
   --bs-btn-disabled-border-color: var(--sh-accent);
   --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), var(--sh-shadow-1);
 }
 
 .btn-outline-secondary {
@@ -63,13 +72,14 @@
   --bs-btn-border-color: var(--sh-border-strong);
   --bs-btn-hover-color: var(--sh-text);
   --bs-btn-hover-bg: var(--sh-surface-2);
-  --bs-btn-hover-border-color: var(--sh-border-strong);
+  --bs-btn-hover-border-color: var(--sh-text-subtle);
   --bs-btn-active-color: var(--sh-text);
   --bs-btn-active-bg: var(--sh-surface-2);
-  --bs-btn-active-border-color: var(--sh-border-strong);
+  --bs-btn-active-border-color: var(--sh-text-subtle);
   --bs-btn-disabled-color: var(--sh-text);
   --bs-btn-disabled-bg: var(--sh-surface);
   --bs-btn-disabled-border-color: var(--sh-border-strong);
+  box-shadow: var(--sh-shadow-1);
 }
 
 .btn-outline-danger {
@@ -182,6 +192,7 @@ button.btn:disabled {
   color: var(--sh-text);
   font-size: var(--sh-text-md);
   font-weight: 600;
+  letter-spacing: -0.006em;
 }
 
 /* "(obrigatório)" escrito, não só asterisco */
@@ -199,7 +210,26 @@ button.btn:disabled {
   background-color: var(--sh-surface);
   color: var(--sh-text);
   font-size: 1rem; /* 16 px: o iOS não dá zoom ao focar */
-  transition: border-color var(--sh-dur-fast) var(--sh-ease);
+  transition: border-color var(--sh-t-1) var(--sh-ease), box-shadow var(--sh-t-2) var(--sh-ease-out);
+}
+
+@media (min-width: 992px) {
+  .form-control,
+  .form-select {
+    font-size: var(--sh-text-base);
+  }
+}
+
+.form-control:hover:not(:disabled):not([readonly]),
+.form-select:hover:not(:disabled) {
+  border-color: var(--sh-text-subtle);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--sh-accent);
+  background-color: var(--sh-surface);
+  color: var(--sh-text);
 }
 
 textarea.form-control {
@@ -304,7 +334,7 @@ textarea.form-control {
   border-radius: 0 var(--sh-radius-sm) var(--sh-radius-sm) 0;
   background: transparent;
   color: var(--sh-text-muted);
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
 }
 
 .sh-senha__alternar:hover {
@@ -386,18 +416,24 @@ textarea.form-control {
   font-weight: 600;
 }
 
-/* ============================== Badges ============================== */
+/* ============================== Selos de estoque ============================== */
+/* Estado sempre em ícone + palavra + cor. Retângulo de cantos de 6 px, borda hairline tonal. */
 .sh-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 10px;
+  gap: 5px;
+  padding: 2px 8px;
   border: 1px solid transparent;
-  border-radius: var(--sh-radius-pill);
+  border-radius: var(--sh-radius-sm);
   font-size: var(--sh-text-sm);
   font-weight: 600;
+  letter-spacing: -0.003em;
   line-height: 1.5;
   white-space: nowrap;
+}
+
+.sh-badge .bi {
+  font-size: 0.8125rem;
 }
 
 .sh-badge--normal {
@@ -440,7 +476,7 @@ textarea.form-control {
 /* ============================== Medidor de saldo ============================== */
 .sh-meter {
   position: relative;
-  height: 8px;
+  height: 6px;
   min-width: 72px;
   border-radius: var(--sh-radius-pill);
   background: var(--sh-meter-track);
@@ -452,7 +488,6 @@ textarea.form-control {
   height: 100%;
   border-radius: inherit;
   transform-origin: left center;
-  animation: sh-meter-entra 400ms var(--sh-ease-out) both;
 }
 
 .sh-meter--normal .sh-meter__fill {
@@ -477,12 +512,6 @@ textarea.form-control {
   background: var(--sh-surface);
 }
 
-@keyframes sh-meter-entra {
-  from {
-    transform: scaleX(0);
-  }
-}
-
 /* Saldo com medidor (número + barra) */
 .sh-saldo {
   display: grid;
@@ -496,7 +525,7 @@ textarea.form-control {
 }
 
 .sh-saldo__texto strong {
-  font-weight: 700;
+  font-weight: 650;
 }
 
 .sh-saldo__minimo {
@@ -517,7 +546,7 @@ textarea.form-control {
 
 .sh-alert > .bi {
   flex: 0 0 auto;
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   line-height: 1.4;
 }
 
@@ -529,7 +558,7 @@ textarea.form-control {
 
 .sh-alert__titulo {
   display: block;
-  font-weight: 700;
+  font-weight: 650;
 }
 
 .sh-alert--success {
@@ -556,7 +585,7 @@ textarea.form-control {
   border-color: var(--sh-info-border);
 }
 
-/* ============================== Toasts ============================== */
+/* ============================== Toasts sérios (com ação "Desfazer") ============================== */
 .sh-toasts {
   position: fixed;
   z-index: 1090;
@@ -574,53 +603,90 @@ textarea.form-control {
     left: auto;
     right: var(--sh-space-6);
     bottom: var(--sh-space-6);
-    width: 380px;
+    width: 400px;
   }
 }
 
 .sh-toast {
+  --sh-toast-cor: var(--sh-success-fg);
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: var(--sh-space-3);
-  padding: var(--sh-space-3) var(--sh-space-3) var(--sh-space-3) var(--sh-space-4);
-  border: 1px solid var(--sh-success-border);
-  border-left: 4px solid var(--sh-success-fg);
-  border-radius: var(--sh-radius);
+  padding: var(--sh-space-3) var(--sh-space-2) var(--sh-space-3) var(--sh-space-4);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-lg);
   background: var(--sh-surface);
   color: var(--sh-text);
   box-shadow: var(--sh-shadow-pop);
   font-size: var(--sh-text-md);
   pointer-events: auto;
-  animation: sh-toast-entra var(--sh-dur) var(--sh-ease-out) both;
+  overflow: hidden;
 }
+
+.sh-toast--info { --sh-toast-cor: var(--sh-info-fg); }
+.sh-toast--aviso { --sh-toast-cor: var(--sh-warning-fg); }
+.sh-toast--erro { --sh-toast-cor: var(--sh-danger-fg); }
 
 .sh-toast > .bi {
   flex: 0 0 auto;
-  color: var(--sh-success-fg);
-  font-size: 1.125rem;
-  line-height: 1.4;
+  color: var(--sh-toast-cor);
+  font-size: 1.0625rem;
+  line-height: 1.5;
 }
 
 .sh-toast__texto {
   flex: 1 1 auto;
   min-width: 0;
+  padding-top: 1px;
   overflow-wrap: anywhere;
 }
 
-.sh-toast.is-saindo {
-  animation: sh-toast-sai 150ms var(--sh-ease-in) both;
+/* Ação ("Desfazer"): botão de texto em cor de acento */
+.sh-toast__acao {
+  flex: 0 0 auto;
+  align-self: center;
+  min-height: 32px;
+  padding: 0 var(--sh-space-3);
+  border: 1px solid var(--sh-border-strong);
+  border-radius: var(--sh-radius-sm);
+  background: var(--sh-surface);
+  color: var(--sh-accent-text);
+  font: inherit;
+  font-size: var(--sh-text-md);
+  font-weight: 650;
+  transition: background-color var(--sh-t-1) var(--sh-ease);
 }
 
-@keyframes sh-toast-entra {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
+.sh-toast__acao:hover {
+  background: var(--sh-accent-soft);
 }
 
-@keyframes sh-toast-sai {
+/* Relógio: fio fino na base que se consome durante a exibição (só transform; pausa com mouse ou foco) */
+.sh-toast__tempo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--sh-toast-cor);
+  opacity: .55;
+  transform-origin: left center;
+  animation: sh-toast-tempo 7000ms linear forwards;
+}
+
+.sh-toast--longo .sh-toast__tempo {
+  animation-duration: 10000ms;
+}
+
+.sh-toast:hover .sh-toast__tempo,
+.sh-toast:focus-within .sh-toast__tempo {
+  animation-play-state: paused;
+}
+
+@keyframes sh-toast-tempo {
   to {
-    opacity: 0;
+    transform: scaleX(0);
   }
 }
 
@@ -644,7 +710,8 @@ textarea.form-control {
 .sh-card__titulo {
   margin: 0;
   font-size: var(--sh-text-lg);
-  font-weight: 600;
+  font-weight: 650;
+  letter-spacing: var(--sh-track-titulo);
 }
 
 .sh-card__desc {
@@ -658,7 +725,7 @@ textarea.form-control {
 }
 
 .sh-secao {
-  margin-bottom: var(--sh-space-6);
+  margin-bottom: var(--sh-space-8);
 }
 
 /* ============================== Cartão de métrica ============================== */
@@ -693,11 +760,11 @@ textarea.form-control {
   background: var(--sh-surface);
   color: var(--sh-text);
   text-decoration: none;
-  transition: background-color var(--sh-dur-fast) var(--sh-ease);
+  transition: border-color var(--sh-t-1) var(--sh-ease), background-color var(--sh-t-1) var(--sh-ease);
 }
 
 .sh-metric:hover {
-  background: var(--sh-surface-2);
+  border-color: var(--sh-border-strong);
   color: var(--sh-text);
 }
 
@@ -718,19 +785,20 @@ textarea.form-control {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 36px;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--sh-accent-soft);
-  color: var(--sh-accent-text);
-  font-size: 1.125rem;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--sh-radius-sm);
+  background: var(--sh-surface-2);
+  color: var(--sh-text-muted);
+  font-size: 1rem;
 }
 
 .sh-metric__valor {
   font-size: var(--sh-text-metric);
   font-weight: 700;
   line-height: 1.1;
+  letter-spacing: var(--sh-track-display);
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
@@ -799,18 +867,18 @@ textarea.form-control {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 48px;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--sh-radius);
   background: var(--sh-surface);
-  font-size: 1.5rem;
+  font-size: 1.375rem;
 }
 
 .sh-reposicao__titulo {
   margin: 0;
   font-size: var(--sh-text-lg);
-  font-weight: 700;
+  font-weight: 650;
   color: inherit;
 }
 
@@ -818,6 +886,7 @@ textarea.form-control {
   font-size: var(--sh-text-metric);
   font-weight: 700;
   line-height: 1.1;
+  letter-spacing: var(--sh-track-display);
   font-variant-numeric: tabular-nums;
 }
 
@@ -943,7 +1012,7 @@ a.sh-lista__nome:hover {
 .sh-saude {
   display: flex;
   gap: 2px;
-  height: 14px;
+  height: 10px;
   border-radius: var(--sh-radius-pill);
   background: var(--sh-meter-track);
   overflow: hidden;
@@ -954,7 +1023,6 @@ a.sh-lista__nome:hover {
   min-width: 6px;
   height: 100%;
   transform-origin: left center;
-  animation: sh-meter-entra 400ms var(--sh-ease-out) both;
 }
 
 .sh-saude__seg--normal {
@@ -1041,12 +1109,14 @@ a.sh-lista__nome:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--sh-radius-sm);
   background: var(--sh-accent-soft);
   color: var(--sh-accent-text);
-  font-weight: 700;
+  font-family: var(--sh-font-mono);
+  font-size: var(--sh-text-md);
+  font-weight: 600;
 }
 
 .sh-passo.is-feito .sh-passo__numero {
@@ -1057,7 +1127,7 @@ a.sh-lista__nome:hover {
 .sh-passo__titulo {
   margin: 0;
   font-size: var(--sh-text-base);
-  font-weight: 600;
+  font-weight: 650;
 }
 
 .sh-passo__texto {
@@ -1078,7 +1148,7 @@ a.sh-lista__nome:hover {
   font-size: var(--sh-text-sm);
 }
 
-/* ============================== Tabela e cartões (mobile) ============================== */
+/* ============================== Tabela compacta e cartões (mobile) ============================== */
 .sh-table-wrap {
   overflow: hidden;
   border: 1px solid var(--sh-border);
@@ -1096,21 +1166,30 @@ a.sh-lista__nome:hover {
 }
 
 .sh-table th {
-  padding: var(--sh-space-3) var(--sh-space-4);
+  padding: var(--sh-space-2) var(--sh-space-4);
   border-bottom: 1px solid var(--sh-border);
-  background: var(--sh-surface-2);
+  background: var(--sh-surface);
   color: var(--sh-text-muted);
   font-size: var(--sh-text-sm);
   font-weight: 600;
+  letter-spacing: 0;
   text-align: left;
   white-space: nowrap;
 }
 
 .sh-table td {
-  height: 52px;
-  padding: var(--sh-space-2) var(--sh-space-4);
+  height: 46px;
+  padding: var(--sh-space-1) var(--sh-space-4);
   border-bottom: 1px solid var(--sh-border);
   vertical-align: middle;
+}
+
+.sh-table tbody tr {
+  transition: background-color var(--sh-t-1) var(--sh-ease);
+}
+
+.sh-table tbody tr:hover {
+  background: color-mix(in srgb, var(--sh-surface-2) 70%, transparent);
 }
 
 .sh-table tbody tr:last-child td {
@@ -1120,6 +1199,14 @@ a.sh-lista__nome:hover {
 .sh-table .sh-col-num {
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+/* Valores, códigos e SKUs numa célula: monoespaçada */
+.sh-table .sh-col-mono,
+.sh-table td.sh-mono {
+  font-family: var(--sh-font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: -0.01em;
 }
 
 .sh-table th a {
@@ -1134,16 +1221,30 @@ a.sh-lista__nome:hover {
   color: var(--sh-text);
 }
 
-/* Linha com problema de estoque: barra lateral de 4 px (o badge continua obrigatório) */
+/* Linha com problema de estoque: barra lateral de 3 px (o selo continua obrigatório) */
 .sh-table tr.sh-linha--sem td:first-child {
-  box-shadow: inset 4px 0 0 var(--sh-danger-fg);
+  box-shadow: inset 3px 0 0 var(--sh-danger-fg);
 }
 
 .sh-table tr.sh-linha--baixo td:first-child {
-  box-shadow: inset 4px 0 0 var(--sh-warning-fg);
+  box-shadow: inset 3px 0 0 var(--sh-warning-fg);
 }
 
-/* Linha recém-criada: fundo que desbota + barra de 3 px de acento (seção 5) */
+/* Linha com foco do teclado (js/lista-teclado.js: j, k e Enter): fundo suave e filete de acento */
+[data-sh-lista-teclado] .is-foco,
+.sh-table tbody tr.is-foco {
+  background: var(--sh-accent-soft);
+}
+
+.sh-table tbody tr.is-foco td:first-child {
+  box-shadow: inset 3px 0 0 var(--sh-accent);
+}
+
+.sh-table tbody tr[data-sh-linha]:focus-visible {
+  outline-offset: -2px;
+}
+
+/* Linha recém-criada: fundo que desbota + filete de acento */
 .sh-novo {
   animation: sh-destaque 2.4s var(--sh-ease-out) both;
   box-shadow: inset 3px 0 0 var(--sh-accent);
@@ -1156,7 +1257,7 @@ a.sh-lista__nome:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Menos movimento: o destaque fica estático (mesmo fundo e barra, sem desbotar) */
+  /* Menos movimento: o destaque fica estático (mesmo fundo e filete, sem desbotar) */
   .sh-novo {
     animation: none;
     background-color: var(--sh-accent-soft);
@@ -1216,45 +1317,85 @@ a.sh-lista__nome:hover {
   }
 
   .sh-table--cards tr.sh-linha--sem td:first-child,
-  .sh-table--cards tr.sh-linha--baixo td:first-child {
+  .sh-table--cards tr.sh-linha--baixo td:first-child,
+  .sh-table--cards tr.is-foco td:first-child {
     box-shadow: none;
   }
 
   .sh-table--cards tr.sh-linha--sem {
-    box-shadow: inset 4px 0 0 var(--sh-danger-fg);
+    box-shadow: inset 3px 0 0 var(--sh-danger-fg);
   }
 
   .sh-table--cards tr.sh-linha--baixo {
-    box-shadow: inset 4px 0 0 var(--sh-warning-fg);
+    box-shadow: inset 3px 0 0 var(--sh-warning-fg);
   }
 }
 
-/* ============================== Esqueleto, estado vazio ============================== */
+/* Tabela do Bootstrap (.table) com a mesma aparência */
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--sh-text);
+  --bs-table-border-color: var(--sh-border);
+  --bs-table-hover-bg: var(--sh-surface-2);
+  --bs-table-striped-bg: var(--sh-surface-2);
+}
+
+/* ============================== Sparkline e mini-gráfico de barras (SVG) ============================== */
+/* Tags: sh:sparkline e sh:miniBarras. O SVG é desenhado no servidor (funciona sem JavaScript), com texto
+   alternativo em role="img". A cor vem de "currentColor" (classe sh-tom--*, sh-acento) e o movimento de css/movimento.css. */
+.sh-spark,
+.sh-minibarras {
+  display: inline-block;
+  max-width: 100%; /* o tamanho vem dos atributos width/height do SVG (parâmetros largura e altura da tag) */
+  height: auto;
+  overflow: visible;
+  color: var(--sh-accent-text);
+  vertical-align: middle;
+}
+
+.sh-spark--bloco,
+.sh-minibarras--bloco {
+  display: block;
+  width: 100%;
+}
+
+.sh-acento { color: var(--sh-accent-text); }
+
+.sh-spark__linha {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sh-spark__area {
+  fill: currentColor;
+  opacity: .1;
+  stroke: none;
+}
+
+.sh-spark__ponto {
+  fill: var(--sh-surface);
+  stroke: currentColor;
+  stroke-width: 1.75;
+}
+
+.sh-minibarras__barra {
+  fill: currentColor;
+  opacity: .35;
+}
+
+.sh-minibarras__barra--destaque {
+  opacity: 1;
+}
+
+/* ============================== Esqueleto, estados vazio, erro e carregando ============================== */
 .sh-skeleton {
   display: block;
   height: 1em;
   border-radius: var(--sh-radius-sm);
-  background: linear-gradient(90deg, var(--sh-surface-2) 0%, var(--sh-border) 50%, var(--sh-surface-2) 100%);
-  background-size: 200% 100%;
-  animation: sh-brilho 1.2s linear infinite;
-}
-
-@keyframes sh-brilho {
-  from {
-    background-position: 100% 0;
-  }
-
-  to {
-    background-position: -100% 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  /* Sem brilho: cinza fixo */
-  .sh-skeleton {
-    background: var(--sh-surface-2);
-    animation: none;
-  }
+  background: var(--sh-surface-2);
 }
 
 .sh-vazio {
@@ -1272,20 +1413,104 @@ a.sh-lista__nome:hover {
   color: var(--sh-text-subtle);
 }
 
+.sh-vazio__ilustra {
+  display: block;
+  width: min(176px, 56%);
+  height: auto;
+  margin: 0 auto var(--sh-space-2);
+  overflow: visible;
+}
+
 .sh-vazio__titulo {
   margin: 0;
   font-size: var(--sh-text-lg);
-  font-weight: 600;
+  font-weight: 650;
+  letter-spacing: var(--sh-track-titulo);
 }
 
 .sh-vazio__texto {
   max-width: 44ch;
   margin: 0 0 var(--sh-space-2);
   color: var(--sh-text-muted);
+  text-wrap: pretty;
 }
 
 .sh-vazio--sucesso .sh-vazio__icone {
   color: var(--sh-success-fg);
+}
+
+/* Traços das ilustrações (linha fina, geométricas, sem personagem). Cores só por tokens. */
+.il-fio {
+  fill: none;
+  stroke: var(--sh-border-strong);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.il-fio-suave {
+  fill: none;
+  stroke: var(--sh-border);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+}
+
+.il-fio-acento {
+  fill: none;
+  stroke: var(--sh-accent-text);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.il-fio-erro {
+  fill: none;
+  stroke: var(--sh-danger-fg);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.il-fio-ok {
+  fill: none;
+  stroke: var(--sh-success-fg);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.il-plano {
+  fill: var(--sh-surface);
+  stroke: var(--sh-border-strong);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.il-plano-suave {
+  fill: var(--sh-surface-2);
+  stroke: var(--sh-border);
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+}
+
+/* Carregando: bloco de esqueletos de linhas (sh-esq-linha) ou de cartão (sh-esq-cartao) */
+.sh-carregando {
+  display: grid;
+  gap: var(--sh-space-3);
+  padding: var(--sh-space-4);
+}
+
+.sh-esq-linha {
+  height: 14px;
+}
+
+.sh-esq-linha--curta {
+  width: 40%;
+}
+
+.sh-esq-cartao {
+  height: 96px;
+  border-radius: var(--sh-radius);
 }
 
 /* ============================== Paginação ============================== */
@@ -1332,6 +1557,7 @@ a.sh-lista__nome:hover {
   min-width: var(--sh-alvo);
   min-height: var(--sh-alvo);
   border-radius: var(--sh-radius-sm);
+  font-variant-numeric: tabular-nums;
 }
 
 .sh-paginacao .page-item:not(:first-child) .page-link {
@@ -1377,7 +1603,7 @@ a.sh-lista__nome:hover {
 
 .sh-timeline__item {
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
+  grid-template-columns: 32px minmax(0, 1fr);
   gap: var(--sh-space-3);
   padding: var(--sh-space-3) 0;
   border-top: 1px solid var(--sh-border);
@@ -1387,13 +1613,13 @@ a.sh-lista__nome:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--sh-radius-sm);
 }
 
 .sh-timeline__delta {
-  font-weight: 700;
+  font-weight: 650;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1411,12 +1637,13 @@ a.sh-lista__nome:hover {
   min-height: var(--sh-alvo);
   padding: 0 var(--sh-space-3);
   border: 1px solid var(--sh-border-strong);
-  border-radius: var(--sh-radius-pill);
+  border-radius: var(--sh-radius-sm);
   background: var(--sh-surface);
   color: var(--sh-text);
   font-size: var(--sh-text-md);
   font-weight: 500;
   text-decoration: none;
+  transition: background-color var(--sh-t-1) var(--sh-ease), border-color var(--sh-t-1) var(--sh-ease);
 }
 
 .sh-chip:hover {
@@ -1444,16 +1671,37 @@ a.sh-lista__nome:hover {
   --bs-modal-footer-border-color: var(--sh-border);
 }
 
+/* Diálogos entram com fade e uma leve escala (só transform e opacity) */
+.modal.fade .modal-dialog {
+  transform: scale(.98) translateY(4px);
+  transition: transform var(--sh-t-3) var(--sh-ease-out-forte);
+}
+
+.modal.show .modal-dialog {
+  transform: none;
+}
+
+.modal-backdrop {
+  --bs-backdrop-bg: #101114;
+  --bs-backdrop-opacity: .45;
+}
+
+.modal.fade {
+  transition: opacity var(--sh-t-2) var(--sh-ease-out);
+}
+
 .modal-title {
   font-size: var(--sh-text-lg);
-  font-weight: 700;
+  font-weight: 650;
+  letter-spacing: var(--sh-track-titulo);
 }
 
 .dropdown-menu {
   --bs-dropdown-bg: var(--sh-surface);
   --bs-dropdown-color: var(--sh-text);
   --bs-dropdown-border-color: var(--sh-border);
-  --bs-dropdown-border-radius: var(--sh-radius);
+  --bs-dropdown-border-radius: var(--sh-radius-lg);
+  --bs-dropdown-inner-border-radius: var(--sh-radius-sm);
   --bs-dropdown-link-color: var(--sh-text);
   --bs-dropdown-link-hover-color: var(--sh-text);
   --bs-dropdown-link-hover-bg: var(--sh-surface-2);
@@ -1461,7 +1709,18 @@ a.sh-lista__nome:hover {
   --bs-dropdown-link-active-bg: var(--sh-accent-soft);
   --bs-dropdown-divider-bg: var(--sh-border);
   --bs-dropdown-box-shadow: var(--sh-shadow-pop);
-  --bs-dropdown-font-size: var(--sh-text-base);
+  --bs-dropdown-font-size: var(--sh-text-md);
+}
+
+.dropdown-menu.show {
+  animation: sh-menu-entra var(--sh-t-2) var(--sh-ease-out) both;
+}
+
+@keyframes sh-menu-entra {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(.985);
+  }
 }
 
 .offcanvas {
@@ -1469,29 +1728,34 @@ a.sh-lista__nome:hover {
   --bs-offcanvas-color: var(--sh-text);
   --bs-offcanvas-border-color: var(--sh-border);
   --bs-offcanvas-box-shadow: var(--sh-shadow-modal);
+  --bs-offcanvas-transition: transform var(--sh-t-3) var(--sh-ease-out-forte);
+}
+
+.offcanvas-backdrop {
+  --bs-backdrop-bg: #101114;
+  --bs-backdrop-opacity: .45;
 }
 
 .offcanvas-title {
   font-size: var(--sh-text-lg);
-  font-weight: 700;
+  font-weight: 650;
 }
 
 .breadcrumb {
   --bs-breadcrumb-divider: "›";
 }
 
+/* Teclas de atalho: monoespaçada, com a "tecla" levemente em relevo */
 kbd.sh-tecla {
   display: inline-block;
   min-width: 1.75rem;
-  padding: 2px 8px;
+  padding: 1px 7px;
   border: 1px solid var(--sh-border-strong);
   border-bottom-width: 2px;
-  border-radius: var(--sh-radius-sm);
+  border-radius: var(--sh-radius-xs);
   background: var(--sh-surface-2);
   color: var(--sh-text);
-  font-family: var(--sh-font);
   font-size: var(--sh-text-sm);
-  font-weight: 600;
   text-align: center;
 }
 
