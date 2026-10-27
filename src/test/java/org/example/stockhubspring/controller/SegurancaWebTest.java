@@ -40,7 +40,7 @@ class SegurancaWebTest extends ControllerTestBase {
     class SemLogin {
 
         @ParameterizedTest(name = "GET {0} redireciona para /login")
-        @ValueSource(strings = {"/", "/dashboard", "/produtos", "/produtos/novo", "/produtos/1", "/produtos/1/editar",
+        @ValueSource(strings = {"/dashboard", "/produtos", "/produtos/novo", "/produtos/1", "/produtos/1/editar",
                 "/categorias", "/categorias/novo", "/categorias/1/editar", "/estoque", "/estoque-baixo",
                 "/unidades", "/valor-estoque", "/produtos/exportar.csv", "/estoque/exportar.csv"})
         @DisplayName("páginas internas exigem login")
@@ -74,6 +74,41 @@ class SegurancaWebTest extends ControllerTestBase {
     @Nested
     @DisplayName("rotas públicas")
     class RotasPublicas {
+
+        @Test
+        @DisplayName("GET / é público: anônimo vê a apresentação, sem dados no model")
+        void raizPublicaMostraApresentacao() throws Exception {
+            mvc.perform(get("/"))
+                    .andExpect(status().isOk())
+                    .andExpect(view().name("apresentacao"))
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.model()
+                            .attributeDoesNotExist("resumo", "autenticado"));
+            verifyNoInteractions(dashboardService);
+        }
+
+        @Test
+        @DisplayName("só a raiz exata é pública: /dashboard e /x continuam indo para /login")
+        void soARaizEPublica() throws Exception {
+            for (String caminho : new String[]{"/dashboard", "/qualquer-coisa"}) {
+                mvc.perform(get(caminho))
+                        .andExpect(status().is3xxRedirection())
+                        .andExpect(redirectedUrl("/login"));
+            }
+        }
+
+        @Test
+        @DisplayName("GET / logado redireciona (302) para /dashboard")
+        void raizLogadoVaiParaDashboard() throws Exception {
+            mvc.perform(get("/").with(logadoComo(7)))
+                    .andExpect(status().isFound())
+                    .andExpect(redirectedUrl("/dashboard"));
+        }
+
+        @Test
+        @DisplayName("POST / sem CSRF continua 403")
+        void postRaizSemCsrfNegado() throws Exception {
+            mvc.perform(post("/")).andExpect(status().isForbidden());
+        }
 
         @Test
         @DisplayName("GET /login é público e mostra a tela de login")

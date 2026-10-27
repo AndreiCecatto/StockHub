@@ -70,7 +70,7 @@ public class SecurityConfig {
                         // acontecem depois de a requisicao original ja ter sido autorizada. Sem isso o login
                         // redireciona para si mesmo (FORWARD) e a pagina publica sai sem <head>/CSS (INCLUDE).
                         .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.INCLUDE, DispatcherType.ERROR).permitAll()
-                        .requestMatchers("/login", "/cadastro", "/error",
+                        .requestMatchers("/", "/login", "/cadastro", "/error",
                                 "/css/**", "/js/**", "/vendor/**", "/img/**", "/images/**", "/favicon.ico").permitAll()
                         .anyRequest().authenticated())
                 // Login pelo formulario existente (campos "email" e "senha"). O UserDetailsService

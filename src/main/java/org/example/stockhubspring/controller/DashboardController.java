@@ -30,7 +30,7 @@ public class DashboardController {
         this.dashboardService = dashboardService;
     }
 
-    @GetMapping({"/", "/dashboard"})
+    @GetMapping("/dashboard")
     public String dashboard(Model model) {
         Usuario usuario = usuarioAtualService.getUsuarioAtual();
         model.addAttribute("resumo", dashboardService.buscarResumo(usuario.getCodigo()));

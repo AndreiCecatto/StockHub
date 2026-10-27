@@ -35,15 +35,22 @@ class DashboardEErrosWebTest extends ControllerTestBase {
     }
 
     @Test
-    @DisplayName("GET /dashboard e GET / mostram o painel da loja da sessão")
+    @DisplayName("GET /dashboard mostra o painel da loja da sessão")
     void painel() throws Exception {
-        for (String caminho : new String[]{"/dashboard", "/"}) {
-            mvc.perform(get(caminho).with(logadoComo(7)))
-                    .andExpect(status().isOk())
-                    .andExpect(view().name("dashboard"))
-                    .andExpect(model().attributeExists("resumo", "produtosRecentes", "produtosEstoqueBaixo"));
-        }
-        verify(dashboardService, org.mockito.Mockito.times(2)).buscarResumo(7);
+        mvc.perform(get("/dashboard").with(logadoComo(7)))
+                .andExpect(status().isOk())
+                .andExpect(view().name("dashboard"))
+                .andExpect(model().attributeExists("resumo", "produtosRecentes", "produtosEstoqueBaixo"));
+        verify(dashboardService).buscarResumo(7);
+    }
+
+    @Test
+    @DisplayName("GET / logado redireciona ao painel sem consultar dados da loja")
+    void raizLogadoVaiParaOPainel() throws Exception {
+        mvc.perform(get("/").with(logadoComo(7)))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/dashboard"));
+        org.mockito.Mockito.verifyNoInteractions(dashboardService);
     }
 
     @Test
