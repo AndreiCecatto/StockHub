@@ -1043,3 +1043,4 @@ Nas telas de compra usamos nomes comuns; o termo fiscal fica só em dica (`title
 - "Frete e outras despesas" (por item) é a parte que coube ao item no rateio e já está no custo. "Como foi pago" lista as formas de pagamento (Boleto, Pix, Cartão de crédito...) e "Parcelas" lista número, vencimento e valor; ambas são só para consulta (`sh:cobrancaNfe`).
 - Nota que não é compra normal (complementar, ajuste, devolução) é recusada no envio com a frase "Esta é uma nota de ...", sem termo fiscal solto.
 - Impostos e demais campos fiscais ficam em seção recolhida (`<details class="nfe-detalhes">`).
+- Desfazer movimentação (5b): "Desfazer" (estorno), "Desfeita por um estorno", "Estorno da movimentação #n". Reserva: "Em estoque", "Reservado" e "Disponível" (disponível = em estoque menos reservado). "Clientes" só aparece no menu das lojas com Vendas ou Ordens de serviço.

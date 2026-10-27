@@ -41,6 +41,7 @@ Modelo: `tipo_loja` (grande) + `subtipo` (ramo), guardados na conta (Flyway V6, 
 
 ## Etapa 5. Base para vendas e OS
   - **Feito (5a):** loja separada da pessoa (`membro_loja`, papéis, V9, AD-13, RN-61 a RN-66). Falta mostrar quem fez cada movimentação no histórico e trocar a senha pelo próprio membro.
+  - **Feito (5b):** documento de origem, preço no movimento, estorno ("Desfazer"), reserva de estoque e clientes (V10, AD-14, RN-67 a RN-76). Falta: telas de reserva e venda, campo de preço de venda no produto e contas a receber.
 - Separar **Loja** de **Usuário** (vendedor, mecânico) com papéis e permissões.
 - Cada movimentação aponta para o documento de origem (compra, venda, OS, devolução, perda, inventário).
 - Reserva de estoque: em estoque, reservado e disponível; baixa ao fechar a OS.
