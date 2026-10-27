@@ -53,6 +53,9 @@ class ApiJsonWebTest extends ControllerTestBase {
     void buscaSemResultadoPorPadrao() {
         when(produtoService.buscarTolerante(any(), anyInt(), any()))
                 .thenReturn(new ProdutoService.ResultadoBusca(List.of(), 0));
+        // O mock devolveria null; a busca precisa dos campos do ramo (loja sem subtipo: nenhum)
+        when(produtoService.camposPermitidos(any()))
+                .thenReturn(org.example.stockhubspring.service.CamposRamo.Permitidos.NENHUM);
     }
 
     private MockHttpServletRequestBuilder movimentarJson() {
@@ -84,6 +87,27 @@ class ApiJsonWebTest extends ControllerTestBase {
                 .andExpect(jsonPath("$[0].aproximado").value(false))
                 .andExpect(jsonPath("$[1].aproximado").value(false))
                 .andExpect(jsonPath("$[2].aproximado").value(true));
+    }
+
+    @Test
+    @DisplayName("busca: campos por ramo saem no JSON só quando o ramo da loja os usa")
+    void buscaCamposPorRamo() throws Exception {
+        Produto p = produto(4, "Dipirona", 3, 5);
+        p.setLote("L-9");
+        p.setDataValidade(java.time.LocalDate.of(2030, 5, 20));
+        p.setTamanho("G");
+        when(produtoService.buscarTolerante(eq("dipi"), anyInt(), eq(7)))
+                .thenReturn(new ProdutoService.ResultadoBusca(List.of(p), 1));
+        when(produtoService.camposPermitidos(any()))
+                .thenReturn(org.example.stockhubspring.service.CamposRamo.permitidos(
+                        org.example.stockhubspring.model.Subtipo.FARMACIA));
+
+        mvc.perform(get("/api/busca").param("q", "dipi").with(logadoComo(7)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].lote").value("L-9"))
+                .andExpect(jsonPath("$[0].validade").value("2030-05-20"))
+                .andExpect(jsonPath("$[0].tamanho").doesNotExist())
+                .andExpect(jsonPath("$[0].cor").doesNotExist());
     }
 
     @Test
