@@ -223,6 +223,22 @@
                             <dt>Categoria</dt>
                             <dd><c:out value="${produto.categoria.nome}" /></dd>
                         </div>
+                        <%-- Campos do ramo: só os que camposRamo permite e que têm valor --%>
+                        <c:if test="${camposRamo.tamanho and not empty produto.tamanho}">
+                            <div class="v3-dl__item"><dt>Tamanho</dt><dd><c:out value="${produto.tamanho}" /></dd></div>
+                        </c:if>
+                        <c:if test="${camposRamo.cor and not empty produto.cor}">
+                            <div class="v3-dl__item"><dt>Cor</dt><dd><c:out value="${produto.cor}" /></dd></div>
+                        </c:if>
+                        <c:if test="${camposRamo.lote and not empty produto.lote}">
+                            <div class="v3-dl__item"><dt>Lote</dt><dd class="v3-mono"><c:out value="${produto.lote}" /></dd></div>
+                        </c:if>
+                        <c:if test="${camposRamo.validade and not empty produto.dataValidade}">
+                            <div class="v3-dl__item"><dt>Validade</dt><dd><fmt:parseDate value="${produto.dataValidade}" pattern="yyyy-MM-dd" var="dataVal" type="date" /><fmt:formatDate value="${dataVal}" pattern="dd/MM/yyyy" /></dd></div>
+                        </c:if>
+                        <c:if test="${camposRamo.numeroSerie and not empty produto.numeroSerie}">
+                            <div class="v3-dl__item"><dt>Número de série</dt><dd class="v3-mono"><c:out value="${produto.numeroSerie}" /></dd></div>
+                        </c:if>
                     </dl>
                 </section>
 

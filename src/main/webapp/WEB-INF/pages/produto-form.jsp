@@ -19,7 +19,12 @@
 <c:set var="ePreco" value="${errosCampos['preco']}" />
 <c:set var="eQuantidade" value="${errosCampos['quantidade']}" />
 <c:set var="eMinimo" value="${errosCampos['estoqueMinimo']}" />
-<c:set var="temErrosCampos" value="${not empty eNome or not empty eDescricao or not empty eCategoria or not empty ePreco or not empty eQuantidade or not empty eMinimo}" />
+<c:set var="eTamanho" value="${errosCampos['tamanho']}" />
+<c:set var="eCor" value="${errosCampos['cor']}" />
+<c:set var="eLote" value="${errosCampos['lote']}" />
+<c:set var="eValidade" value="${errosCampos['dataValidade']}" />
+<c:set var="eSerie" value="${errosCampos['numeroSerie']}" />
+<c:set var="temErrosCampos" value="${not empty eTamanho or not empty eCor or not empty eLote or not empty eValidade or not empty eSerie or not empty eNome or not empty eDescricao or not empty eCategoria or not empty ePreco or not empty eQuantidade or not empty eMinimo}" />
 
 <sh:layout titulo="${edicao ? 'Editar produto' : 'Novo produto'}" ativo="produtos" formulario="true"
     voltarUrl="/produtos" voltarRotulo="Produtos">
@@ -65,6 +70,11 @@
                     <c:if test="${not empty ePreco}"><li><a href="#preco" data-sh-ir-campo="preco"><c:out value="${ePreco}" /></a></li></c:if>
                     <c:if test="${not empty eQuantidade}"><li><a href="#quantidade" data-sh-ir-campo="quantidade"><c:out value="${eQuantidade}" /></a></li></c:if>
                     <c:if test="${not empty eMinimo}"><li><a href="#estoqueMinimo" data-sh-ir-campo="estoqueMinimo"><c:out value="${eMinimo}" /></a></li></c:if>
+                    <c:if test="${not empty eTamanho}"><li><a href="#tamanho" data-sh-ir-campo="tamanho"><c:out value="${eTamanho}" /></a></li></c:if>
+                    <c:if test="${not empty eCor}"><li><a href="#cor" data-sh-ir-campo="cor"><c:out value="${eCor}" /></a></li></c:if>
+                    <c:if test="${not empty eLote}"><li><a href="#lote" data-sh-ir-campo="lote"><c:out value="${eLote}" /></a></li></c:if>
+                    <c:if test="${not empty eValidade}"><li><a href="#dataValidade" data-sh-ir-campo="dataValidade"><c:out value="${eValidade}" /></a></li></c:if>
+                    <c:if test="${not empty eSerie}"><li><a href="#numeroSerie" data-sh-ir-campo="numeroSerie"><c:out value="${eSerie}" /></a></li></c:if>
                 </ul>
             </div>
 
@@ -201,6 +211,81 @@
                     </div>
                 </div>
             </section>
+
+            <%-- ===== Detalhes do ramo: só os campos que o ramo da loja usa (camposRamo); todos opcionais ===== --%>
+            <c:if test="${camposRamo.temAlgum}">
+            <section class="sh-card sh-secao" aria-labelledby="titulo-ramo">
+                <div class="sh-card__cab">
+                    <h2 class="sh-card__titulo" id="titulo-ramo">Detalhes do produto</h2>
+                </div>
+                <div class="sh-card__corpo">
+                    <div class="row g-3">
+                        <c:if test="${camposRamo.tamanho}">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="tamanho">Tamanho (opcional)</label>
+                            <input id="tamanho" class="form-control ${not empty eTamanho ? 'is-invalid' : ''}" type="text" name="tamanho"
+                                value="<c:out value='${produto.tamanho}'/>" maxlength="20" placeholder="Ex.: M, 42" autocomplete="off"
+                                ${not empty eTamanho ? 'aria-invalid="true" aria-describedby="erro-tamanho"' : ''}>
+                            <c:if test="${not empty eTamanho}">
+                                <div id="erro-tamanho" class="sh-erro-campo"><i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                                    <span class="sh-erro-campo__texto"><c:out value="${eTamanho}" /></span></div>
+                            </c:if>
+                        </div>
+                        </c:if>
+                        <c:if test="${camposRamo.cor}">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="cor">Cor (opcional)</label>
+                            <input id="cor" class="form-control ${not empty eCor ? 'is-invalid' : ''}" type="text" name="cor"
+                                value="<c:out value='${produto.cor}'/>" maxlength="40" placeholder="Ex.: Azul-marinho" autocomplete="off"
+                                ${not empty eCor ? 'aria-invalid="true" aria-describedby="erro-cor"' : ''}>
+                            <c:if test="${not empty eCor}">
+                                <div id="erro-cor" class="sh-erro-campo"><i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                                    <span class="sh-erro-campo__texto"><c:out value="${eCor}" /></span></div>
+                            </c:if>
+                        </div>
+                        </c:if>
+                        <c:if test="${camposRamo.lote}">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="lote">Lote (opcional)</label>
+                            <input id="lote" class="form-control ${not empty eLote ? 'is-invalid' : ''}" type="text" name="lote"
+                                value="<c:out value='${produto.lote}'/>" maxlength="40" autocomplete="off"
+                                ${not empty eLote ? 'aria-invalid="true" aria-describedby="erro-lote"' : ''}>
+                            <c:if test="${not empty eLote}">
+                                <div id="erro-lote" class="sh-erro-campo"><i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                                    <span class="sh-erro-campo__texto"><c:out value="${eLote}" /></span></div>
+                            </c:if>
+                        </div>
+                        </c:if>
+                        <c:if test="${camposRamo.validade}">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="dataValidade">Validade (opcional)</label>
+                            <input id="dataValidade" class="form-control ${not empty eValidade ? 'is-invalid' : ''}" type="date" name="dataValidade"
+                                value="<c:out value='${produto.dataValidade}'/>"
+                                aria-describedby="dica-validade${not empty eValidade ? ' erro-dataValidade' : ''}"
+                                ${not empty eValidade ? 'aria-invalid="true"' : ''}>
+                            <c:if test="${not empty eValidade}">
+                                <div id="erro-dataValidade" class="sh-erro-campo"><i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                                    <span class="sh-erro-campo__texto"><c:out value="${eValidade}" /></span></div>
+                            </c:if>
+                            <div id="dica-validade" class="form-text">Deixe em branco se o produto não vence.</div>
+                        </div>
+                        </c:if>
+                        <c:if test="${camposRamo.numeroSerie}">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="numeroSerie">Número de série (opcional)</label>
+                            <input id="numeroSerie" class="form-control ${not empty eSerie ? 'is-invalid' : ''}" type="text" name="numeroSerie"
+                                value="<c:out value='${produto.numeroSerie}'/>" maxlength="60" autocomplete="off"
+                                ${not empty eSerie ? 'aria-invalid="true" aria-describedby="erro-numeroSerie"' : ''}>
+                            <c:if test="${not empty eSerie}">
+                                <div id="erro-numeroSerie" class="sh-erro-campo"><i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                                    <span class="sh-erro-campo__texto"><c:out value="${eSerie}" /></span></div>
+                            </c:if>
+                        </div>
+                        </c:if>
+                    </div>
+                </div>
+            </section>
+            </c:if>
 
             </div>
 
