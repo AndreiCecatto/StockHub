@@ -6,7 +6,7 @@
     Os rótulos continuam no DOM quando recolhida (ficam visualmente ocultos pelo CSS).
 --%>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<div class="sh-lateral">
+<aside class="sh-lateral" aria-label="Barra lateral">
     <a class="sh-marca" href="${ctx}/dashboard">
         <span class="sh-marca__logo"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
         <span class="sh-marca__nome">StockHub</span>
@@ -68,4 +68,4 @@
             <span class="sh-lateral__alternar-rotulo">Recolher menu</span>
         </button>
     </div>
-</div>
+</aside>
