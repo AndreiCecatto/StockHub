@@ -20,6 +20,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -116,6 +117,21 @@ public class EstoqueService {
     public MovimentacaoEstoque movimentar(Integer produtoId, TipoMovimentacao tipo, int quantidade,
                                           String observacao, Usuario usuario,
                                           OrigemMovimentacao origemTipo, Integer origemId) {
+        return movimentar(produtoId, tipo, quantidade, observacao, usuario, origemTipo, origemId, null);
+    }
+
+    /**
+     * Igual à anterior, gravando na movimentação o custo unitário informado (ex.: o custo da nota na entrada
+     * por NF-e). Sem custo informado, grava o custo atual do produto (RN-45).
+     */
+    @Transactional
+    public MovimentacaoEstoque movimentar(Integer produtoId, TipoMovimentacao tipo, int quantidade,
+                                          String observacao, Usuario usuario,
+                                          OrigemMovimentacao origemTipo, Integer origemId,
+                                          BigDecimal custoUnitario) {
+        if (custoUnitario != null && custoUnitario.signum() < 0) {
+            throw new RegraNegocioException("O custo não pode ser negativo.");
+        }
         if ((origemTipo == null) != (origemId == null)) {
             throw new RegraNegocioException("Informe o tipo e o código da origem juntos.");
         }
@@ -125,7 +141,7 @@ public class EstoqueService {
             throw new RegraNegocioException("O motivo \"" + MOTIVO_ESTOQUE_INICIAL + "\" é reservado ao sistema "
                     + "(é gerado ao cadastrar um produto com saldo). Informe outro motivo.");
         }
-        return registrar(produtoId, tipo, quantidade, observacao, usuario, origemTipo, origemId);
+        return registrar(produtoId, tipo, quantidade, observacao, usuario, origemTipo, origemId, custoUnitario);
     }
 
     /**
@@ -134,7 +150,7 @@ public class EstoqueService {
      */
     @Transactional
     public MovimentacaoEstoque registrarEstoqueInicial(Integer produtoId, int quantidade, Usuario usuario) {
-        return registrar(produtoId, TipoMovimentacao.ENTRADA, quantidade, MOTIVO_ESTOQUE_INICIAL, usuario, null, null);
+        return registrar(produtoId, TipoMovimentacao.ENTRADA, quantidade, MOTIVO_ESTOQUE_INICIAL, usuario, null, null, null);
     }
 
     /** O motivo é o texto reservado do estoque inicial? Ignora maiúsculas e espaços nas pontas. */
@@ -145,7 +161,8 @@ public class EstoqueService {
 
     private MovimentacaoEstoque registrar(Integer produtoId, TipoMovimentacao tipo, int quantidade,
                                           String observacao, Usuario usuario,
-                                          OrigemMovimentacao origemTipo, Integer origemId) {
+                                          OrigemMovimentacao origemTipo, Integer origemId,
+                                          BigDecimal custoUnitario) {
         if (tipo == null) {
             throw new RegraNegocioException("Informe o tipo da movimentação.");
         }
@@ -185,6 +202,7 @@ public class EstoqueService {
         movimentacao.setQuantidadeNova((int) nova);
         movimentacao.setObservacao(motivo);
         movimentacao.definirOrigem(origemTipo, origemId);
+        movimentacao.setCustoUnitario(custoUnitario != null ? custoUnitario : produto.getCusto());
         // saveAndFlush: grava o saldo e o registro juntos, ainda dentro da transação
         produtoRepository.save(produto);
         return movimentacaoRepository.saveAndFlush(movimentacao);

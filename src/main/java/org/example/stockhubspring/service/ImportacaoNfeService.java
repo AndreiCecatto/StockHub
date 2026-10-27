@@ -650,7 +650,8 @@ public class ImportacaoNfeService {
                                            NotaFiscal notaFiscal) {
         try {
             return estoqueService.movimentar(produto.getId(), TipoMovimentacao.ENTRADA, item.quantidadeInteira(),
-                    observacao, usuario, OrigemMovimentacao.NFE_COMPRA, notaFiscal.getId());
+                    observacao, usuario, OrigemMovimentacao.NFE_COMPRA, notaFiscal.getId(),
+                    unidadeIgual(produto, item) ? item.custoUnitario() : null);
         } catch (RegraNegocioException | RecursoNaoEncontradoException e) {
             throw new RegraNegocioException(prefixo(item) + e.getMessage() + " Nada foi importado.");
         }

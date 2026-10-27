@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
@@ -60,6 +61,10 @@ public class MovimentacaoEstoque {
 
     @Column(name = "origem_id", updatable = false)
     private Integer origemId;
+
+    // Custo unitário do produto no momento da movimentação (base das análises de caixa, RN-45)
+    @Column(name = "custo_unitario", nullable = false, precision = 14, scale = 4, updatable = false)
+    private BigDecimal custoUnitario = BigDecimal.ZERO;
 
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;
@@ -148,6 +153,14 @@ public class MovimentacaoEstoque {
     public void definirOrigem(OrigemMovimentacao tipo, Integer id) {
         this.origemTipo = tipo;
         this.origemId = id;
+    }
+
+    public BigDecimal getCustoUnitario() {
+        return custoUnitario;
+    }
+
+    public void setCustoUnitario(BigDecimal custoUnitario) {
+        this.custoUnitario = custoUnitario == null ? BigDecimal.ZERO : custoUnitario;
     }
 
     public LocalDateTime getCriadoEm() {
