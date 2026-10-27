@@ -150,17 +150,17 @@
     }
     var dist = Math.abs(y - window.pageYOffset);
     var ms = Math.min(1500, 450 + dist * 0.12);
-    // cena fixa (telas largas com GSAP): depois de chegar, avança até a metade da cena para o movimento tocar
+    // cena fixa (telas largas com GSAP): depois de chegar, avança até o fim da cena para o movimento tocar
     var cena = alvo.querySelector ? (alvo.classList.contains('sh-cena') ? alvo : alvo.querySelector('.sh-cena')) : null;
     var largo = window.matchMedia('(min-width: 992px) and (min-height: 600px)').matches;
     var extra = 0;
     if (cena && largo && raiz.classList.contains('ap-gsap')) {
-      extra = Math.max(0, (cena.offsetHeight - (window.innerHeight - TOPO)) * 0.5);
+      extra = Math.max(0, (cena.offsetHeight - (window.innerHeight - TOPO)));
     }
     rolarAte(y, ms, suave, function () {
       chegou();
       if (extra) {
-        rolarAte(y + extra, 1800, saida);
+        rolarAte(y + extra, Math.min(4000, 1800 + extra), saida);
       }
     });
   });
