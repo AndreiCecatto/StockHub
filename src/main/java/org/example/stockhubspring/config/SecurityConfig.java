@@ -2,7 +2,10 @@ package org.example.stockhubspring.config;
 
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.stockhubspring.repository.MembroLojaRepository;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.http.MediaType;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -62,8 +65,11 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, MembroLojaRepository membroRepository)
+            throws Exception {
         http
+                // Quem foi desativado perde a sessão no pedido seguinte (RN-65)
+                .addFilterBefore(new MembroAtivoFilter(membroRepository), AuthorizationFilter.class)
                 // Rotas publicas: login, cadastro, pagina de erro e recursos estaticos. O resto exige login.
                 .authorizeHttpRequests(auth -> auth
                         // O forward interno para as JSPs (e para /error) e os includes de fragmentos (head.jsp etc.)
@@ -72,6 +78,11 @@ public class SecurityConfig {
                         .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.INCLUDE, DispatcherType.ERROR).permitAll()
                         .requestMatchers("/", "/login", "/cadastro", "/error",
                                 "/css/**", "/js/**", "/vendor/**", "/img/**", "/images/**", "/favicon.ico").permitAll()
+                        // Permissões por papel (RN-62): só dono e gerente excluem, mudam o tipo da loja
+                        // e cuidam da equipe. Operador e demais papéis consultam e movimentam.
+                        .requestMatchers(HttpMethod.POST, "/produtos/*/excluir", "/categorias/*/excluir")
+                                .hasAnyRole("DONO", "GERENTE")
+                        .requestMatchers("/conta/**", "/membros", "/membros/**").hasAnyRole("DONO", "GERENTE")
                         .anyRequest().authenticated())
                 // Login pelo formulario existente (campos "email" e "senha"). O UserDetailsService
                 // e o PasswordEncoder sao detectados automaticamente como beans.

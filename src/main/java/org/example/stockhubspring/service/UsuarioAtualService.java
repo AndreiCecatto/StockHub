@@ -7,8 +7,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 /**
- * Entrega o usuario logado a partir do SecurityContext. O Usuario devolvido
- * e leve (codigo, nome, email) e NUNCA contem a senha/hash.
+ * Entrega a LOJA logada (com o membro e o papel de quem opera) a partir do SecurityContext.
+ * O Usuario devolvido é leve (código da loja, nome da loja, e-mail, membroId, papel) e NUNCA
+ * contém a senha/hash.
  */
 @Service
 public class UsuarioAtualService {
@@ -30,6 +31,8 @@ public class UsuarioAtualService {
         usuario.setCodigo(principal.getCodigo());
         usuario.setNome(principal.getNome());
         usuario.setEmail(principal.getUsername());
+        usuario.setMembroId(principal.getMembroId());
+        usuario.setPapel(principal.getPapel());
         return usuario;
     }
 }

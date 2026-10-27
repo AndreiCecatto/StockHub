@@ -281,17 +281,24 @@ class SegurancaWebTest extends ControllerTestBase {
 
         private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(4);
 
-        private Usuario usuarioComSenha(String senha) {
-            Usuario usuario = Fabrica.usuario(7);
-            usuario.setSenha(encoder.encode(senha));
-            return usuario;
+        /** Membro OPERADOR da loja 7 (com a senha dada) e a loja ativa dele, como o login real carrega. */
+        private void membroDaLoja7(String senha) {
+            org.example.stockhubspring.model.MembroLoja m = new org.example.stockhubspring.model.MembroLoja();
+            m.setId(70);
+            m.setLojaCodigo(7);
+            m.setNome("Ana");
+            m.setEmail("loja7@teste.invalid");
+            m.setSenha(encoder.encode(senha));
+            m.setPapel(org.example.stockhubspring.model.PapelMembro.OPERADOR);
+            m.setAtivo(true);
+            when(membroLojaRepository.findByEmailAndAtivoTrue("loja7@teste.invalid")).thenReturn(Optional.of(m));
+            when(usuarioRepository.findById(7)).thenReturn(Optional.of(Fabrica.usuario(7)));
         }
 
         @Test
         @DisplayName("credenciais corretas autenticam e levam ao painel")
         void credenciaisCorretasAutenticam() throws Exception {
-            when(usuarioRepository.findByEmailAndAtivoTrue("loja7@teste.invalid"))
-                    .thenReturn(Optional.of(usuarioComSenha("senha-correta-1")));
+            membroDaLoja7("senha-correta-1");
 
             mvc.perform(SecurityMockMvcRequestBuilders.formLogin("/login")
                             .user("email", "  LOJA7@teste.invalid ").password("senha", "senha-correta-1"))
@@ -303,8 +310,7 @@ class SegurancaWebTest extends ControllerTestBase {
         @Test
         @DisplayName("senha errada não autentica e volta para /login?erro")
         void senhaErradaNaoAutentica() throws Exception {
-            when(usuarioRepository.findByEmailAndAtivoTrue("loja7@teste.invalid"))
-                    .thenReturn(Optional.of(usuarioComSenha("senha-correta-1")));
+            membroDaLoja7("senha-correta-1");
 
             mvc.perform(SecurityMockMvcRequestBuilders.formLogin("/login")
                             .user("email", "loja7@teste.invalid").password("senha", "senha-errada-9"))
@@ -316,7 +322,7 @@ class SegurancaWebTest extends ControllerTestBase {
         @Test
         @DisplayName("usuário inexistente ou inativo não autentica e a resposta é igual à de senha errada")
         void usuarioInexistenteOuInativoNaoAutentica() throws Exception {
-            when(usuarioRepository.findByEmailAndAtivoTrue(any())).thenReturn(Optional.empty());
+            when(membroLojaRepository.findByEmailAndAtivoTrue(any())).thenReturn(Optional.empty());
 
             mvc.perform(SecurityMockMvcRequestBuilders.formLogin("/login")
                             .user("email", "ninguem@teste.invalid").password("senha", "qualquer-senha-1"))
@@ -332,7 +338,7 @@ class SegurancaWebTest extends ControllerTestBase {
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .param("email", "loja7@teste.invalid").param("senha", "senha-correta-1");
             mvc.perform(requisicao).andExpect(status().isForbidden());
-            verifyNoInteractions(usuarioRepository);
+            verifyNoInteractions(usuarioRepository, membroLojaRepository);
         }
     }
 }

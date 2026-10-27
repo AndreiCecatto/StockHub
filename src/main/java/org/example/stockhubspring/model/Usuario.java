@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import org.example.stockhubspring.util.CnpjValido;
@@ -46,6 +47,29 @@ public class Usuario {
     @Enumerated(EnumType.STRING)
     @Column(length = 30)
     private Subtipo subtipo;
+
+    // Quem está operando a loja na sessão (não vai ao banco): só preenchido pelo UsuarioAtualService (AD-13)
+    @Transient
+    private Integer membroId;
+
+    @Transient
+    private PapelMembro papel;
+
+    public Integer getMembroId() {
+        return membroId;
+    }
+
+    public void setMembroId(Integer membroId) {
+        this.membroId = membroId;
+    }
+
+    public PapelMembro getPapel() {
+        return papel;
+    }
+
+    public void setPapel(PapelMembro papel) {
+        this.papel = papel;
+    }
 
     public TipoLoja getTipoLoja() {
         return tipoLoja;

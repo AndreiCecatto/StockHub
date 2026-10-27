@@ -65,6 +65,10 @@ abstract class ControllerTestBase {
     @MockitoBean
     protected UsuarioRepository usuarioRepository;
     @MockitoBean
+    protected org.example.stockhubspring.repository.MembroLojaRepository membroLojaRepository;
+    @MockitoBean
+    protected org.example.stockhubspring.service.MembroService membroService;
+    @MockitoBean
     protected ImportacaoNfeService importacaoNfeService;
     @MockitoBean
     protected AnaliseEstoqueService analiseEstoqueService;
@@ -72,6 +76,24 @@ abstract class ControllerTestBase {
     @BeforeEach
     void montarMockMvc() {
         mvc = MockMvcBuilders.webAppContextSetup(contexto).apply(springSecurity()).build();
+        // Por padrao todo membro esta ativo; o teste de desativacao troca isso
+        org.mockito.Mockito.when(membroLojaRepository.existsByIdAndAtivoTrue(org.mockito.ArgumentMatchers.anyInt()))
+                .thenReturn(true);
+    }
+
+    /** Autentica como uma pessoa com o papel dado, na loja de código dado (membro de id 100 + código). */
+    protected static RequestPostProcessor logadoComo(int codigo, org.example.stockhubspring.model.PapelMembro papel) {
+        org.example.stockhubspring.model.MembroLoja membro = new org.example.stockhubspring.model.MembroLoja();
+        membro.setId(100 + codigo);
+        membro.setLojaCodigo(codigo);
+        membro.setNome("Pessoa");
+        membro.setEmail("pessoa@teste.invalid");
+        membro.setSenha("hash-nao-usado");
+        membro.setPapel(papel);
+        membro.setAtivo(true);
+        UsuarioPrincipal principal = new UsuarioPrincipal(Fabrica.usuario(codigo), membro);
+        return SecurityMockMvcRequestPostProcessors.authentication(
+                new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities()));
     }
 
     /** Autentica a requisição como a loja de código dado (principal real da aplicação). */

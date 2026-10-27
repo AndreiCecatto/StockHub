@@ -1,7 +1,10 @@
 package org.example.stockhubspring.service;
 
 import org.example.stockhubspring.exception.RegraNegocioException;
+import org.example.stockhubspring.model.MembroLoja;
+import org.example.stockhubspring.model.PapelMembro;
 import org.example.stockhubspring.model.Subtipo;
+import org.example.stockhubspring.repository.MembroLojaRepository;
 import org.example.stockhubspring.model.TipoLoja;
 import org.example.stockhubspring.model.Usuario;
 import org.example.stockhubspring.repository.UsuarioRepository;
@@ -28,10 +31,13 @@ public class UsuarioService {
     private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
 
     private final UsuarioRepository usuarioRepository;
+    private final MembroLojaRepository membroRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public UsuarioService(UsuarioRepository usuarioRepository, MembroLojaRepository membroRepository,
+                          PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.membroRepository = membroRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -49,7 +55,7 @@ public class UsuarioService {
         validarCadastro(nomeLimpo, emailNormalizado, senha);
 
         // Considera também usuários inativos (o e-mail é único no banco).
-        if (usuarioRepository.existsByEmail(emailNormalizado)) {
+        if (usuarioRepository.existsByEmail(emailNormalizado) || membroRepository.existsByEmail(emailNormalizado)) {
             throw new RegraNegocioException(MSG_CADASTRO_GENERICA);
         }
 
@@ -63,7 +69,17 @@ public class UsuarioService {
 
         try {
             // saveAndFlush para a violação de unicidade (corrida entre dois cadastros) estourar aqui.
-            return usuarioRepository.saveAndFlush(usuario);
+            Usuario loja = usuarioRepository.saveAndFlush(usuario);
+            // A conta nasce com o seu DONO (AD-13): é por ele que a pessoa entra no sistema
+            MembroLoja dono = new MembroLoja();
+            dono.setLojaCodigo(loja.getCodigo());
+            dono.setNome(nomeLimpo);
+            dono.setEmail(emailNormalizado);
+            dono.setSenha(usuario.getSenha());
+            dono.setPapel(PapelMembro.DONO);
+            dono.setAtivo(true);
+            membroRepository.saveAndFlush(dono);
+            return loja;
         } catch (DataIntegrityViolationException e) {
             throw new RegraNegocioException(MSG_CADASTRO_GENERICA);
         }

@@ -1,6 +1,7 @@
 package org.example.stockhubspring.controller;
 
 import org.example.stockhubspring.model.Modulo;
+import org.example.stockhubspring.model.PapelMembro;
 import org.example.stockhubspring.model.TipoLoja;
 import org.example.stockhubspring.model.Usuario;
 import org.example.stockhubspring.repository.UsuarioRepository;
@@ -38,6 +39,20 @@ public class GlobalModelAdvice {
             return TipoLoja.ESTOQUE;
         }
         return usuarioRepository.findTipoLojaByCodigo(usuario.getCodigo()).orElse(TipoLoja.ESTOQUE);
+    }
+
+    /** Papel de quem está logado (para a tela esconder o que o papel não pode usar; o servidor confere de novo). */
+    @ModelAttribute("papelLogado")
+    public PapelMembro papelLogado() {
+        Usuario usuario = usuarioAtualService.getUsuarioAtualOuNull();
+        return usuario == null ? null : usuario.getPapel();
+    }
+
+    /** Dono ou gerente: pode excluir, mudar o tipo da loja e cuidar da equipe (RN-62). */
+    @ModelAttribute("podeGerenciar")
+    public boolean podeGerenciar() {
+        PapelMembro papel = papelLogado();
+        return papel != null && papel.gerenciaLoja();
     }
 
     /** Módulos ligados para os JSPs: {@code ${modulos['VENDAS']}} (ver tags/modulo.tag). */

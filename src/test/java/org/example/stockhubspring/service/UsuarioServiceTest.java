@@ -38,13 +38,15 @@ class UsuarioServiceTest {
 
     @Mock
     private UsuarioRepository usuarioRepository;
+    @Mock
+    private org.example.stockhubspring.repository.MembroLojaRepository membroRepository;
 
     private final PasswordEncoder encoder = new BCryptPasswordEncoder(4);
     private UsuarioService service;
 
     @BeforeEach
     void preparar() {
-        service = new UsuarioService(usuarioRepository, encoder);
+        service = new UsuarioService(usuarioRepository, membroRepository, encoder);
         when(usuarioRepository.saveAndFlush(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
     }
 

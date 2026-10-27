@@ -37,6 +37,10 @@ public class MovimentacaoEstoque {
     @JoinColumn(name = "usuario_codigo", nullable = false, updatable = false)
     private Usuario usuario;
 
+    // Quem fez (V9): id do membro da loja; NULL nas movimentações antigas
+    @Column(name = "membro_id", updatable = false)
+    private Integer membroId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20, updatable = false)
     private TipoMovimentacao tipo;
@@ -99,6 +103,14 @@ public class MovimentacaoEstoque {
 
     public void setUsuario(Usuario usuario) {
         this.usuario = usuario;
+    }
+
+    public Integer getMembroId() {
+        return membroId;
+    }
+
+    public void setMembroId(Integer membroId) {
+        this.membroId = membroId;
     }
 
     public TipoMovimentacao getTipo() {

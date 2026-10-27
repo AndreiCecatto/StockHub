@@ -196,6 +196,7 @@ public class EstoqueService {
         MovimentacaoEstoque movimentacao = new MovimentacaoEstoque();
         movimentacao.setProduto(produto);
         movimentacao.setUsuario(usuario);
+        movimentacao.setMembroId(usuario.getMembroId());
         movimentacao.setTipo(tipo);
         movimentacao.setQuantidade(quantidade);
         movimentacao.setQuantidadeAnterior(anterior);
