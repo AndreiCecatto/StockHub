@@ -123,6 +123,23 @@
     rodando = window.requestAnimationFrame(passo);
   };
 
+  // logo (link para a própria página): sobe ao topo com a URL limpa, em vez de recarregar e voltar à rolagem antiga
+  document.addEventListener('click', function (ev) {
+    var l = ev.target.closest ? ev.target.closest('a.ap-barra__marca') : null;
+    if (!l || ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) {
+      return;
+    }
+    if (l.pathname !== window.location.pathname) {
+      return;
+    }
+    ev.preventDefault();
+    if (reduzido) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    } else {
+      rolarAte(0, Math.min(1500, 450 + window.pageYOffset * 0.12), suave);
+    }
+  });
+
   document.addEventListener('click', function (ev) {
     var a = ev.target.closest ? ev.target.closest('a[href^="#"]') : null;
     if (!a || ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) {
