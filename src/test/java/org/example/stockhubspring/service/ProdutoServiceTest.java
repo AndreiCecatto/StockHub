@@ -60,6 +60,8 @@ class ProdutoServiceTest {
     private MovimentacaoEstoqueRepository movimentacaoRepository;
     @Mock
     private EstoqueService estoqueService;
+    @Mock
+    private org.example.stockhubspring.repository.UsuarioRepository usuarioRepository;
 
     private ProdutoService service;
     private Usuario usuario;
@@ -67,7 +69,7 @@ class ProdutoServiceTest {
 
     @BeforeEach
     void preparar() {
-        service = new ProdutoService(produtoRepository, categoriaRepository, movimentacaoRepository, estoqueService);
+        service = new ProdutoService(produtoRepository, categoriaRepository, movimentacaoRepository, estoqueService, usuarioRepository);
         usuario = Fabrica.usuario(LOJA);
         categoria = Fabrica.categoria(3, "Papelaria", usuario);
         when(categoriaRepository.findByIdAndUsuarioCodigo(3, LOJA)).thenReturn(Optional.of(categoria));

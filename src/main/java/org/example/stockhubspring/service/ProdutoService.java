@@ -8,6 +8,8 @@ import org.example.stockhubspring.model.Categoria;
 import org.example.stockhubspring.model.MovimentacaoEstoque;
 import org.example.stockhubspring.model.NivelEstoque;
 import org.example.stockhubspring.model.Produto;
+import org.example.stockhubspring.model.Subtipo;
+import org.example.stockhubspring.repository.UsuarioRepository;
 import org.example.stockhubspring.model.TipoMovimentacao;
 import org.example.stockhubspring.model.Usuario;
 import org.example.stockhubspring.repository.CategoriaRepository;
@@ -64,15 +66,18 @@ public class ProdutoService {
     private final CategoriaRepository categoriaRepository;
     private final MovimentacaoEstoqueRepository movimentacaoRepository;
     private final EstoqueService estoqueService;
+    private final UsuarioRepository usuarioRepository;
 
     public ProdutoService(ProdutoRepository produtoRepository,
                           CategoriaRepository categoriaRepository,
                           MovimentacaoEstoqueRepository movimentacaoRepository,
-                          EstoqueService estoqueService) {
+                          EstoqueService estoqueService,
+                          UsuarioRepository usuarioRepository) {
         this.produtoRepository = produtoRepository;
         this.categoriaRepository = categoriaRepository;
         this.movimentacaoRepository = movimentacaoRepository;
         this.estoqueService = estoqueService;
+        this.usuarioRepository = usuarioRepository;
     }
 
     /** Listagem paginada com filtros e ordenação feitos no banco. */
@@ -296,7 +301,15 @@ public class ProdutoService {
 
     /** Campos permitidos ao ramo da loja do usuário (para as telas e a busca). */
     public CamposRamo.Permitidos camposPermitidos(Usuario usuario) {
-        return CamposRamo.permitidos(usuario.getSubtipo());
+        return CamposRamo.permitidos(subtipoDaLoja(usuario));
+    }
+
+    /**
+     * Subtipo atual da LOJA (o código do usuário já é o da loja, inclusive para funcionários), lido do banco
+     * para não depender de valor velho na sessão após a troca em /conta. Sem registro, usa o que o objeto trouxe.
+     */
+    private Subtipo subtipoDaLoja(Usuario usuario) {
+        return usuarioRepository.findSubtipoByCodigo(usuario.getCodigo()).orElse(usuario.getSubtipo());
     }
 
     /**
@@ -304,7 +317,7 @@ public class ProdutoService {
      * os demais ficam como estão no produto, sem apagar nada (RN-103). Vazio vira null (RN-99); validade é opcional (RN-102).
      */
     private void aplicarCamposRamo(Produto produto, ProdutoForm form, Usuario usuario) {
-        var permitidos = CamposRamo.permitidos(usuario.getSubtipo());
+        var permitidos = camposPermitidos(usuario);
         if (permitidos.tamanho()) {
             produto.setTamanho(limitar(form.getTamanho(), CamposRamo.TAMANHO_MAX, "O tamanho"));
         }
