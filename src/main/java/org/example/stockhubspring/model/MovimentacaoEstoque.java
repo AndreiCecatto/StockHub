@@ -14,6 +14,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * Movimentação de estoque: registro imutável e auditável (RN-06). Não há edição nem exclusão;
@@ -58,7 +59,8 @@ public class MovimentacaoEstoque {
     @PrePersist
     void definirCriadoEm() {
         if (criadoEm == null) {
-            criadoEm = LocalDateTime.now();
+            // Horário de parede de São Paulo: é o fuso que define o "dia" do gráfico de movimentos
+            criadoEm = LocalDateTime.now(ZoneId.of("America/Sao_Paulo"));
         }
     }
 
