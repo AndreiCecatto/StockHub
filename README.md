@@ -29,6 +29,7 @@
 - [Testes](#testes)
 - [Segurança](#segurança)
 - [Documentação](#documentação)
+- [Licença](#licença)
 - [Autor](#autor)
 
 ## Sobre
@@ -218,6 +219,10 @@ São 470 testes: regras de serviço com Mockito, controllers com `@WebMvcTest` e
 | [Regras de negócio](docs/regras-negocio.md) | as regras RN-01 a RN-14 |
 | [Design e front-end](docs/design-system.md) | identidade visual, componentes, movimento e acessibilidade |
 | [Mercado e requisitos](docs/mercado-requisitos.md) | levantamento que orientou os recursos |
+
+## Licença
+
+Distribuído sob a licença MIT. Veja o arquivo [LICENSE](LICENSE). As bibliotecas do front mantêm as próprias licenças, em `src/main/webapp/vendor/`.
 
 ## Autor
 
