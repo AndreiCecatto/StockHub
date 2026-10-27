@@ -368,4 +368,54 @@ class ProdutoConsultasIntegracaoTest extends IntegracaoBase {
 
         assertThat(resultado.getSize()).isEqualTo(100);
     }
+
+    @Test
+    @DisplayName("busca tolerante: acha por erro de digitação, marca o que é só parecido e respeita a loja e os inativos")
+    void buscaTolerantePerdoaErro() {
+        novoProduto(loja, papelaria, "Caneta esferográfica azul", 5, 1);
+        novoProduto(loja, papelaria, "Caderno universitário", 5, 1);
+        Produto inativo = novoProduto(loja, papelaria, "Caneta antiga", 5, 1);
+        inativo.setAtivo(false);
+        produtoRepository.saveAndFlush(inativo);
+        Usuario outra = novoUsuario();
+        novoProduto(outra, novaCategoria(outra, "X"), "Caneta alheia", 5, 1);
+        limparSessao();
+
+        var exata = produtoService.buscarTolerante("cane", 8, loja.getCodigo());
+        assertThat(exata.produtos()).extracting(Produto::getNome).containsExactly("Caneta esferográfica azul");
+        assertThat(exata.exatos()).isEqualTo(1);
+
+        var errada = produtoService.buscarTolerante("cenata", 8, loja.getCodigo());
+        assertThat(errada.produtos()).extracting(Produto::getNome).containsExactly("Caneta esferográfica azul");
+        assertThat(errada.exatos()).isZero();
+
+        var semAcento = produtoService.buscarTolerante("universitario", 8, loja.getCodigo());
+        assertThat(semAcento.produtos()).extracting(Produto::getNome).containsExactly("Caderno universitário");
+        assertThat(semAcento.exatos()).isEqualTo(1);
+
+        assertThat(produtoService.buscarTolerante("zzzzz", 8, loja.getCodigo()).produtos()).isEmpty();
+        assertThat(produtoService.buscarTolerante("c", 8, loja.getCodigo()).produtos()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("busca tolerante: com resultado exato não mistura parecidos; sem exato, ordena do mais ao menos parecido e respeita o limite")
+    void buscaToleranteOrdemELimite() {
+        novoProduto(loja, papelaria, "Caneta preta", 5, 1);
+        novoProduto(loja, papelaria, "Canetas coloridas", 5, 1);
+        novoProduto(loja, papelaria, "Cnaeta marca-texto", 5, 1);
+        limparSessao();
+
+        var exato = produtoService.buscarTolerante("caneta", 8, loja.getCodigo());
+        assertThat(exato.produtos()).extracting(Produto::getNome).containsExactly("Caneta preta", "Canetas coloridas");
+        assertThat(exato.exatos()).isEqualTo(2);
+
+        var erro = produtoService.buscarTolerante("canata", 8, loja.getCodigo());
+        assertThat(erro.exatos()).isZero();
+        assertThat(erro.produtos()).extracting(Produto::getNome)
+                .containsExactlyInAnyOrder("Caneta preta", "Canetas coloridas", "Cnaeta marca-texto");
+        // a palavra inteira mais próxima vem antes da que só começa parecido
+        assertThat(erro.produtos().get(0).getNome()).isEqualTo("Caneta preta");
+
+        assertThat(produtoService.buscarTolerante("canata", 2, loja.getCodigo()).produtos()).hasSize(2);
+    }
 }

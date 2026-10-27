@@ -22,6 +22,17 @@ import java.util.Optional;
  */
 public interface ProdutoRepository extends JpaRepository<Produto, Integer>, JpaSpecificationExecutor<Produto> {
 
+    /** Só o id e o nome (sem categoria nem outras colunas): matéria-prima da busca tolerante a erro de digitação. */
+    interface NomeDoProduto {
+        Integer getId();
+
+        String getNome();
+    }
+
+    @Query("select p.id as id, p.nome as nome from Produto p where p.usuario.codigo = :usuarioCodigo "
+            + "and p.ativo = true order by p.id")
+    List<NomeDoProduto> listarNomesAtivos(@Param("usuarioCodigo") Integer usuarioCodigo, Pageable pageable);
+
     @EntityGraph(attributePaths = "categoria")
     Optional<Produto> findByIdAndUsuarioCodigoAndAtivoTrue(Integer id, Integer usuarioCodigo);
 

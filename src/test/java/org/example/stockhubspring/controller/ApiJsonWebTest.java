@@ -9,6 +9,8 @@ import org.example.stockhubspring.model.Produto;
 import org.example.stockhubspring.model.TipoMovimentacao;
 import org.example.stockhubspring.model.Usuario;
 import org.example.stockhubspring.testsupport.Fabrica;
+import org.example.stockhubspring.service.ProdutoService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -47,6 +49,12 @@ class ApiJsonWebTest extends ControllerTestBase {
         return p;
     }
 
+    @BeforeEach
+    void buscaSemResultadoPorPadrao() {
+        when(produtoService.buscarTolerante(any(), anyInt(), any()))
+                .thenReturn(new ProdutoService.ResultadoBusca(List.of(), 0));
+    }
+
     private MockHttpServletRequestBuilder movimentarJson() {
         return post("/estoque/movimentar").with(logadoComo(7)).with(csrf()).accept(JSON);
     }
@@ -56,9 +64,9 @@ class ApiJsonWebTest extends ControllerTestBase {
     @Test
     @DisplayName("busca: devolve array com o formato do contrato e consulta só a loja da sessão")
     void buscaFormato() throws Exception {
-        when(produtoService.buscarRapido(eq("cane"), eq(8), eq(7)))
-                .thenReturn(List.of(produto(4, "Caneta azul", 3, 5), produto(5, "Caneca", 0, 2),
-                        produto(6, "Canela", 50, 5)));
+        when(produtoService.buscarTolerante(eq("cane"), eq(8), eq(7))).thenReturn(new ProdutoService.ResultadoBusca(
+                List.of(produto(4, "Caneta azul", 3, 5), produto(5, "Caneca", 0, 2),
+                        produto(6, "Canela", 50, 5)), 2));
 
         mvc.perform(get("/api/busca").param("q", "cane").with(logadoComo(7)))
                 .andExpect(status().isOk())
@@ -72,22 +80,25 @@ class ApiJsonWebTest extends ControllerTestBase {
                 .andExpect(jsonPath("$[0].nivel").value("BAIXO"))
                 .andExpect(jsonPath("$[0].url").value("/produtos/4"))
                 .andExpect(jsonPath("$[1].nivel").value("SEM_ESTOQUE"))
-                .andExpect(jsonPath("$[2].nivel").value("NORMAL"));
+                .andExpect(jsonPath("$[2].nivel").value("NORMAL"))
+                .andExpect(jsonPath("$[0].aproximado").value(false))
+                .andExpect(jsonPath("$[1].aproximado").value(false))
+                .andExpect(jsonPath("$[2].aproximado").value(true));
     }
 
     @Test
     @DisplayName("busca: limite ausente vale 8; limite informado é repassado; limite inválido volta ao padrão (sem 400)")
     void buscaLimite() throws Exception {
         mvc.perform(get("/api/busca").param("q", "ab").with(logadoComo(7))).andExpect(status().isOk());
-        verify(produtoService).buscarRapido("ab", 8, 7);
+        verify(produtoService).buscarTolerante("ab", 8, 7);
 
         mvc.perform(get("/api/busca").param("q", "ab").param("limite", "15").with(logadoComo(7)))
                 .andExpect(status().isOk());
-        verify(produtoService).buscarRapido("ab", 15, 7);
+        verify(produtoService).buscarTolerante("ab", 15, 7);
 
         mvc.perform(get("/api/busca").param("q", "ab").param("limite", "abc").with(logadoComo(7)))
                 .andExpect(status().isOk());
-        verify(produtoService, org.mockito.Mockito.times(2)).buscarRapido("ab", 8, 7);
+        verify(produtoService, org.mockito.Mockito.times(2)).buscarTolerante("ab", 8, 7);
     }
 
     @Test
@@ -109,7 +120,7 @@ class ApiJsonWebTest extends ControllerTestBase {
         mvc.perform(get("/api/dashboard/movimentos"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.ok").value(false));
-        verify(produtoService, never()).buscarRapido(any(), anyInt(), any());
+        verify(produtoService, never()).buscarTolerante(any(), anyInt(), any());
     }
 
     // ----- POST /estoque/movimentar (JSON) -----

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /** Busca rápida de produtos (autocompletar da interface). Sempre escopada à loja do usuário logado. */
@@ -32,8 +33,13 @@ public class ApiBuscaController {
     public List<ProdutoBusca> buscar(@RequestParam(required = false) String q,
                                      @RequestParam(required = false) String limite) {
         Integer loja = usuarioAtualService.getUsuarioAtual().getCodigo();
-        return produtoService.buscarRapido(q, lerInteiro(limite, ProdutoService.BUSCA_LIMITE_PADRAO), loja)
-                .stream().map(ProdutoBusca::de).toList();
+        var resultado = produtoService.buscarTolerante(q, lerInteiro(limite, ProdutoService.BUSCA_LIMITE_PADRAO), loja);
+        List<ProdutoBusca> itens = new ArrayList<>();
+        for (int i = 0; i < resultado.produtos().size(); i++) {
+            var produto = resultado.produtos().get(i);
+            itens.add(i < resultado.exatos() ? ProdutoBusca.de(produto) : ProdutoBusca.parecido(produto));
+        }
+        return itens;
     }
 
     static int lerInteiro(String valor, int padrao) {

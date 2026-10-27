@@ -14,6 +14,7 @@ import org.example.stockhubspring.repository.CategoriaRepository;
 import org.example.stockhubspring.repository.MovimentacaoEstoqueRepository;
 import org.example.stockhubspring.repository.ProdutoRepository;
 import org.example.stockhubspring.repository.ProdutoSpecs;
+import org.example.stockhubspring.util.BuscaDifusa;
 import org.example.stockhubspring.util.Paginas;
 import org.example.stockhubspring.util.Restricoes;
 import org.example.stockhubspring.util.Textos;
@@ -26,7 +27,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /** Produtos da loja. Toda operação é escopada pelo usuário logado (RN-01) e só enxerga produtos ativos. */
 @Service
@@ -44,6 +49,12 @@ public class ProdutoService {
     public static final int BUSCA_TERMO_MINIMO = 2;
     public static final int BUSCA_LIMITE_PADRAO = 8;
     public static final int BUSCA_LIMITE_MAXIMO = 20;
+    /** Quantos nomes a busca tolerante examina por consulta (teto de segurança; uma loja média tem bem menos). */
+    public static final int BUSCA_TOLERANTE_MAXIMO_NOMES = 5000;
+
+    /** Resultado da busca com sugestões: os {@code exatos} primeiros casam com o texto; o restante é "parecido". */
+    public record ResultadoBusca(List<Produto> produtos, int exatos) {
+    }
 
     private final ProdutoRepository produtoRepository;
     private final CategoriaRepository categoriaRepository;
@@ -155,6 +166,49 @@ public class ProdutoService {
                 .and(ProdutoSpecs.nomeContendoSemAcento(limpo));
         Sort ordem = Sort.by(Sort.Order.asc("nome").ignoreCase(), Sort.Order.asc("id"));
         return produtoRepository.findAll(spec, PageRequest.of(0, tamanho, ordem)).getContent();
+    }
+
+    /**
+     * Busca rápida que perdoa erro de digitação: devolve os produtos que contêm o texto (como em
+     * {@link #buscarRapido}); só quando NENHUM contém, procura os de nome parecido
+     * ({@link BuscaDifusa}), do mais ao menos parecido. Misturar os dois só traria ruído ("cane" achando "caderno").
+     * Sempre restrito aos produtos ativos da loja.
+     */
+    @Transactional(readOnly = true)
+    public ResultadoBusca buscarTolerante(String termo, int limite, Integer usuarioCodigo) {
+        List<Produto> exatos = buscarRapido(termo, limite, usuarioCodigo);
+        int tamanho = Math.max(1, Math.min(limite, BUSCA_LIMITE_MAXIMO));
+        String limpo = Textos.limpar(termo);
+        if (limpo == null || limpo.length() < BUSCA_TERMO_MINIMO || !exatos.isEmpty()) {
+            return new ResultadoBusca(exatos, exatos.size());
+        }
+        Set<Integer> jaTem = new HashSet<>();
+        exatos.forEach(p -> jaTem.add(p.getId()));
+        record Candidato(Integer id, double nota, String nome) {
+        }
+        List<Candidato> parecidos = new ArrayList<>();
+        for (var nome : produtoRepository.listarNomesAtivos(usuarioCodigo,
+                PageRequest.of(0, BUSCA_TOLERANTE_MAXIMO_NOMES))) {
+            double nota = BuscaDifusa.pontuar(limpo, nome.getNome());
+            if (nota > BuscaDifusa.SEM_CORRESPONDENCIA && !jaTem.contains(nome.getId())) {
+                parecidos.add(new Candidato(nome.getId(), nota, nome.getNome()));
+            }
+        }
+        if (parecidos.isEmpty()) {
+            return new ResultadoBusca(exatos, exatos.size());
+        }
+        parecidos.sort(Comparator.comparingDouble(Candidato::nota).reversed()
+                .thenComparing(Candidato::nome, String.CASE_INSENSITIVE_ORDER));
+        List<Integer> escolhidos = parecidos.stream().limit(tamanho - exatos.size()).map(Candidato::id).toList();
+        // carrega só os escolhidos, de novo com o filtro da loja (a lista de nomes nunca vira acesso a outra loja)
+        Specification<Produto> spec = ProdutoSpecs.ativosDoUsuario(usuarioCodigo)
+                .and((root, query, cb) -> root.get("id").in(escolhidos));
+        List<Produto> carregados = produtoRepository.findAll(spec, PageRequest.of(0, escolhidos.size())).getContent();
+        List<Produto> ordenados = new ArrayList<>(exatos);
+        for (Integer id : escolhidos) {
+            carregados.stream().filter(p -> p.getId().equals(id)).findFirst().ifPresent(ordenados::add);
+        }
+        return new ResultadoBusca(ordenados, exatos.size());
     }
 
     /** Produtos ativos em ordem de nome, para o seletor da tela de movimentação. */
