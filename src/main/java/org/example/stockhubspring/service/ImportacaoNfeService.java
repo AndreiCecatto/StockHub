@@ -89,6 +89,15 @@ public class ImportacaoNfeService {
 
     private static final ZoneId FUSO_LOJA = ZoneId.of("America/Sao_Paulo");
     private static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+    /** Valor em reais no padrão brasileiro (1.234,50) para as mensagens. */
+    private static String formatarValor(BigDecimal valor) {
+        java.text.NumberFormat formato = java.text.NumberFormat.getNumberInstance(java.util.Locale.forLanguageTag("pt-BR"));
+        formato.setMinimumFractionDigits(2);
+        formato.setMaximumFractionDigits(2);
+        return formato.format(valor);
+    }
+
     private static final Sort ORDEM_RECENTES = Sort.by(Sort.Order.desc("importadaEm"), Sort.Order.desc("id"));
     /** Casa as duas UNIQUE de nota_fiscal (loja+chave e loja+fornecedor+modelo+série+número). */
     private static final String UK_NOTA = "uk_nota_fiscal_";
@@ -275,6 +284,12 @@ public class ImportacaoNfeService {
             avisos.add("A nota foi emitida em " + nota.emitidaEm().format(FORMATO_DATA).substring(0, 10)
                     + ", há mais de 12 meses. Confira se não é uma nota antiga que já foi lançada.");
         }
+        BigDecimal despesas = nota.itens().stream().map(ItemNfe::rateio).reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (despesas.signum() > 0) {
+            avisos.add("O frete, o seguro e as outras despesas da nota (R$ " + formatarValor(despesas)
+                    + ") foram divididos entre os itens, em proporção ao valor de cada um, e já estão somados ao "
+                    + "custo de cada produto.");
+        }
         avisos.add("Ao confirmar, o custo de cada produto é atualizado, e o código de barras (EAN) e o NCM da nota "
                 + "são gravados nos produtos que ainda não os têm.");
 
@@ -317,7 +332,7 @@ public class ImportacaoNfeService {
                     bloqueio != null, bloqueio, List.copyOf(avisosItem),
                     sugerido == null ? null : sugerido.getId(), sugerido == null ? null : sugerido.getNome(),
                     sugerido == null ? null : sugerido.getUnidade(),
-                    sugestao == null ? MotivoSugestao.NENHUM : sugestao.motivo(), unidadeDiferente));
+                    sugestao == null ? MotivoSugestao.NENHUM : sugestao.motivo(), unidadeDiferente, item.rateio()));
         }
         return new RevisaoNfe(importacao.getToken(), importacao.getExpiraEm(), nota, NotaNfe.AVISO_NAO_VERIFICADA,
                 List.copyOf(avisos), lojaTemCnpj, destinatarioConfere, fornecedor != null, importaveis,

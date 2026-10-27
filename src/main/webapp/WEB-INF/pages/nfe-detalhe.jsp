@@ -137,6 +137,7 @@
                                     <span class="nfe-desc__meta">
                                         <c:if test="${not empty it.codigoFornecedor}">Cód. <span class="sh-mono"><c:out value="${it.codigoFornecedor}" /></span></c:if>
                                         <c:if test="${not empty it.cfop}"><c:if test="${not empty it.codigoFornecedor}"> &middot; </c:if><sh:cfop codigo="${it.cfop}" /></c:if>
+                                        <c:if test="${it.custoUnitario != null}"><br>Custo de cada unidade: <span class="sh-mono">R$ <fmt:formatNumber value="${it.custoUnitario}" pattern="#,##0.00##" /></span><c:if test="${it.rateio > 0}"> (com R$ <fmt:formatNumber value="${it.rateio}" pattern="#,##0.00" /> de frete e outras despesas)</c:if></c:if>
                                     </span>
                                 </td>
                                 <td role="cell" class="sh-col-num sh-mono" data-label="Quantidade"><fmt:formatNumber value="${it.quantidade}" pattern="#,##0.####" /> <c:out value="${it.unidade}" /></td>

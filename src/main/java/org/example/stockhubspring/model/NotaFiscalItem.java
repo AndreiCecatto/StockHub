@@ -255,4 +255,15 @@ public class NotaFiscalItem {
     public void setCustoUnitario(BigDecimal custoUnitario) {
         this.custoUnitario = custoUnitario;
     }
+
+    /** Parte de frete, seguro e outras despesas que entrou no custo deste item (zero se a nota não guardou). */
+    public BigDecimal getRateio() {
+        BigDecimal soma = BigDecimal.ZERO;
+        for (BigDecimal parte : new BigDecimal[]{valorFrete, valorSeguro, valorOutras}) {
+            if (parte != null) {
+                soma = soma.add(parte);
+            }
+        }
+        return soma;
+    }
 }

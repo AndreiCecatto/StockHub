@@ -233,6 +233,9 @@
                                 <div><dt>Desconto</dt><dd class="sh-mono">R$ <fmt:formatNumber value="${it.desconto}" pattern="#,##0.00" /></dd></div>
                             </c:if>
                             <div><dt>Total</dt><dd class="sh-mono"><strong>R$ <fmt:formatNumber value="${it.valorTotal}" pattern="#,##0.00" /></strong></dd></div>
+                            <c:if test="${it.rateio != null and it.rateio > 0}">
+                                <div><dt title="Parte do frete, seguro e outras despesas da nota que coube a este item">Frete e outras despesas</dt><dd class="sh-mono">R$ <fmt:formatNumber value="${it.rateio}" pattern="#,##0.00" /></dd></div>
+                            </c:if>
                             <div><dt>Custo unitário</dt><dd class="sh-mono">R$ <fmt:formatNumber value="${it.custoUnitario}" pattern="#,##0.00##" /></dd></div>
                             <c:if test="${not empty it.codigoFornecedor}"><div><dt>Código do fornecedor</dt><dd class="sh-mono"><c:out value="${it.codigoFornecedor}" /></dd></div></c:if>
                             <c:if test="${not empty it.ean}"><div><dt>Código de barras</dt><dd class="sh-mono"><c:out value="${it.ean}" /></dd></div></c:if>

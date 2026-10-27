@@ -30,17 +30,39 @@ public record ItemNfe(int numero, String codigoFornecedor, String ean, String de
     /** CFOP (3 últimos dígitos) que normalmente não é mercadoria para revenda: bonificação, remessa, demonstração etc. */
     private static final Set<String> CFOP_SUFIXOS_SUSPEITOS = Set.of("910", "949", "915", "916", "920", "921", "927");
 
-    /** Valor do item menos o desconto do próprio item (sem rateio de frete ou impostos nesta versão). */
+    /** Valor do item menos o desconto do próprio item (base do rateio; sem frete, seguro e outras despesas). */
     public BigDecimal valorLiquido() {
         return valorBruto.subtract(desconto == null ? BigDecimal.ZERO : desconto);
     }
 
-    /** Custo unitário = valor líquido / quantidade, 4 casas, HALF_UP; nulo se a quantidade não for positiva. */
+    /** Parte de frete, seguro e outras despesas que cabe a este item (já rateada pelo {@link RateioNfe}). */
+    public BigDecimal rateio() {
+        BigDecimal soma = BigDecimal.ZERO;
+        for (BigDecimal parte : new BigDecimal[]{frete, seguro, outras}) {
+            if (parte != null) {
+                soma = soma.add(parte);
+            }
+        }
+        return soma;
+    }
+
+    /** Valor líquido mais a parte de frete, seguro e outras despesas: o que a loja pagou de fato pelo item. */
+    public BigDecimal valorComRateio() {
+        return valorLiquido().add(rateio());
+    }
+
+    /** Cópia com frete, seguro e outras despesas do item definidos (usada pelo rateio). */
+    ItemNfe comDespesas(BigDecimal novoFrete, BigDecimal novoSeguro, BigDecimal novasOutras) {
+        return new ItemNfe(numero, codigoFornecedor, ean, descricao, ncm, cfop, cfopEntrada, unidade, quantidade,
+                valorUnitario, valorBruto, desconto, novoFrete, novoSeguro, novasOutras);
+    }
+
+    /** Custo unitário = (valor líquido + rateio) / quantidade, 4 casas, HALF_UP; nulo se a quantidade não for positiva. */
     public BigDecimal custoUnitario() {
         if (quantidade.signum() <= 0) {
             return null;
         }
-        return valorLiquido().divide(quantidade, 4, RoundingMode.HALF_UP);
+        return valorComRateio().divide(quantidade, 4, RoundingMode.HALF_UP);
     }
 
     /** Quantidade com parte decimal (ex.: 2,5): o saldo do sistema é inteiro, então o item não entra no estoque. */

@@ -31,6 +31,6 @@ public record RevisaoNfe(UUID token, LocalDateTime expiraEm, NotaNfe nota, Strin
                               BigDecimal custoUnitario, SituacaoItemNfe situacao, boolean bloqueado,
                               String motivoBloqueio, List<String> avisos, Integer produtoSugeridoId,
                               String produtoSugeridoNome, String produtoSugeridoUnidade,
-                              MotivoSugestao motivoSugestao, boolean unidadeDiferente) {
+                              MotivoSugestao motivoSugestao, boolean unidadeDiferente, BigDecimal rateio) {
     }
 }

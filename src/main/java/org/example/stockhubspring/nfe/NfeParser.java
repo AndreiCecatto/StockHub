@@ -298,6 +298,9 @@ public final class NfeParser {
         // Só registra se o bloco existe; a assinatura NÃO é validada
         boolean assinatura = filho(nfe, "Signature") != null;
 
+        // Frete, seguro e outras despesas entram no custo de cada item, divididos pelo valor (RN-54)
+        itens = RateioNfe.aplicar(valorFrete, valorSeguro, valorOutras, itens);
+
         return new NotaNfe(chave, modelo, serie, numero, naturezaOperacao, emitidaEm, emitente, destinatario,
                 valorProdutos, valorFrete, valorSeguro, valorOutras, valorDesconto, valorTotal, assinatura,
                 protocolo != null, itens);
