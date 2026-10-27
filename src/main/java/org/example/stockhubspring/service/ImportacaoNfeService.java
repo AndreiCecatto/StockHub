@@ -330,6 +330,8 @@ public class ImportacaoNfeService {
             List<String> avisosItem = new ArrayList<>(item.avisos());
             Sugestao sugestao = null;
             boolean unidadeDiferente = false;
+            boolean avisoEan = false;
+            boolean avisoNcm = false;
             if (situacao == SituacaoItemNfe.IMPORTADO) {
                 importaveis++;
                 sugestao = sugeridor.sugerir(item);
@@ -337,16 +339,10 @@ public class ImportacaoNfeService {
                     Produto sugerido = sugestao.produto();
                     if (!unidadeIgual(sugerido, item)) {
                         unidadeDiferente = true;
-                        avisosItem.add("A unidade da nota (" + item.unidade() + ") é diferente da unidade do produto ("
-                                + sugerido.getUnidade() + "). Não há conversão automática: confira a quantidade.");
                     }
-                    if (sugerido.getEan() == null && item.ean() != null) {
-                        avisosItem.add("O código de barras " + item.ean() + " será gravado no produto "
-                                + "(ele ainda não tem um).");
-                    }
-                    if (sugerido.getNcm() == null && item.ncm() != null) {
-                        avisosItem.add("O NCM " + item.ncm() + " será gravado no produto (ele ainda não tem um).");
-                    }
+                    // avisos estruturados (RN-59): a tela escreve o texto e o JavaScript recalcula ao trocar o produto
+                    avisoEan = sugerido.getEan() == null && item.ean() != null;
+                    avisoNcm = sugerido.getNcm() == null && item.ncm() != null;
                 }
             }
             Produto sugerido = sugestao == null ? null : sugestao.produto();
@@ -356,7 +352,7 @@ public class ImportacaoNfeService {
                     bloqueio != null, bloqueio, List.copyOf(avisosItem),
                     sugerido == null ? null : sugerido.getId(), sugerido == null ? null : sugerido.getNome(),
                     sugerido == null ? null : sugerido.getUnidade(),
-                    sugestao == null ? MotivoSugestao.NENHUM : sugestao.motivo(), unidadeDiferente, item.rateio()));
+                    sugestao == null ? MotivoSugestao.NENHUM : sugestao.motivo(), unidadeDiferente, item.rateio(), avisoEan, avisoNcm));
         }
         return new RevisaoNfe(importacao.getToken(), importacao.getExpiraEm(), nota, NotaNfe.AVISO_NAO_VERIFICADA,
                 List.copyOf(avisos), lojaTemCnpj, destinatarioConfere, fornecedor != null, importaveis,

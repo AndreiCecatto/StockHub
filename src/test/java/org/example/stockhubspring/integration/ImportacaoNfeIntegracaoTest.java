@@ -299,7 +299,6 @@ class ImportacaoNfeIntegracaoTest extends IntegracaoBase {
 
             ItemRevisao item = itemDaRevisao(loja, token, 1);
             assertThat(item.unidadeDiferente()).isTrue();
-            assertThat(item.avisos()).anyMatch(a -> a.contains("unidade"));
 
             service.confirmar(token, confirmacao(vincular(p)), loja);
             Map<String, Object> linha = linhaProduto(p.getId());
@@ -1081,8 +1080,9 @@ class ImportacaoNfeIntegracaoTest extends IntegracaoBase {
 
             ItemRevisao item = revisao.itens().get(0);
             assertThat(item.motivoSugestao()).isEqualTo(MotivoSugestao.CODIGO_FORNECEDOR);
-            assertThat(item.avisos()).anyMatch(a -> a.contains("código de barras 7891000100103 será gravado"));
-            assertThat(item.avisos()).anyMatch(a -> a.contains("NCM 22021000 será gravado"));
+            assertThat(item.avisoEan()).isTrue();
+            assertThat(item.avisoNcm()).isTrue();
+            assertThat(item.avisos()).noneMatch(a -> a.contains("será gravado"));
             assertThat(revisao.avisos()).anyMatch(a -> a.startsWith("Ao confirmar"));
         }
 

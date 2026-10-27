@@ -91,7 +91,7 @@ class NfeControllerTest extends ControllerTestBase {
         ItemRevisao item = new ItemRevisao(1, "P1", null, "PRODUTO", "22021000", "5102", "1102", "UN",
                 new BigDecimal("10.0000"), new BigDecimal("5.0000000000"), new BigDecimal("50.00"), null,
                 new BigDecimal("5.0000"), SituacaoItemNfe.IMPORTADO, false, null, List.of(), null, null, null,
-                MotivoSugestao.NENHUM, false, BigDecimal.ZERO);
+                MotivoSugestao.NENHUM, false, BigDecimal.ZERO, false, false);
         return new RevisaoNfe(TOKEN, LocalDateTime.of(2026, 3, 10, 11, 0), nota, NotaNfe.AVISO_NAO_VERIFICADA,
                 List.of(), false, null, false, 1, List.of(item));
     }
@@ -512,6 +512,26 @@ class NfeControllerTest extends ControllerTestBase {
                     .andExpect(redirectedUrl(BASE))
                     .andExpect(flash().attributeExists("mensagem"));
             verify(importacaoNfeService).cancelar(eq(TOKEN), any(Usuario.class));
+        }
+
+        @Test
+        @DisplayName("a lista 'produtos' da revisão leva EAN e NCM de cada produto (a tela avisa pelo produto escolhido)")
+        void produtosComEanENcm() throws Exception {
+            RevisaoNfe revisao = revisaoDeExemplo();
+            when(importacaoNfeService.revisar(eq(TOKEN), any(Usuario.class))).thenReturn(revisao);
+            when(importacaoNfeService.formularioInicial(revisao)).thenReturn(new ConfirmacaoNfeForm());
+            when(categoriaService.listarParaSelecao(44)).thenReturn(List.of());
+            org.example.stockhubspring.model.Produto comDados = new org.example.stockhubspring.model.Produto();
+            comDados.setEan("7891000100103");
+            comDados.setNcm("22021000");
+            when(produtoService.listarParaSelecao(44)).thenReturn(List.of(comDados));
+
+            mvc.perform(get(BASE + "/importacoes/" + TOKEN).with(logadoComo(44)))
+                    .andExpect(status().isOk())
+                    .andExpect(model().attribute("produtos", org.hamcrest.Matchers.contains(
+                            org.hamcrest.Matchers.allOf(
+                                    org.hamcrest.Matchers.hasProperty("ean", org.hamcrest.Matchers.is("7891000100103")),
+                                    org.hamcrest.Matchers.hasProperty("ncm", org.hamcrest.Matchers.is("22021000"))))));
         }
 
         @Test

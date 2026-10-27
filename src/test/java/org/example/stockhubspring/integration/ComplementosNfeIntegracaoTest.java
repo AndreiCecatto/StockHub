@@ -166,4 +166,48 @@ class ComplementosNfeIntegracaoTest extends IntegracaoBase {
         return jdbc.queryForObject("select count(*) from importacao_nfe where usuario_codigo = ?", Long.class,
                 loja.getCodigo());
     }
+
+    // ---------- RN-59: avisos estruturados ----------
+
+    private org.example.stockhubspring.model.Produto produtoSugerivel(String ean, String ncm) {
+        org.example.stockhubspring.model.Produto p = novoProduto(loja, categoria, "Cabo USB", 0, 0);
+        p.setEan(ean);
+        p.setNcm(ncm);
+        return produtoRepository.saveAndFlush(p);
+    }
+
+    @Test
+    @DisplayName("RN-59: avisoEan e avisoNcm são verdadeiros quando o produto sugerido não tem o dado")
+    void flagsQuandoProdutoNaoTem() {
+        produtoSugerivel(null, null);
+        UUID token = service.enviar(NfeXml.nota().item(NfeXml.item().descricao("CABO USB").ean("7891000100103")
+                .ncm("85444200")).bytes(), loja);
+        // sem EAN igual, a sugestão vem do nome
+        var item = service.revisar(token, loja).itens().get(0);
+
+        assertThat(item.produtoSugeridoId()).isNotNull();
+        assertThat(item.avisoEan()).isTrue();
+        assertThat(item.avisoNcm()).isTrue();
+        assertThat(item.avisos()).noneMatch(a -> a.contains("será gravado"));
+    }
+
+    @Test
+    @DisplayName("RN-59: as flags ficam falsas quando o produto já tem EAN e NCM, e sem sugestão")
+    void flagsQuandoProdutoJaTem() {
+        produtoSugerivel("7891000100110", "85444200");
+        UUID token = service.enviar(NfeXml.nota().item(NfeXml.item().descricao("CABO USB").ean("7891000100103")
+                .ncm("85444200")).bytes(), loja);
+        var item = service.revisar(token, loja).itens().get(0);
+
+        assertThat(item.produtoSugeridoId()).isNotNull();
+        assertThat(item.avisoEan()).isFalse();
+        assertThat(item.avisoNcm()).isFalse();
+
+        UUID semProduto = service.enviar(NfeXml.nota().numero(2).item(NfeXml.item().descricao("COISA SEM PAR")
+                .codigo("ZZ").ean("7891000100127")).bytes(), loja);
+        var novo = service.revisar(semProduto, loja).itens().get(0);
+
+        assertThat(novo.produtoSugeridoId()).isNull();
+        assertThat(novo.avisoEan()).isFalse();
+    }
 }

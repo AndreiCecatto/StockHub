@@ -213,7 +213,8 @@
                     <c:set var="dec" value="${confirmacaoNfeForm.item[n]}" />
                     <c:set var="travado" value="${it.situacao != 'IMPORTADO' or it.bloqueado}" />
                     <li class="nfe-item ${travado ? 'nfe-item--travado' : ''}" data-nfe-item="<c:out value='${n}'/>"
-                        data-unidade="<c:out value='${it.unidade}'/>" data-sugerido="<c:out value='${it.produtoSugeridoId}'/>">
+                        data-unidade="<c:out value='${it.unidade}'/>" data-sugerido="<c:out value='${it.produtoSugeridoId}'/>"
+                        data-ean="<c:out value='${it.ean}'/>" data-ncm="<c:out value='${it.ncm}'/>">
                         <div class="nfe-item__cab">
                             <span class="nfe-item__numero">Item <c:out value="${n}" /></span>
                             <h3 class="nfe-item__nome"><c:out value="${it.descricao}" /></h3>
@@ -245,16 +246,24 @@
                         </dl>
 
                         <c:forEach var="av" items="${it.avisos}">
-                            <%-- O aviso de unidade é mostrado pelo painel de vínculo (abaixo), que também reage à troca de produto --%>
-                            <c:if test="${not (it.unidadeDiferente and fn:startsWith(av, 'A unidade da nota'))}">
-                                <%-- Avisos "será gravado" (EAN, NCM) valem para o produto sugerido: o JS os esconde se o dono trocar o produto --%>
-                                <div class="sh-alert sh-alert--warning nfe-item__aviso" role="note"
-                                    ${fn:contains(av, 'será gravado') ? 'data-nfe-so-sugerido' : ''}>
-                                    <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
-                                    <div class="sh-alert__corpo"><c:out value="${av}" /></div>
-                                </div>
-                            </c:if>
+                            <div class="sh-alert sh-alert--warning nfe-item__aviso" role="note">
+                                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                                <div class="sh-alert__corpo"><c:out value="${av}" /></div>
+                            </div>
                         </c:forEach>
+                        <%-- Avisos estruturados (flags avisoEan e avisoNcm): valem para o produto escolhido; o JS os recalcula ao trocar o produto --%>
+                        <c:if test="${not empty it.ean}">
+                            <div class="sh-alert sh-alert--warning nfe-item__aviso" role="note" data-nfe-aviso-ean ${it.avisoEan ? '' : 'hidden'}>
+                                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                                <div class="sh-alert__corpo">O código de barras <span class="sh-mono"><c:out value="${it.ean}" /></span> será gravado no produto (ele ainda não tem um).</div>
+                            </div>
+                        </c:if>
+                        <c:if test="${not empty it.ncm}">
+                            <div class="sh-alert sh-alert--warning nfe-item__aviso" role="note" data-nfe-aviso-ncm ${it.avisoNcm ? '' : 'hidden'}>
+                                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                                <div class="sh-alert__corpo">A classificação fiscal (NCM) <span class="sh-mono"><c:out value="${it.ncm}" /></span> será gravada no produto (ele ainda não tem uma).</div>
+                            </div>
+                        </c:if>
 
                         <c:choose>
                             <c:when test="${travado}">
@@ -321,7 +330,7 @@
                                         ${not empty eProd ? 'aria-invalid="true" aria-describedby="erro-item-' += n += '-produtoId"' : ''}>
                                         <option value="">Escolha um produto&hellip;</option>
                                         <c:forEach var="p" items="${produtos}">
-                                            <option value="<c:out value='${p.id}'/>" data-unidade="<c:out value='${p.unidade}'/>"
+                                            <option value="<c:out value='${p.id}'/>" data-unidade="<c:out value='${p.unidade}'/>" data-ean="<c:out value='${p.ean}'/>" data-ncm="<c:out value='${p.ncm}'/>"
                                                 ${dec.produtoId == p.id ? 'selected' : ''}><c:out value="${p.nome}" /> (<c:out value="${p.unidade}" />)<c:if test="${it.produtoSugeridoId == p.id}"> &ndash; sugerido</c:if></option>
                                         </c:forEach>
                                     </select>

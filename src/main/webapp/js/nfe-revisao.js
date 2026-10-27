@@ -9,6 +9,7 @@
  *   select[data-nfe-produto]          produto a vincular; as opções têm data-unidade
  *   [data-nfe-criar]                  campos de "criar" (nome, categoria, preço): obrigatórios só quando a ação é CRIAR
  *   [data-nfe-aviso-unidade]          aviso de unidade diferente (o custo do produto não é atualizado)
+ *   [data-nfe-aviso-ean], [data-nfe-aviso-ncm]  avisos "será gravado no produto"; li[data-ean], li[data-ncm] e as opções do seletor (data-ean, data-ncm) decidem
  *   [data-nfe-conta="entram|criam|ignoram"], [data-nfe-resumo-curto]   resumo no topo e na barra
  *   [data-nfe-confirmar], [data-nfe-bloqueio]   botão Confirmar e o texto que explica por que está desabilitado
  *
@@ -64,14 +65,24 @@
     atualizarAvisosDoSugerido(item, acao);
   }
 
-  /** Avisos "o EAN/NCM será gravado" valem só para o produto sugerido: somem se a ação mudar ou outro produto for escolhido. */
+  /**
+   * Avisos "o código de barras / o NCM será gravado no produto": valem para o produto ESCOLHIDO (não só o sugerido).
+   * O aviso aparece quando a ação é vincular, há produto escolhido e esse produto ainda não tem o dado
+   * (data-ean e data-ncm das opções do seletor); a flag do servidor (avisoEan/avisoNcm) só decide o estado inicial.
+   */
   function atualizarAvisosDoSugerido(item, acao) {
     var select = item.querySelector('select[data-nfe-produto]');
-    var sugerido = item.getAttribute('data-sugerido') || '';
-    var vale = acao === 'VINCULAR' && select && sugerido !== '' && select.value === sugerido;
-    Array.prototype.forEach.call(item.querySelectorAll('[data-nfe-so-sugerido]'), function (aviso) {
-      aviso.hidden = !vale;
-    });
+    var opcao = select && select.value !== '' ? select.options[select.selectedIndex] : null;
+    var vinculando = acao === 'VINCULAR' && opcao !== null;
+    alternarAviso(item, '[data-nfe-aviso-ean]', vinculando && item.getAttribute('data-ean') && !opcao.getAttribute('data-ean'));
+    alternarAviso(item, '[data-nfe-aviso-ncm]', vinculando && item.getAttribute('data-ncm') && !opcao.getAttribute('data-ncm'));
+  }
+
+  function alternarAviso(item, seletor, mostrar) {
+    var aviso = item.querySelector(seletor);
+    if (aviso) {
+      aviso.hidden = !mostrar;
+    }
   }
 
   function atualizarUnidade(item, acao) {
