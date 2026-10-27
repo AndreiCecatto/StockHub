@@ -37,6 +37,11 @@ public final class CamposRamo {
         public boolean temAlgum() {
             return tamanho || cor || lote || validade || numeroSerie;
         }
+
+        /** Getter JavaBean para a EL: {@code ${camposRamo.temAlgum}} só resolve com o prefixo "is". */
+        public boolean isTemAlgum() {
+            return temAlgum();
+        }
     }
 
     public static final int TAMANHO_MAX = 20;
