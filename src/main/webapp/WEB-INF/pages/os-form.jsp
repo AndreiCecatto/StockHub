@@ -4,13 +4,14 @@
 <%--
     Nova ordem de serviço (RN-78, RN-79). Rotas: GET /os/nova e POST /os.
     Dados do OrdemServicoController: clientes (Parceiro), responsaveis (MembroLoja); flash: erro, clienteDigitado,
-    equipamentoDigitado, identificadorDigitado, defeitoDigitado, garantiaDigitada, observacoesDigitadas.
+    equipamentoDigitado, placaDigitada, modeloDigitado, identificadorDigitado, defeitoDigitado, garantiaDigitada, observacoesDigitadas.
 --%>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 
 <sh:layout titulo="Nova ordem de serviço" ativo="os" largura="form" formulario="true" voltarUrl="/os" voltarRotulo="Ordens de serviço">
     <jsp:attribute name="scripts">
         <link rel="stylesheet" href="${ctx}/css/os.css">
+        <script defer src="${ctx}/js/os.js"></script>
     </jsp:attribute>
     <jsp:body>
         <sh:cabecalhoPagina titulo="Nova ordem de serviço" descricao="Comece pelo cliente e pelo defeito. As peças e os serviços entram depois, no orçamento." />
@@ -45,11 +46,36 @@
                                         </c:forEach>
                                     </select>
                                 </div>
-                                <div class="col-12 col-md-8">
-                                    <label class="form-label" for="equipamento">Equipamento ou veículo</label>
-                                    <input id="equipamento" class="form-control" type="text" name="equipamento" maxlength="255" required
-                                        autocomplete="off" value="<c:out value='${equipamentoDigitado}'/>" placeholder="Ex.: Notebook Dell Inspiron ou Fiat Uno">
-                                </div>
+                                <c:choose>
+                                    <c:when test="${camposRamo.temVeiculo}">
+                                        <div class="col-12 col-md-4">
+                                            <label class="form-label" for="placa">Placa <span class="text-muted">(opcional)</span></label>
+                                            <input id="placa" class="form-control text-uppercase" type="text" name="placa" maxlength="8"
+                                                pattern="[A-Za-z]{3}-?[0-9]{4}|[A-Za-z]{3}[0-9][A-Za-z][0-9]{2}" title="Formato ABC-1234 ou ABC1D23"
+                                                autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="placa-dica"
+                                                data-os-placa value="<c:out value='${placaDigitada}'/>">
+                                            <div class="form-text" id="placa-dica">Formato ABC-1234 ou ABC1D23 (Mercosul).</div>
+                                        </div>
+                                        <div class="col-12 col-md-8">
+                                            <label class="form-label" for="modelo">Modelo <span class="text-muted">(opcional)</span></label>
+                                            <input id="modelo" class="form-control" type="text" name="modelo" maxlength="80"
+                                                autocomplete="off" value="<c:out value='${modeloDigitado}'/>" placeholder="Ex.: Fiat Uno 2012 ou Honda CG 160">
+                                        </div>
+                                        <div class="col-12 col-md-8">
+                                            <label class="form-label" for="equipamento">Descrição do veículo <span class="text-muted">(opcional)</span></label>
+                                            <input id="equipamento" class="form-control" type="text" name="equipamento" maxlength="255"
+                                                autocomplete="off" aria-describedby="equipamento-dica" value="<c:out value='${equipamentoDigitado}'/>">
+                                            <div class="form-text" id="equipamento-dica">Se ficar em branco, usamos o modelo como descrição.</div>
+                                        </div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="col-12 col-md-8">
+                                            <label class="form-label" for="equipamento">Equipamento ou veículo</label>
+                                            <input id="equipamento" class="form-control" type="text" name="equipamento" maxlength="255" required
+                                                autocomplete="off" value="<c:out value='${equipamentoDigitado}'/>" placeholder="Ex.: Notebook Dell Inspiron ou Fiat Uno">
+                                        </div>
+                                    </c:otherwise>
+                                </c:choose>
                                 <div class="col-12 col-md-4">
                                     <label class="form-label" for="identificador">Placa ou série <span class="text-muted">(opcional)</span></label>
                                     <input id="identificador" class="form-control" type="text" name="identificador" maxlength="60"

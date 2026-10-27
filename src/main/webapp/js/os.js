@@ -15,6 +15,19 @@
     }
   });
 
+  // Máscara leve da placa: maiúsculas, só letras/números, hífen opcional (ABC-1234 ou ABC1D23).
+  document.addEventListener('input', function (evento) {
+    var campo = evento.target;
+    if (!campo || !campo.hasAttribute || !campo.hasAttribute('data-os-placa')) {
+      return;
+    }
+    var limpo = campo.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
+    if (/^[A-Z]{3}[0-9]{4}$/.test(limpo) && campo.value.indexOf('-') !== -1) {
+      limpo = limpo.slice(0, 3) + '-' + limpo.slice(3);
+    }
+    campo.value = limpo;
+  });
+
   document.addEventListener('click', function (evento) {
     var alvo = evento.target.closest ? evento.target.closest('[data-os-imprimir]') : null;
     if (alvo) {
