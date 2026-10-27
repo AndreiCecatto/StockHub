@@ -1091,3 +1091,15 @@ Feedback: o Bootstrap deixava campos, seletores e botões com cara genérica. Ag
 **Progressive enhancement:** sem JS o select nativo aparece com a mesma pele (seta própria, 44 px) e o ramo vira a lista agrupada de antes; a validação do servidor não mudou. Para um select ficar nativo de propósito: `data-sh-nativo`. **Acessibilidade:** rótulo associado por `for` (e `aria-labelledby` no botão do select), foco visível, alvos de 44 px, `aria-invalid` e `aria-describedby` espelhados do select no botão, contraste dos tokens (nenhuma cor nova). **Movimento:** transições de 120 a 240 ms e todas zeradas em `prefers-reduced-motion`. **Temas:** claro, escuro e escuro sem JS (a seta do select tem versão para cada).
 
 Pontos de atenção: o painel da lista suspensa é anexado ao `<body>` (posição fixa) para não ser cortado por tabelas e modais; rótulo flutuante não foi adotado (rótulo acima lê melhor em formulários longos e com texto de ajuda).
+
+## 16. Início "capa do dia" (27/10/2026)
+
+Feedback: o início tinha "muita cara de dashboard de IA" (quatro cartões iguais, cartões em tudo). Foi refeito como a primeira página do jornal da loja, em `dashboard.jsp`, `css/dashboard.css` (prefixo `db-`, substitui `inicio.css`) e `js/dashboard.js` (só o gráfico de 14 dias; substitui `inicio.js`).
+
+- **Frase do dia** (h1 grande): "2 produtos acabaram e 3 estão abaixo do mínimo." e, abaixo, o primeiro passo ("Comece por X, que está sem estoque."), vindo do produto de menor saldo.
+- **Prateleira** (único elemento em caixa): uma marca por produto, problemas primeiro. Círculo pequeno = em dia, triângulo = abaixo do mínimo, octógono = sem estoque (as mesmas formas dos selos); o tamanho cresce com a gravidade. Acima de 150 produtos cada marca vale até k produtos (avisado em texto). As marcas são decorativas (`aria-hidden`); a legenda em texto tem contagens e links para a lista filtrada, e passar o mouse ou focar uma linha apaga as outras marcas (só CSS, `:has`). Entrada única das marcas (transform e opacity), zerada em `prefers-reduced-motion`.
+- **Livro-caixa:** três números em linha (valor, unidades, produtos), sem cartões.
+- **Fazer agora** (reposição rápida, mesmo POST de antes) ao lado de **Hoje na loja** (linha do tempo vertical das 8 últimas movimentações, com etiqueta de origem: Venda, Compra (NF-e), Ordem de serviço, Estorno).
+- **Por tipo de loja, só com `<sh:modulo>`:** `OS` mostra o fluxo das ordens (Orçamento a Concluída, contagens) e as OS em andamento, e troca o botão primário por "Nova ordem de serviço"; `VENDAS` mostra o atalho Clientes e quantas das últimas movimentações foram vendas.
+- **Backend (mínimo):** `DashboardController` passou a enviar `movimentacoesRecentes` e, só com o módulo OS, `osPorStatus` e `osAndamento` (teste em `DashboardEErrosWebTest`).
+- **Sem cartões:** seções separadas por fio, listas com divisores; gráfico de 14 dias e últimos produtos mantidos, sem caixa.

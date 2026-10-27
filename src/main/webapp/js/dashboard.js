@@ -1,12 +1,10 @@
 /*
- * StockHub v3: interações do Início (Visão geral).
- *  1. Saúde do estoque: passar o mouse ou focar uma linha da legenda destaca o segmento da barra empilhada.
- *  2. Gráfico de 14 dias, desenhado aqui em SVG (sem biblioteca) com os dados de
- *     GET /api/dashboard/movimentos?dias=14 -> [{"dia":"aaaa-MM-dd","entradas":int,"saidas":int,"ajustes":int}].
- *     Entradas sobem da linha do meio, saídas descem (a posição diz o tipo, não só a cor).
- *     Estados: carregando (esqueleto), erro (com "Tentar de novo"), vazio (nenhum movimento) e pronto.
- *     Tooltip por mouse, toque E teclado (setas, Home, End; um só tab stop). Tabela equivalente em <details>.
- *     Se o endpoint não existir ou falhar, só o gráfico mostra o erro; o resto da tela segue normal.
+ * StockHub: gráfico de 14 dias do início (dashboard). Desenhado aqui em SVG (sem biblioteca) com os dados de
+ * GET /api/dashboard/movimentos?dias=14 -> [{"dia":"aaaa-MM-dd","entradas":int,"saidas":int,"ajustes":int}].
+ *   Entradas sobem da linha do meio, saídas descem (a posição diz o tipo, não só a cor).
+ *   Estados: carregando (esqueleto), erro (com "Tentar de novo"), vazio (nenhum movimento) e pronto.
+ *   Tooltip por mouse, toque E teclado (setas, Home, End; um só tab stop). Tabela equivalente em <details>.
+ *   Se o endpoint não existir ou falhar, só o gráfico mostra o erro; o resto da tela segue normal.
  * Nunca monta HTML a partir de dado: createElementNS/createElement e textContent.
  */
 (function () {
@@ -14,66 +12,6 @@
 
   var SH = (window.SH = window.SH || {});
   var NS = 'http://www.w3.org/2000/svg';
-
-  /* ---------- 1. Anel de saúde ---------- */
-  var anel = document.querySelector('[data-sh-anel]');
-  if (anel) {
-    var definir = function (nivel) {
-      if (nivel) {
-        anel.setAttribute('data-ativo', nivel);
-      } else {
-        anel.removeAttribute('data-ativo');
-      }
-    };
-    var itens = anel.querySelectorAll('[data-sh-fatia-item]');
-    for (var i = 0; i < itens.length; i++) {
-      (function (item) {
-        var nivel = item.getAttribute('data-sh-fatia-item');
-        item.addEventListener('mouseenter', function () { definir(nivel); });
-        item.addEventListener('mouseleave', function () { definir(null); });
-        item.addEventListener('focus', function () { definir(nivel); });
-        item.addEventListener('blur', function () { definir(null); });
-      })(itens[i]);
-    }
-    var fatias = anel.querySelectorAll('[data-sh-fatia]');
-    for (var f = 0; f < fatias.length; f++) {
-      (function (fatia) {
-        var nivel = fatia.getAttribute('data-sh-fatia');
-        fatia.addEventListener('mouseenter', function () { definir(nivel); });
-        fatia.addEventListener('mouseleave', function () { definir(null); });
-      })(fatias[f]);
-    }
-  }
-
-  /* ---------- 1b. Filtro da lista "Requer ação" (Todos, Sem estoque, Baixo) ---------- */
-  var filtro = document.querySelector('[data-in-filtro]');
-  var lista = document.querySelector('[data-in-tarefas]');
-  if (filtro && lista) {
-    var status = document.querySelector('[data-in-filtro-status]');
-    filtro.addEventListener('click', function (evento) {
-      var botao = evento.target.closest ? evento.target.closest('[data-filtro]') : null;
-      if (!botao) {
-        return;
-      }
-      var qual = botao.getAttribute('data-filtro');
-      var botoes = filtro.querySelectorAll('[data-filtro]');
-      for (var b = 0; b < botoes.length; b++) {
-        botoes[b].setAttribute('aria-pressed', botoes[b] === botao ? 'true' : 'false');
-      }
-      var linhasTarefa = lista.querySelectorAll('[data-nivel]');
-      var visiveis = 0;
-      for (var t = 0; t < linhasTarefa.length; t++) {
-        var mostrar = qual === 'todos' || linhasTarefa[t].getAttribute('data-nivel') === qual;
-        linhasTarefa[t].hidden = !mostrar;
-        if (mostrar) {
-          visiveis++;
-        }
-      }
-      if (status) {
-        status.textContent = visiveis === 1 ? '1 produto na lista.' : visiveis + ' produtos na lista.';
-      }
-    });
-  }
 
   /* ---------- 2. Gráfico de 14 dias ---------- */
   var raiz = document.querySelector('[data-sh-grafico]');
@@ -239,7 +177,7 @@
     var teto = escalaMaxima(maior);
     var porUnidade = ph / 2 / teto;
 
-    var svg = el('svg', { viewBox: '0 0 ' + largura + ' ' + altura, width: largura, height: altura, focusable: 'false' }, 'in-grafico__svg sh-desenhar' + (semAnimar ? ' is-visivel' : ''));
+    var svg = el('svg', { viewBox: '0 0 ' + largura + ' ' + altura, width: largura, height: altura, focusable: 'false' }, 'db-grafico__svg sh-desenhar' + (semAnimar ? ' is-visivel' : ''));
     svg.setAttribute('role', 'group');
     svg.setAttribute('aria-label', 'Gráfico de entradas e saídas dos últimos 14 dias. Use as setas para percorrer os dias.');
 
@@ -248,56 +186,56 @@
     for (var g = 0; g < marcas.length; g++) {
       var y = g === 2 ? meio : (g < 2 ? meio - marcas[g] * porUnidade : meio + marcas[g] * porUnidade);
       if (g !== 2) {
-        svg.appendChild(el('line', { x1: m.e, x2: largura - m.d, y1: y, y2: y }, 'in-grafico__grade'));
+        svg.appendChild(el('line', { x1: m.e, x2: largura - m.d, y1: y, y2: y }, 'db-grafico__grade'));
       }
       var ehInteiro = marcas[g] === Math.floor(marcas[g]);
       if (ehInteiro) {
-        var rotulo = el('text', { x: m.e - 8, y: y + 4, 'text-anchor': 'end', 'aria-hidden': 'true' }, 'in-grafico__eixo');
+        var rotulo = el('text', { x: m.e - 8, y: y + 4, 'text-anchor': 'end', 'aria-hidden': 'true' }, 'db-grafico__eixo');
         rotulo.textContent = String(marcas[g]);
         svg.appendChild(rotulo);
       }
     }
 
     // destaque de hoje (última banda)
-    svg.appendChild(el('rect', { x: m.e + banda * (DIAS - 1) + 1, y: m.t - 6, width: banda - 2, height: ph + 12, rx: 6 }, 'in-grafico__hoje'));
+    svg.appendChild(el('rect', { x: m.e + banda * (DIAS - 1) + 1, y: m.t - 6, width: banda - 2, height: ph + 12, rx: 6 }, 'db-grafico__hoje'));
 
-    svg.appendChild(el('line', { x1: m.e, x2: largura - m.d, y1: meio, y2: meio }, 'in-grafico__base'));
+    svg.appendChild(el('line', { x1: m.e, x2: largura - m.d, y1: meio, y2: meio }, 'db-grafico__base'));
 
     elementosDia = [];
     for (var d = 0; d < dados.length; d++) {
       var item = dados[d];
       var cx = m.e + banda * d + banda / 2;
-      var gDia = el('g', { tabindex: d === (diaAtivo >= 0 ? diaAtivo : DIAS - 1) ? '0' : '-1', role: 'img' }, 'in-grafico__dia');
+      var gDia = el('g', { tabindex: d === (diaAtivo >= 0 ? diaAtivo : DIAS - 1) ? '0' : '-1', role: 'img' }, 'db-grafico__dia');
       gDia.setAttribute('aria-label', rotuloAria(item, d));
       gDia.setAttribute('data-indice', String(d));
-      gDia.appendChild(el('rect', { x: m.e + banda * d + 1, y: m.t - 6, width: banda - 2, height: ph + 12, rx: 6 }, 'in-grafico__hit'));
+      gDia.appendChild(el('rect', { x: m.e + banda * d + 1, y: m.t - 6, width: banda - 2, height: ph + 12, rx: 6 }, 'db-grafico__hit'));
 
-      gDia.appendChild(el('line', { x1: cx, x2: cx, y1: m.t - 6, y2: m.t + ph + 6 }, 'in-grafico__cruz'));
+      gDia.appendChild(el('line', { x1: cx, x2: cx, y1: m.t - 6, y2: m.t + ph + 6 }, 'db-grafico__cruz'));
 
       var hEntrada = item.entradas * porUnidade;
       var hSaida = item.saidas * porUnidade;
       if (item.entradas > 0) {
-        var rE = el('rect', { x: cx - barra / 2, y: meio - Math.max(hEntrada, 2), width: barra, height: Math.max(hEntrada, 2), rx: Math.min(4, barra / 2) }, 'in-grafico__barra in-grafico__barra--entrada sh-barra');
+        var rE = el('rect', { x: cx - barra / 2, y: meio - Math.max(hEntrada, 2), width: barra, height: Math.max(hEntrada, 2), rx: Math.min(4, barra / 2) }, 'db-grafico__barra db-grafico__barra--entrada sh-barra');
         rE.style.setProperty('--sh-i', String(d));
         gDia.appendChild(rE);
       }
       if (item.saidas > 0) {
-        var rS = el('rect', { x: cx - barra / 2, y: meio, width: barra, height: Math.max(hSaida, 2), rx: Math.min(4, barra / 2) }, 'in-grafico__barra in-grafico__barra--saida sh-barra');
+        var rS = el('rect', { x: cx - barra / 2, y: meio, width: barra, height: Math.max(hSaida, 2), rx: Math.min(4, barra / 2) }, 'db-grafico__barra db-grafico__barra--saida sh-barra');
         rS.style.setProperty('--sh-i', String(d));
         gDia.appendChild(rS);
       }
       if (item.ajustes > 0) {
-        gDia.appendChild(el('circle', { cx: cx, cy: meio, r: 4 }, 'in-grafico__ajuste'));
+        gDia.appendChild(el('circle', { cx: cx, cy: meio, r: 4 }, 'db-grafico__ajuste'));
       }
 
       // rótulos do eixo X: número do dia; no começo do mês, também o mês
       var mostrarNumero = !estreito || d % 2 === (DIAS - 1) % 2;
       if (mostrarNumero) {
-        var tx = el('text', { x: cx, y: altura - m.b + 14, 'text-anchor': 'middle', 'aria-hidden': 'true' }, 'in-grafico__eixo' + (item.hoje ? ' in-grafico__eixo--forte' : ''));
+        var tx = el('text', { x: cx, y: altura - m.b + 14, 'text-anchor': 'middle', 'aria-hidden': 'true' }, 'db-grafico__eixo' + (item.hoje ? ' db-grafico__eixo--forte' : ''));
         tx.textContent = String(item.data.getDate());
         gDia.appendChild(tx);
         if (!estreito) {
-          var sub = el('text', { x: cx, y: altura - m.b + 28, 'text-anchor': 'middle', 'aria-hidden': 'true' }, 'in-grafico__eixo');
+          var sub = el('text', { x: cx, y: altura - m.b + 28, 'text-anchor': 'middle', 'aria-hidden': 'true' }, 'db-grafico__eixo');
           sub.textContent = item.hoje ? 'hoje' : SEMANA[item.data.getDay()].slice(0, 3);
           gDia.appendChild(sub);
         }
@@ -350,9 +288,9 @@
 
   function linhaDica(classe, texto) {
     var linha = document.createElement('div');
-    linha.className = 'in-grafico__dica-linha';
+    linha.className = 'db-grafico__dica-linha';
     var marca = document.createElement('span');
-    marca.className = 'in-grafico__dica-marca ' + classe;
+    marca.className = 'db-grafico__dica-marca ' + classe;
     linha.appendChild(marca);
     var t = document.createElement('span');
     t.textContent = texto;
@@ -373,10 +311,10 @@
     var titulo = document.createElement('strong');
     titulo.textContent = rotuloDia(item.data, item.hoje, indice === DIAS - 2);
     dica.appendChild(titulo);
-    dica.appendChild(linhaDica('in-grafico__dica-marca--entrada', plural(item.entradas, 'entrada', 'entradas')));
-    dica.appendChild(linhaDica('in-grafico__dica-marca--saida', plural(item.saidas, 'saída', 'saídas')));
+    dica.appendChild(linhaDica('db-grafico__dica-marca--entrada', plural(item.entradas, 'entrada', 'entradas')));
+    dica.appendChild(linhaDica('db-grafico__dica-marca--saida', plural(item.saidas, 'saída', 'saídas')));
     if (item.ajustes > 0) {
-      dica.appendChild(linhaDica('in-grafico__dica-marca--ajuste', plural(item.ajustes, 'ajuste', 'ajustes')));
+      dica.appendChild(linhaDica('db-grafico__dica-marca--ajuste', plural(item.ajustes, 'ajuste', 'ajustes')));
     }
     dica.hidden = false;
 
