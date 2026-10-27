@@ -43,8 +43,11 @@
 
 /* ---------- Tokens que não mudam com o tema ---------- */
 :root {
-  --sh-font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --sh-font-mono: "Geist Mono", ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  --sh-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Números e códigos usam a própria fonte da interface com algarismos tabulares (aparência de sistema, sem "máquina de escrever");
+     --sh-font-codigo é a única monoespaçada, só para trechos de código. */
+  --sh-font-mono: var(--sh-font);
+  --sh-font-codigo: "Geist Mono", ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
   /* Legado v2: a fonte de display deixou de existir; o nome aponta para a Inter para as telas antigas não quebrarem */
   --sh-font-display: var(--sh-font);
 
@@ -75,7 +78,7 @@
   --sh-track-display: -0.035em;
   --sh-track-titulo: -0.022em;
   --sh-track-corpo: -0.006em;
-  --sh-track-rotulo: 0.07em;
+  --sh-track-rotulo: 0;
 
   /* Altura de linha dos títulos */
   --sh-lh-hero: 1.02;
@@ -96,11 +99,11 @@
   --sh-space-24: 96px;
   --sh-gutter: 16px;
 
-  /* Raios discretos: 6 (controles), 8 (cartões), 10 (painéis e diálogos) */
-  --sh-radius-xs: 4px;
-  --sh-radius-sm: 6px;
-  --sh-radius: 8px;
-  --sh-radius-lg: 10px;
+  /* Raios suaves e consistentes: 6 (detalhes), 8 (controles), 12 (cartões e tabelas), 16 (painéis e diálogos) */
+  --sh-radius-xs: 6px;
+  --sh-radius-sm: 8px;
+  --sh-radius: 12px;
+  --sh-radius-lg: 16px;
   --sh-radius-pill: 999px;
   --sh-radius-folha: var(--sh-radius); /* legado v2 */
 
@@ -220,7 +223,8 @@
   --sh-meter-sem: #C42B1F;
 
   /* Sobreposições: sombras em camadas (só para o que flutua) e véu */
-  --sh-shadow-1: 0 1px 2px rgba(16, 24, 40, .06);
+  --sh-shadow-1: 0 1px 2px rgba(16, 24, 40, .05);
+  --sh-shadow-card: 0 1px 2px rgba(16, 24, 40, .04), 0 4px 16px -6px rgba(16, 24, 40, .06);
   --sh-shadow-pop: 0 0 0 1px rgba(16, 24, 40, .06), 0 2px 4px rgba(16, 24, 40, .06), 0 12px 32px -4px rgba(16, 24, 40, .16);
   --sh-shadow-modal: 0 0 0 1px rgba(16, 24, 40, .06), 0 4px 8px rgba(16, 24, 40, .06), 0 32px 72px -8px rgba(16, 24, 40, .32);
   --sh-scrim: rgba(16, 17, 20, .38);
@@ -295,6 +299,7 @@
 
   /* Sobreposições: sombras em camadas (só para o que flutua) e véu */
   --sh-shadow-1: 0 1px 2px rgba(0, 0, 0, .4);
+  --sh-shadow-card: 0 0 0 transparent;
   --sh-shadow-pop: 0 0 0 1px rgba(255, 255, 255, .06), 0 2px 4px rgba(0, 0, 0, .4), 0 12px 32px -4px rgba(0, 0, 0, .55);
   --sh-shadow-modal: 0 0 0 1px rgba(255, 255, 255, .07), 0 4px 8px rgba(0, 0, 0, .4), 0 32px 72px -8px rgba(0, 0, 0, .7);
   --sh-scrim: rgba(0, 0, 0, .62);
@@ -371,6 +376,7 @@
 
     /* Sobreposições: sombras em camadas (só para o que flutua) e véu */
     --sh-shadow-1: 0 1px 2px rgba(0, 0, 0, .4);
+    --sh-shadow-card: 0 0 0 transparent;
     --sh-shadow-pop: 0 0 0 1px rgba(255, 255, 255, .06), 0 2px 4px rgba(0, 0, 0, .4), 0 12px 32px -4px rgba(0, 0, 0, .55);
     --sh-shadow-modal: 0 0 0 1px rgba(255, 255, 255, .07), 0 4px 8px rgba(0, 0, 0, .4), 0 32px 72px -8px rgba(0, 0, 0, .7);
     --sh-scrim: rgba(0, 0, 0, .62);
@@ -529,7 +535,7 @@ h1, h2, h3, h4, h5, h6 {
   font-size: var(--sh-text-sm);
   font-weight: 600;
   letter-spacing: var(--sh-track-rotulo);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 /* Números que se alinham em colunas */
@@ -538,9 +544,14 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Monoespaçada: só para valores, códigos, SKUs e atalhos */
-.sh-mono,
-code.sh-codigo {
+.sh-mono {
   font-family: var(--sh-font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.005em;
+}
+
+code.sh-codigo {
+  font-family: var(--sh-font-codigo);
   font-variant-numeric: tabular-nums slashed-zero;
   letter-spacing: -0.01em;
 }
