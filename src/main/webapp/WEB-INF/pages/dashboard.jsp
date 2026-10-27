@@ -94,6 +94,7 @@
                         </c:choose>
                     </p>
                 </div>
+                <c:if test="${blocos['ATALHOS']}">
                 <div class="db-acoes">
                     <sh:modulo nome="OS">
                         <a class="btn btn-primary" href="${ctx}/os/nova"><i class="bi bi-plus-lg" aria-hidden="true"></i> Nova ordem de serviço</a>
@@ -105,9 +106,11 @@
                     </sh:modulo>
                     <a class="btn btn-ghost" href="${ctx}/produtos/novo">Novo produto</a>
                 </div>
+                </c:if>
             </div>
 
             <c:if test="${nTotal > 0}">
+                <c:if test="${blocos['PRATELEIRA']}">
                 <%-- A prateleira: uma marca por produto, problemas primeiro. As marcas são decorativas; a informação está na legenda, em texto. --%>
                 <div class="db-prateleira">
                     <ul class="db-prateleira__marcas" aria-hidden="true">
@@ -135,7 +138,9 @@
                         <p class="db-prateleira__nota">Cada marca representa até <c:out value="${k}" /> produtos.</p>
                     </c:if>
                 </div>
+                </c:if>
 
+                <c:if test="${blocos['TOTAIS']}">
                 <h2 class="visually-hidden">Totais da loja</h2>
                 <ul class="db-livro">
                     <li>
@@ -157,6 +162,7 @@
                         </a>
                     </li>
                 </ul>
+                </c:if>
             </c:if>
         </header>
 
@@ -200,8 +206,11 @@
             </c:when>
 
             <c:otherwise>
-                <div class="db-colunas db-colunas--7-5">
+                <%-- Com os dois blocos, duas colunas; com um só, ele ocupa a linha inteira (db-colunas sem modificador = 1 coluna) --%>
+                <c:if test="${blocos['FAZER_AGORA'] or blocos['HOJE_NA_LOJA']}">
+                <div class="db-colunas ${blocos['FAZER_AGORA'] and blocos['HOJE_NA_LOJA'] ? 'db-colunas--7-5' : ''}">
                     <%-- ===== Fazer agora ===== --%>
+                    <c:if test="${blocos['FAZER_AGORA']}">
                     <section class="db-secao" aria-labelledby="titulo-fazer">
                         <div class="db-secao__cab">
                             <h2 class="db-h2" id="titulo-fazer">Fazer agora</h2>
@@ -262,8 +271,10 @@
                             </c:otherwise>
                         </c:choose>
                     </section>
+                    </c:if>
 
                     <%-- ===== Hoje na loja: linha do tempo ===== --%>
+                    <c:if test="${blocos['HOJE_NA_LOJA']}">
                     <section class="db-secao" aria-labelledby="titulo-hoje">
                         <div class="db-secao__cab">
                             <h2 class="db-h2" id="titulo-hoje">Hoje na loja</h2>
@@ -310,9 +321,12 @@
                             </c:otherwise>
                         </c:choose>
                     </section>
+                    </c:if>
                 </div>
+                </c:if>
 
-                <%-- ===== Oficina: fluxo das ordens de serviço (só com o módulo OS) ===== --%>
+                <%-- ===== Oficina: fluxo das ordens de serviço (só com o módulo OS e o bloco visível) ===== --%>
+                <c:if test="${blocos['OS_FLUXO']}">
                 <sh:modulo nome="OS">
                     <section class="db-secao" aria-labelledby="titulo-os">
                         <div class="db-secao__cab">
@@ -350,9 +364,12 @@
                         </c:choose>
                     </section>
                 </sh:modulo>
+                </c:if>
 
-                <div class="db-colunas db-colunas--8-4">
+                <c:if test="${blocos['GRAFICO_14_DIAS'] or blocos['CADASTRADOS_ULTIMO']}">
+                <div class="db-colunas ${blocos['GRAFICO_14_DIAS'] and blocos['CADASTRADOS_ULTIMO'] ? 'db-colunas--8-4' : ''}">
                     <%-- ===== Ritmo de 14 dias (SVG feito à mão, dados por fetch) ===== --%>
+                    <c:if test="${blocos['GRAFICO_14_DIAS']}">
                     <section class="db-secao db-ritmo" aria-labelledby="titulo-grafico" data-sh-grafico
                         data-url="<c:out value='${ctx}/api/dashboard/movimentos?dias=14'/>">
                         <div class="db-grafico__cab">
@@ -408,8 +425,10 @@
                             </div>
                         </details>
                     </section>
+                    </c:if>
 
                     <%-- ===== Cadastrados por último ===== --%>
+                    <c:if test="${blocos['CADASTRADOS_ULTIMO']}">
                     <section class="db-secao" aria-labelledby="titulo-recentes">
                         <div class="db-secao__cab">
                             <h2 class="db-h2" id="titulo-recentes">Cadastrados por último</h2>
@@ -428,8 +447,14 @@
                             </c:forEach>
                         </ul>
                     </section>
+                    </c:if>
                 </div>
+                </c:if>
             </c:otherwise>
         </c:choose>
+
+        <c:if test="${podeGerenciar}">
+            <p class="db-sub mt-4"><a class="db-link" href="${ctx}/conta/personalizacao"><i class="bi bi-sliders" aria-hidden="true"></i> Personalizar início</a></p>
+        </c:if>
     </jsp:body>
 </sh:layout>
