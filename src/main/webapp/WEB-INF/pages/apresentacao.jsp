@@ -19,6 +19,9 @@
 <sh:layoutPublico titulo="Controle de estoque" classe="ap-pagina">
     <jsp:attribute name="scripts">
         <link rel="stylesheet" href="${ctx}/css/apresentacao.css">
+        <script defer src="${ctx}/vendor/gsap-3.15.0/gsap.min.js"></script>
+        <script defer src="${ctx}/vendor/gsap-3.15.0/ScrollTrigger.min.js"></script>
+        <script defer src="${ctx}/js/apresentacao-gsap.js"></script>
         <script defer src="${ctx}/js/apresentacao.js"></script>
     </jsp:attribute>
     <jsp:body>

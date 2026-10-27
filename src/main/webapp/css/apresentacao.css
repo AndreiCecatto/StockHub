@@ -1353,3 +1353,13 @@
     display: none;
   }
 }
+
+/* ============================== Motor GSAP (js/apresentacao-gsap.js) ============================== */
+/* Quando o GSAP assume (html.ap-gsap), as animações por timeline do kit saem de cena nesta página: o --sh-progresso das
+   cenas vem do estilo inline escrito pelo script e a revelação é feita por ele. Sem GSAP a classe não existe e o CSS
+   continua como antes. */
+html.ap-gsap .sh-cena,
+html.ap-gsap .sh-revelar,
+html.ap-gsap .sh-revelar-grupo > * {
+  animation: none;
+}
