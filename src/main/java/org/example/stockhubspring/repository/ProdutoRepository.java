@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,6 +54,16 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer>, JpaS
     /** Lista para o seletor de movimentação (nome do produto e da categoria, numa só consulta). */
     @EntityGraph(attributePaths = "categoria")
     List<Produto> findByUsuarioCodigoAndAtivoTrueOrderByNomeAsc(Integer usuarioCodigo);
+
+    /** Produto ativo da loja com o código de barras dado (o mais antigo, se houver mais de um). */
+    Optional<Produto> findFirstByUsuarioCodigoAndEanAndAtivoTrueOrderByIdAsc(Integer usuarioCodigo, String ean);
+
+    /** Produtos ativos da loja com qualquer um destes códigos de barras, em UMA consulta (do mais antigo ao mais novo). */
+    List<Produto> findByUsuarioCodigoAndAtivoTrueAndEanInOrderByIdAsc(Integer usuarioCodigo, Collection<String> eans);
+
+    /** Produtos ativos da loja com estes ids, em UMA consulta (categoria vem junto). */
+    @EntityGraph(attributePaths = "categoria")
+    List<Produto> findByUsuarioCodigoAndAtivoTrueAndIdIn(Integer usuarioCodigo, Collection<Integer> ids);
 
     long countByCategoriaIdAndUsuarioCodigoAndAtivoTrue(Integer categoriaId, Integer usuarioCodigo);
 
