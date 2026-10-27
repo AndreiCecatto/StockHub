@@ -202,3 +202,14 @@ Decisão de recorte (placa e modelo): permanecem só em MECANICA e MOTO. ELETRIC
 | RN-112 | **Ocultar é só visual e leve.** Bloco oculto não é desenhado e seus dados nem são consultados. Nenhum dado de estoque, produto ou movimento é alterado, e as telas de origem (por exemplo `/estoque`, `/os`) continuam acessíveis pelo menu. | reversível a qualquer momento |
 | RN-113 | **Gravar não apaga.** Salvar grava uma linha por bloco aplicável (visível ou não) por upsert, sem excluir linhas; a última gravação vence. Trocar tipo ou subtipo da loja mantém as preferências; as de bloco que não se aplica mais ficam guardadas e sem efeito, e voltam a valer se o módulo voltar (como a RN-103). | nunca perder configuração |
 | RN-114 | **Rastro.** Cada linha guarda quando e por qual membro foi atualizada (`atualizado_em`, `atualizado_por`). | saber quem mexeu |
+
+## Personalização da lista de produtos (AD-20)
+
+| RN | Regra | Motivo |
+|---|---|---|
+| RN-115 | **Padrão visível.** Sem linha em `preferencia_bloco` para `tela = PRODUTOS`, toda coluna aplicável aparece, inclusive as de ramo que a loja tem (RN-100). Nenhuma V nova; nenhuma loja muda sem ação do dono ou gerente. | compatibilidade |
+| RN-116 | **Lista fechada.** Ocultáveis: COL_CATEGORIA, COL_PRECO, COL_SITUACAO, COL_DESCRICAO, COL_TAMANHO, COL_COR, COL_LOTE, COL_VALIDADE, COL_NUMERO_SERIE. Nome, saldo (com ajuste rápido) e ações nunca se ocultam. | a lista continua usável e operável |
+| RN-117 | **Coluna de ramo segue o subtipo.** COL_TAMANHO e COL_COR só existem no VESTUARIO, COL_LOTE na FARMACIA, COL_VALIDADE na FARMACIA e no MERCADO, COL_NUMERO_SERIE na INFORMATICA (mapa `CamposRamo`). Fora disso, o código é recusado ao salvar e ignorado ao ler (como a RN-111). | quem decide é o servidor |
+| RN-118 | **Quem altera e rastro.** Mesmas regras de RN-110, RN-113 e RN-114: só DONO e GERENTE, upsert sem DELETE, uma linha por coluna aplicável, última gravação vence. Salvar a lista de produtos não altera as linhas do início, e vice-versa. | consistência com a AD-19 |
+| RN-119 | **Ocultar é só visual.** Nenhum dado muda; busca, filtros, ordenação, paginação e exportação CSV seguem iguais. Se todas as opcionais forem ocultadas, a lista mostra nome, saldo e ações. | reversível |
+| RN-120 | **Troca de ramo.** Mudar o subtipo mantém as preferências; coluna que deixou de se aplicar fica guardada e sem efeito, e volta a valer se o subtipo voltar (como RN-103 e RN-113). | nunca perder configuração |
