@@ -304,3 +304,95 @@
 
 .sh-auth__texto > :nth-child(2) { animation-delay: 220ms; }
 .sh-auth__texto > :nth-child(3) { animation-delay: 300ms; }
+
+/* ---------- Tipo de loja (cadastro): cartões de seleção ---------- */
+.sh-tipos {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.sh-tipos legend {
+  padding: 0;
+  float: none;
+}
+
+.sh-tipos__lista {
+  display: grid;
+  gap: var(--sh-space-2);
+}
+
+.sh-tipo {
+  display: block;
+  position: relative;
+  cursor: pointer;
+}
+
+/* O rádio fica no DOM (teclado e leitor de tela), só escondido visualmente */
+.sh-tipo input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.sh-tipo__corpo {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sh-space-3);
+  padding: var(--sh-space-3) var(--sh-space-4);
+  background: var(--sh-surface);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-lg);
+  transition: border-color var(--sh-t-2) var(--sh-ease-out), background-color var(--sh-t-2) var(--sh-ease-out),
+    box-shadow var(--sh-t-2) var(--sh-ease-out);
+}
+
+.sh-tipo__corpo > .bi {
+  font-size: 1.25rem;
+  line-height: 1.3;
+  color: var(--sh-text-muted);
+}
+
+.sh-tipo__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--sh-text);
+  font-size: var(--sh-text-md);
+}
+
+.sh-tipo__texto small {
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  line-height: 1.4;
+}
+
+.sh-tipo:hover .sh-tipo__corpo {
+  border-color: var(--sh-border-strong);
+}
+
+.sh-tipo input:checked + .sh-tipo__corpo {
+  border-color: var(--sh-accent);
+  background: var(--sh-accent-soft);
+  box-shadow: 0 0 0 1px var(--sh-accent);
+}
+
+.sh-tipo input:checked + .sh-tipo__corpo > .bi {
+  color: var(--sh-accent-text);
+}
+
+.sh-tipo input:focus-visible + .sh-tipo__corpo {
+  outline: 2px solid var(--sh-accent);
+  outline-offset: 2px;
+}
+
+.sh-opcional {
+  color: var(--sh-text-subtle);
+  font-weight: 400;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-tipo__corpo { transition: none; }
+}

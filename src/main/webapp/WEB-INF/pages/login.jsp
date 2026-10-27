@@ -17,13 +17,16 @@
 <c:set var="eNome" value="${errosCampos['nome']}" />
 <c:set var="eEmail" value="${errosCampos['email']}" />
 <c:set var="eSenha" value="${not empty errosCampos['senha'] ? errosCampos['senha'] : errosCampos['senhaDentroDoLimite']}" />
-<c:set var="temErrosCampos" value="${not empty eNome or not empty eEmail or not empty eSenha}" />
+<c:set var="eTipo" value="${errosCampos['tipoLojaValido']}" />
+<c:set var="eRamo" value="${errosCampos['subtipoValido']}" />
+<c:set var="temErrosCampos" value="${not empty eNome or not empty eEmail or not empty eSenha or not empty eTipo or not empty eRamo}" />
 <c:set var="rotuloEnviar" value="${modoCadastro ? 'Criar conta' : 'Entrar'}" />
 
 <sh:layoutPublico titulo="${modoCadastro ? 'Criar conta' : 'Entrar'}">
     <jsp:attribute name="scripts">
         <link rel="stylesheet" href="${ctx}/css/entrar.css">
         <script defer src="${ctx}/js/entrar.js"></script>
+        <script defer src="${ctx}/js/tipo-loja.js"></script>
     </jsp:attribute>
     <jsp:body>
     <div class="sh-auth">
@@ -106,6 +109,8 @@
                             <c:if test="${not empty eSenha}">
                                 <li><a href="#senha" data-sh-ir-campo="senha"><c:out value="${eSenha}" /></a></li>
                             </c:if>
+                            <c:if test="${not empty eTipo}"><li><c:out value="${eTipo}" /></li></c:if>
+                            <c:if test="${not empty eRamo}"><li><a href="#subtipo"><c:out value="${eRamo}" /></a></li></c:if>
                         </ul>
                     </div>
 
@@ -137,6 +142,80 @@
                             </div>
                         </c:if>
                     </div>
+                    <c:if test="${modoCadastro}">
+                        <%-- Tipo e ramo da loja (RN-43/44): cartões de rádio; sem escolha vale "Só controle de estoque" --%>
+                        <c:set var="tipoSel" value="${empty tipoEscolhido ? 'ESTOQUE' : tipoEscolhido}" />
+                        <fieldset class="sh-tipos mb-3" data-sh-tipos>
+                            <legend class="form-label">Como é a sua loja?</legend>
+                            <div class="sh-tipos__lista">
+                                <label class="sh-tipo">
+                                    <input type="radio" name="tipoLoja" value="ESTOQUE" ${tipoSel == 'ESTOQUE' ? 'checked' : ''}>
+                                    <span class="sh-tipo__corpo">
+                                        <i class="bi bi-box-seam" aria-hidden="true"></i>
+                                        <span class="sh-tipo__texto"><strong>Só controle de estoque</strong>
+                                            <small>Produtos, entradas e saídas, notas de compra e alertas.</small></span>
+                                    </span>
+                                </label>
+                                <label class="sh-tipo">
+                                    <input type="radio" name="tipoLoja" value="COMERCIO" ${tipoSel == 'COMERCIO' ? 'checked' : ''}>
+                                    <span class="sh-tipo__corpo">
+                                        <i class="bi bi-shop" aria-hidden="true"></i>
+                                        <span class="sh-tipo__texto"><strong>Comércio</strong>
+                                            <small>Vende produtos. Estoque e, em breve, vendas e clientes.</small></span>
+                                    </span>
+                                </label>
+                                <label class="sh-tipo">
+                                    <input type="radio" name="tipoLoja" value="OFICINA" ${tipoSel == 'OFICINA' ? 'checked' : ''}>
+                                    <span class="sh-tipo__corpo">
+                                        <i class="bi bi-tools" aria-hidden="true"></i>
+                                        <span class="sh-tipo__texto"><strong>Oficina e serviços</strong>
+                                            <small>Conserta e presta serviço. Estoque de peças e, em breve, ordens de serviço.</small></span>
+                                    </span>
+                                </label>
+                                <label class="sh-tipo">
+                                    <input type="radio" name="tipoLoja" value="MISTO" ${tipoSel == 'MISTO' ? 'checked' : ''}>
+                                    <span class="sh-tipo__corpo">
+                                        <i class="bi bi-grid" aria-hidden="true"></i>
+                                        <span class="sh-tipo__texto"><strong>Comércio e serviços</strong>
+                                            <small>Vende e também presta serviço. Tudo ligado.</small></span>
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="sh-tipos__ramo mt-3" data-sh-ramo>
+                                <label class="form-label" for="subtipo">Ramo <span class="sh-opcional">(opcional)</span></label>
+                                <select id="subtipo" name="subtipo" data-selecionado="<c:out value='${subtipoEscolhido}'/>" class="form-select ${not empty eRamo ? 'is-invalid' : ''}">
+                                    <option value="">Prefiro não informar</option>
+                                    <optgroup label="Estoque" data-tipos="ESTOQUE">
+                                        <option value="ALMOXARIFADO">Almoxarifado</option>
+                                        <option value="DEPOSITO">Depósito</option>
+                                        <option value="ESTOQUE_ESCRITORIO">Estoque de escritório</option>
+                                    </optgroup>
+                                    <optgroup label="Comércio" data-tipos="COMERCIO MISTO">
+                                        <option value="MERCADO">Mercado</option>
+                                        <option value="PAPELARIA">Papelaria</option>
+                                        <option value="MATERIAL_CONSTRUCAO">Material de construção</option>
+                                        <option value="FARMACIA">Farmácia</option>
+                                        <option value="VESTUARIO">Vestuário</option>
+                                        <option value="INFORMATICA">Informática</option>
+                                        <option value="OUTRO_COMERCIO">Outro comércio</option>
+                                    </optgroup>
+                                    <optgroup label="Serviços" data-tipos="OFICINA MISTO">
+                                        <option value="MECANICA">Mecânica</option>
+                                        <option value="MOTO">Moto</option>
+                                        <option value="ELETRICA_ELETRONICA">Elétrica e eletrônica</option>
+                                        <option value="ASSISTENCIA_TECNICA">Assistência técnica</option>
+                                        <option value="REFRIGERACAO">Refrigeração</option>
+                                        <option value="OUTRO_SERVICO">Outro serviço</option>
+                                    </optgroup>
+                                </select>
+                                <c:if test="${not empty eRamo}">
+                                    <div class="sh-erro-campo"><i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                                        <span class="sh-erro-campo__texto"><c:out value="${eRamo}" /></span></div>
+                                </c:if>
+                            </div>
+                        </fieldset>
+                    </c:if>
+
 
                     <div class="mb-3">
                         <label class="form-label" for="senha">Senha <span class="sh-obrigatorio">(obrigatório)</span></label>
