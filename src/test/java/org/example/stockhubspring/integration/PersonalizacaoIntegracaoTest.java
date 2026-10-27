@@ -66,9 +66,9 @@ class PersonalizacaoIntegracaoTest extends IntegracaoBase {
 
         assertThat(linhas(loja.getCodigo())).isEqualTo(1);
         assertThat(valorNoBanco(loja.getCodigo(), "TOTAIS")).isFalse();
-        Long por = jdbc.queryForObject("select atualizado_por from preferencia_bloco where usuario_codigo = ?",
-                Long.class, loja.getCodigo());
-        assertThat(por).isEqualTo(6L);
+        Integer por = jdbc.queryForObject("select atualizado_por from preferencia_bloco where usuario_codigo = ?",
+                Integer.class, loja.getCodigo());
+        assertThat(por).isEqualTo(6);
 
         repository.gravar(loja.getCodigo(), "INICIO", "TOTAIS", false, 6);
         assertThat(linhas(loja.getCodigo())).isEqualTo(1);

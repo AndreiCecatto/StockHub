@@ -35,14 +35,14 @@ public class PreferenciaBloco {
     private LocalDateTime atualizadoEm;
 
     @Column(name = "atualizado_por")
-    private Long atualizadoPor;
+    private Integer atualizadoPor;
 
     public Integer getUsuarioCodigo() { return usuarioCodigo; }
     public String getTela() { return tela; }
     public String getBloco() { return bloco; }
     public boolean isVisivel() { return visivel; }
     public LocalDateTime getAtualizadoEm() { return atualizadoEm; }
-    public Long getAtualizadoPor() { return atualizadoPor; }
+    public Integer getAtualizadoPor() { return atualizadoPor; }
 
     /** Chave composta (loja, tela, bloco). */
     public static class Chave implements Serializable {
