@@ -12,6 +12,10 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import org.example.stockhubspring.dto.ProdutoParado;
+import org.example.stockhubspring.dto.ValorCategoria;
+
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -81,4 +85,39 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer>, JpaS
             + "sum(p.preco * p.quantidade) as valorTotal "
             + "from Produto p where p.usuario.codigo = :usuarioCodigo and p.ativo = true")
     ResumoProdutos resumir(@Param("usuarioCodigo") Integer usuarioCodigo);
+
+    // ------------------------------------------------------------------------------------------
+    // Análises de estoque (RN-45 a RN-51): tudo agregado no banco e restrito à loja
+    // ------------------------------------------------------------------------------------------
+
+    /** Dinheiro no estoque por categoria: saldo x custo, só produtos ativos com saldo (RN-46). */
+    @Query("select new org.example.stockhubspring.dto.ValorCategoria(c.nome, count(p), sum(p.quantidade), "
+            + "sum(p.custo * p.quantidade)) "
+            + "from Produto p join p.categoria c "
+            + "where p.usuario.codigo = :usuarioCodigo and p.ativo = true and p.quantidade > 0 "
+            + "group by c.id, c.nome order by sum(p.custo * p.quantidade) desc, c.nome")
+    List<ValorCategoria> valorPorCategoria(@Param("usuarioCodigo") Integer usuarioCodigo);
+
+    /** Produtos ativos com saldo e custo zero: o valor deles não aparece no dinheiro parado (RN-46). */
+    @Query("select count(p) from Produto p where p.usuario.codigo = :usuarioCodigo and p.ativo = true "
+            + "and p.quantidade > 0 and p.custo = 0")
+    long contarComSaldoSemCusto(@Param("usuarioCodigo") Integer usuarioCodigo);
+
+    /**
+     * Produtos ativos com saldo, sem saída desde {@code limite} e que já estavam no estoque antes dele
+     * (primeira movimentação anterior ao limite, ou sem nenhuma movimentação). O mais caro primeiro (RN-50).
+     */
+    @Query("select new org.example.stockhubspring.dto.ProdutoParado(p.id, p.nome, p.quantidade, "
+            + "p.custo * p.quantidade, "
+            + "(select max(s.criadoEm) from MovimentacaoEstoque s where s.produto = p "
+            + "and s.tipo = org.example.stockhubspring.model.TipoMovimentacao.SAIDA)) "
+            + "from Produto p "
+            + "where p.usuario.codigo = :usuarioCodigo and p.ativo = true and p.quantidade > 0 "
+            + "and not exists (select 1 from MovimentacaoEstoque s where s.produto = p "
+            + "and s.tipo = org.example.stockhubspring.model.TipoMovimentacao.SAIDA and s.criadoEm >= :limite) "
+            + "and (not exists (select 1 from MovimentacaoEstoque a where a.produto = p) "
+            + "or exists (select 1 from MovimentacaoEstoque b where b.produto = p and b.criadoEm < :limite)) "
+            + "order by p.custo * p.quantidade desc, p.nome")
+    List<ProdutoParado> listarParados(@Param("usuarioCodigo") Integer usuarioCodigo,
+                                      @Param("limite") LocalDateTime limite);
 }

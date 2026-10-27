@@ -4,6 +4,7 @@ import org.example.stockhubspring.config.SecurityConfig;
 import org.example.stockhubspring.config.UsuarioPrincipal;
 import org.example.stockhubspring.nfe.NfeLimitador;
 import org.example.stockhubspring.repository.UsuarioRepository;
+import org.example.stockhubspring.service.AnaliseEstoqueService;
 import org.example.stockhubspring.service.ImportacaoNfeService;
 import org.example.stockhubspring.service.CategoriaService;
 import org.example.stockhubspring.service.DashboardService;
@@ -65,6 +66,8 @@ abstract class ControllerTestBase {
     protected UsuarioRepository usuarioRepository;
     @MockitoBean
     protected ImportacaoNfeService importacaoNfeService;
+    @MockitoBean
+    protected AnaliseEstoqueService analiseEstoqueService;
 
     @BeforeEach
     void montarMockMvc() {
