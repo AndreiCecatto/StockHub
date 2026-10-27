@@ -476,7 +476,8 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
 
 /* Opção de tema marcada: fundo de acento e ícone de visto (não só cor) */
 .sh-tema-opcao .sh-tema-opcao__visto {
-  visibility: hidden;
+  /* opacity (e não visibility): o ícone herda o "escondido" do painel pai, senão vazava para a página */
+  opacity: 0;
   margin-left: auto;
 }
 
@@ -487,7 +488,7 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
 }
 
 .sh-tema-opcao[aria-pressed="true"] .sh-tema-opcao__visto {
-  visibility: visible;
+  opacity: 1;
 }
 
 /* ---------- Barra inferior (celular e tablet) ---------- */
