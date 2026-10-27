@@ -12,6 +12,6 @@ public interface EquipamentoClienteRepository extends JpaRepository<EquipamentoC
     List<EquipamentoCliente> findByUsuarioCodigoAndParceiroIdOrderByIdAsc(Integer usuarioCodigo, Integer parceiroId);
 
     /** Veículo do cliente pela placa já normalizada (RN-107). */
-    Optional<EquipamentoCliente> findFirstByUsuarioCodigoAndParceiroIdAndPlaca(Integer usuarioCodigo,
-                                                                              Integer parceiroId, String placa);
+    Optional<EquipamentoCliente> findFirstByUsuarioCodigoAndParceiroIdAndPlacaOrderByIdAsc(Integer usuarioCodigo,
+                                                                                         Integer parceiroId, String placa);
 }

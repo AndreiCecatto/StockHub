@@ -99,7 +99,7 @@ class VeiculoOficinaIntegracaoTest extends IntegracaoBase {
                 "Barulho", null, 0, null);
         limparSessao();
 
-        var achado = equipamentoRepository.findFirstByUsuarioCodigoAndParceiroIdAndPlaca(
+        var achado = equipamentoRepository.findFirstByUsuarioCodigoAndParceiroIdAndPlacaOrderByIdAsc(
                 loja.getCodigo(), cliente.getId(), "ABC1D23");
         assertThat(achado).isPresent();
         assertThat(achado.get().getId()).isEqualTo(os.getEquipamento().getId());

@@ -82,7 +82,7 @@ class OrdemServicoVeiculoTest {
         subtipo(Subtipo.MECANICA);
         when(osRepository.saveAndFlush(any(OrdemServico.class))).thenAnswer(i -> i.getArgument(0));
         when(equipamentoRepository.saveAndFlush(any(EquipamentoCliente.class))).thenAnswer(i -> i.getArgument(0));
-        when(equipamentoRepository.findFirstByUsuarioCodigoAndParceiroIdAndPlaca(any(), any(), any()))
+        when(equipamentoRepository.findFirstByUsuarioCodigoAndParceiroIdAndPlacaOrderByIdAsc(any(), any(), any()))
                 .thenReturn(Optional.empty());
         when(equipamentoRepository.findByUsuarioCodigoAndParceiroIdOrderByIdAsc(any(), any())).thenReturn(List.of());
         when(numerador.proximo(anyInt())).thenReturn(1);
@@ -241,7 +241,7 @@ class OrdemServicoVeiculoTest {
         assertThat(e.getPlaca()).isNull();
         assertThat(e.getModelo()).isNull();
         assertThat(os.getEquipamento().getDescricao()).isEqualTo("Notebook");
-        verify(equipamentoRepository, never()).findFirstByUsuarioCodigoAndParceiroIdAndPlaca(any(), any(), any());
+        verify(equipamentoRepository, never()).findFirstByUsuarioCodigoAndParceiroIdAndPlacaOrderByIdAsc(any(), any(), any());
     }
 
     @Test
@@ -276,7 +276,7 @@ class OrdemServicoVeiculoTest {
         existente.setDescricao("Fiat Uno");
         existente.setPlaca("ABC1D23");
         existente.setModelo("Uno Mille");
-        when(equipamentoRepository.findFirstByUsuarioCodigoAndParceiroIdAndPlaca(7, 4, "ABC1D23"))
+        when(equipamentoRepository.findFirstByUsuarioCodigoAndParceiroIdAndPlacaOrderByIdAsc(7, 4, "ABC1D23"))
                 .thenReturn(Optional.of(existente));
 
         OrdemServico os = criar("Outro nome", "abc-1d23", "Modelo novo");
@@ -292,7 +292,7 @@ class OrdemServicoVeiculoTest {
         EquipamentoCliente existente = new EquipamentoCliente();
         existente.setDescricao("Fiat Uno");
         existente.setPlaca("ABC1D23");
-        when(equipamentoRepository.findFirstByUsuarioCodigoAndParceiroIdAndPlaca(7, 4, "ABC1D23"))
+        when(equipamentoRepository.findFirstByUsuarioCodigoAndParceiroIdAndPlacaOrderByIdAsc(7, 4, "ABC1D23"))
                 .thenReturn(Optional.of(existente));
 
         OrdemServico os = criar("Fiat Uno", "ABC1D23", "Uno Way");
@@ -308,12 +308,12 @@ class OrdemServicoVeiculoTest {
         Parceiro outro = cliente(5);
         EquipamentoCliente doPrimeiro = new EquipamentoCliente();
         doPrimeiro.setPlaca("ABC1D23");
-        when(equipamentoRepository.findFirstByUsuarioCodigoAndParceiroIdAndPlaca(7, 4, "ABC1D23"))
+        when(equipamentoRepository.findFirstByUsuarioCodigoAndParceiroIdAndPlacaOrderByIdAsc(7, 4, "ABC1D23"))
                 .thenReturn(Optional.of(doPrimeiro));
 
         OrdemServico os = service.criar(loja, 5, "Uno", null, "ABC1D23", null, "Não liga", null, 0, null);
 
-        verify(equipamentoRepository).findFirstByUsuarioCodigoAndParceiroIdAndPlaca(eq(7), eq(5), eq("ABC1D23"));
+        verify(equipamentoRepository).findFirstByUsuarioCodigoAndParceiroIdAndPlacaOrderByIdAsc(eq(7), eq(5), eq("ABC1D23"));
         assertThat(os.getEquipamento()).isNotSameAs(doPrimeiro);
         assertThat(os.getEquipamento().getPlaca()).isEqualTo("ABC1D23");
         assertThat(os.getEquipamento().getParceiro()).isSameAs(outro);
@@ -330,7 +330,36 @@ class OrdemServicoVeiculoTest {
 
         assertThat(os.getEquipamento()).isSameAs(existente);
         verify(equipamentoRepository, never()).saveAndFlush(any());
-        verify(equipamentoRepository, never()).findFirstByUsuarioCodigoAndParceiroIdAndPlaca(any(), any(), any());
+        verify(equipamentoRepository, never()).findFirstByUsuarioCodigoAndParceiroIdAndPlacaOrderByIdAsc(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("loja com veículo, sem placa: não reaproveita equipamento que já tem placa")
+    void semPlacaNaoReaproveitaVeiculoComPlaca() {
+        EquipamentoCliente comPlaca = new EquipamentoCliente();
+        comPlaca.setDescricao("Fiat Uno");
+        comPlaca.setPlaca("ABC1D23");
+        when(equipamentoRepository.findByUsuarioCodigoAndParceiroIdOrderByIdAsc(7, 4)).thenReturn(List.of(comPlaca));
+
+        OrdemServico os = criar("Fiat Uno", null, null);
+
+        assertThat(os.getEquipamento()).isNotSameAs(comPlaca);
+        assertThat(os.getEquipamento().getPlaca()).isNull();
+        verify(equipamentoRepository).saveAndFlush(os.getEquipamento());
+    }
+
+    @Test
+    @DisplayName("loja com veículo, sem placa: reaproveita o sem placa e preenche o modelo vazio")
+    void semPlacaPreencheModelo() {
+        EquipamentoCliente semPlaca = new EquipamentoCliente();
+        semPlaca.setDescricao("Fiat Uno");
+        when(equipamentoRepository.findByUsuarioCodigoAndParceiroIdOrderByIdAsc(7, 4)).thenReturn(List.of(semPlaca));
+
+        OrdemServico os = criar("Fiat Uno", null, "Uno Way");
+
+        assertThat(os.getEquipamento()).isSameAs(semPlaca);
+        assertThat(semPlaca.getModelo()).isEqualTo("Uno Way");
+        verify(equipamentoRepository).saveAndFlush(semPlaca);
     }
 
     @Test

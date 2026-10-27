@@ -193,7 +193,7 @@ public class OrdemServicoService {
         os.setUsuario(usuario);
         os.setNumero(numerador.proximo(usuario.getCodigo()));
         os.setCliente(cliente);
-        os.setEquipamento(equipamentoDe(usuario, cliente, descricao, ident, placa, modelo));
+        os.setEquipamento(equipamentoDe(usuario, cliente, descricao, ident, placa, modelo, veiculo.temVeiculo()));
         os.setDefeito(Textos.limpar(defeito));
         os.setResponsavel(responsavel);
         os.setGarantiaDias(garantia);
@@ -473,9 +473,9 @@ public class OrdemServicoService {
     }
 
     private EquipamentoCliente equipamentoDe(Usuario loja, Parceiro cliente, String descricao, String ident,
-                                             String placa, String modelo) {
+                                             String placa, String modelo, boolean temVeiculo) {
         if (placa != null) {
-            var existente = equipamentoRepository.findFirstByUsuarioCodigoAndParceiroIdAndPlaca(
+            var existente = equipamentoRepository.findFirstByUsuarioCodigoAndParceiroIdAndPlacaOrderByIdAsc(
                     loja.getCodigo(), cliente.getId(), placa);
             if (existente.isPresent()) {
                 EquipamentoCliente e = existente.get();
@@ -490,7 +490,15 @@ public class OrdemServicoService {
                     .findByUsuarioCodigoAndParceiroIdOrderByIdAsc(loja.getCodigo(), cliente.getId())) {
                 boolean mesmaDescricao = e.getDescricao().equalsIgnoreCase(descricao);
                 boolean mesmoIdent = e.getIdentificador() == null ? ident == null : e.getIdentificador().equalsIgnoreCase(ident);
+                // Em loja com veículo, um cadastro com placa é outro veículo: só reaproveita os sem placa.
+                if (temVeiculo && e.getPlaca() != null) {
+                    continue;
+                }
                 if (mesmaDescricao && mesmoIdent) {
+                    if (e.getModelo() == null && modelo != null) {
+                        e.setModelo(modelo);
+                        return equipamentoRepository.saveAndFlush(e);
+                    }
                     return e;
                 }
             }
