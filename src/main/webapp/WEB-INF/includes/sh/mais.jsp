@@ -1,8 +1,10 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="sh" tagdir="/WEB-INF/tags" %>
 <%--
     Painel "Mais" do celular (offcanvas inferior do Bootstrap): Categorias, Unidades, Valor do estoque,
     tema, atalhos de teclado e Sair (POST com token CSRF).
+    Itens de módulos opcionais (vendas, OS) entram dentro de <sh:modulo nome="VENDAS"> ou <sh:modulo nome="OS">.
 --%>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <div class="offcanvas offcanvas-bottom sh-mais" tabindex="-1" id="sh-mais" aria-labelledby="sh-mais-titulo">
