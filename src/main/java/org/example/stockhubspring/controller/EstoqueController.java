@@ -3,6 +3,7 @@ package org.example.stockhubspring.controller;
 import jakarta.validation.Valid;
 import org.example.stockhubspring.dto.MovimentacaoFiltro;
 import org.example.stockhubspring.dto.MovimentacaoForm;
+import org.example.stockhubspring.exception.RecursoNaoEncontradoException;
 import org.example.stockhubspring.exception.RegraNegocioException;
 import org.example.stockhubspring.model.MovimentacaoEstoque;
 import org.example.stockhubspring.model.TipoMovimentacao;
@@ -18,6 +19,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -103,6 +105,25 @@ public class EstoqueController {
         }
     }
 
+    /**
+     * Desfaz uma movimentação (RN-69): gera a contrária e mantém a original. Só dono e gerente (o SecurityConfig
+     * barra os demais com 403); o motivo é obrigatório.
+     */
+    @PostMapping("/{id}/estornar")
+    public String estornar(@PathVariable Integer id,
+                           @RequestParam(required = false) String motivo,
+                           RedirectAttributes redirectAttributes) {
+        Usuario usuario = usuarioAtualService.getUsuarioAtual();
+        try {
+            MovimentacaoEstoque estorno = estoqueService.estornar(id, motivo, usuario);
+            redirectAttributes.addFlashAttribute("mensagem", "Movimentação desfeita: o saldo passou de "
+                    + estorno.getQuantidadeAnterior() + " para " + estorno.getQuantidadeNova() + " un.");
+        } catch (RegraNegocioException | RecursoNaoEncontradoException e) {
+            redirectAttributes.addFlashAttribute("erro", e.getMessage());
+        }
+        return "redirect:/estoque";
+    }
+
     private void carregarTela(Model model, Usuario usuario, MovimentacaoFiltro filtro, int pagina) {
         Page<MovimentacaoEstoque> historico =
                 estoqueService.listarMovimentacoes(usuario.getCodigo(), filtro, pagina, TAMANHO_PAGINA);
@@ -112,6 +133,9 @@ public class EstoqueController {
         model.addAttribute("totalPaginas", Math.max(1, historico.getTotalPages()));
         model.addAttribute("totalMovimentacoes", historico.getTotalElements());
         model.addAttribute("tipos", TipoMovimentacao.values());
+        // Botão "Desfazer" só para quem pode e só nas movimentações que ainda podem ser desfeitas (RN-69)
+        model.addAttribute("estornaveis", estoqueService.estornaveis(historico.getContent(), usuario));
+        model.addAttribute("jaDesfeitas", estoqueService.jaDesfeitas(historico.getContent()));
         // Filtros aplicados (já validados), para repor nos campos e montar os links de página/exportação
         model.addAttribute("filtroProduto", filtro.produtoId());
         model.addAttribute("filtroTipo", filtro.tipoParametro());

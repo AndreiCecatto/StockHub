@@ -83,6 +83,13 @@
                         <sh:badgeEstoque nivel="${nivel}" />
                     </p>
                     <sh:medidorEstoque saldo="${produto.quantidade}" minimo="${produto.estoqueMinimo}" />
+                    <c:if test="${not empty saldoProduto and (saldoProduto.reservado > 0 or modulos['VENDAS'] or modulos['OS'])}">
+                        <p class="v3-hero__apoio" aria-label="Em estoque, reservado e disponível">
+                            Em estoque <span class="v3-mono"><fmt:formatNumber value="${saldoProduto.emEstoque}" pattern="#,##0" /></span>
+                            &middot; Reservado <span class="v3-mono"><fmt:formatNumber value="${saldoProduto.reservado}" pattern="#,##0" /></span>
+                            &middot; Disponível <span class="v3-mono"><fmt:formatNumber value="${saldoProduto.disponivel}" pattern="#,##0" /></span>
+                        </p>
+                    </c:if>
                     <p class="v3-hero__apoio">
                         <c:choose>
                             <c:when test="${produto.estoqueMinimo <= 0}">Sem estoque mínimo definido: o produto só muda de situação ao zerar.</c:when>

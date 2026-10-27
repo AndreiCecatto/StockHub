@@ -135,7 +135,9 @@ public class ProdutoController {
     public String visualizar(@PathVariable Integer id, Model model) {
         Usuario usuario = usuarioAtualService.getUsuarioAtual();
         // Primeiro confirma que o produto é da loja (senão 404); só então busca o histórico dele
-        model.addAttribute("produto", produtoService.buscarPorId(id, usuario.getCodigo()));
+        Produto produto = produtoService.buscarPorId(id, usuario.getCodigo());
+        model.addAttribute("produto", produto);
+        model.addAttribute("saldoProduto", estoqueService.saldoDoProduto(produto, usuario.getCodigo()));
         model.addAttribute("movimentacoesProduto",
                 estoqueService.ultimasDoProduto(id, usuario.getCodigo(), MOVIMENTACOES_NO_DETALHE));
         return "produto-detalhe";

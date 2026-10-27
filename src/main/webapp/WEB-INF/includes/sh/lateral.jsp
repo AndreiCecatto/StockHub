@@ -83,6 +83,14 @@
                         <i class="bi bi-graph-up" aria-hidden="true"></i><span class="sh-nav__rotulo">Análises</span>
                     </a>
                 </li>
+                <c:if test="${modulos['VENDAS'] or modulos['OS']}">
+                <li>
+                    <a class="sh-nav__link" href="${ctx}/clientes" title="Clientes" ${shAtivo == 'clientes' ? 'aria-current="page"' : ''}>
+                        <c:if test="${shAtivo == 'clientes'}"><span class="sh-nav__marcador" aria-hidden="true"></span></c:if>
+                        <i class="bi bi-person-lines-fill" aria-hidden="true"></i><span class="sh-nav__rotulo">Clientes</span>
+                    </a>
+                </li>
+                </c:if>
             </ul>
         </div>
         <c:if test="${podeGerenciar}">

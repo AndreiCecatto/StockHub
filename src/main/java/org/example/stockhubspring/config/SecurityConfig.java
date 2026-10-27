@@ -82,6 +82,8 @@ public class SecurityConfig {
                         // e cuidam da equipe. Operador e demais papéis consultam e movimentam.
                         .requestMatchers(HttpMethod.POST, "/produtos/*/excluir", "/categorias/*/excluir")
                                 .hasAnyRole("DONO", "GERENTE")
+                        // Desfazer movimentação (RN-69): só dono e gerente
+                        .requestMatchers(HttpMethod.POST, "/estoque/*/estornar").hasAnyRole("DONO", "GERENTE")
                         .requestMatchers("/conta/**", "/membros", "/membros/**").hasAnyRole("DONO", "GERENTE")
                         .anyRequest().authenticated())
                 // Login pelo formulario existente (campos "email" e "senha"). O UserDetailsService

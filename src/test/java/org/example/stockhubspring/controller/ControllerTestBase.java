@@ -72,6 +72,8 @@ abstract class ControllerTestBase {
     protected ImportacaoNfeService importacaoNfeService;
     @MockitoBean
     protected AnaliseEstoqueService analiseEstoqueService;
+    @MockitoBean
+    protected org.example.stockhubspring.service.ClienteService clienteService;
 
     @BeforeEach
     void montarMockMvc() {

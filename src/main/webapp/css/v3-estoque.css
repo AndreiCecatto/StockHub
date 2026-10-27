@@ -1137,3 +1137,39 @@
     position: static;
   }
 }
+
+/* Desfazer movimentação (RN-69): discreto, abre um campo de motivo na própria linha */
+.v3e-marca {
+  font-style: italic;
+}
+
+.v3e-desfazer {
+  margin-top: 4px;
+  font-size: var(--sh-text-sm);
+}
+
+.v3e-desfazer__abrir {
+  display: inline-block;
+  cursor: pointer;
+  color: var(--sh-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.v3e-desfazer__abrir:hover,
+.v3e-desfazer__abrir:focus-visible {
+  color: var(--sh-text);
+}
+
+.v3e-desfazer__form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sh-space-2);
+  align-items: center;
+  margin-top: 6px;
+}
+
+.v3e-desfazer__form .form-control {
+  flex: 1 1 14rem;
+  min-width: 0;
+}

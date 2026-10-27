@@ -41,6 +41,13 @@
                         <i class="bi bi-graph-up" aria-hidden="true"></i> Análises
                     </a>
                 </li>
+                <c:if test="${modulos['VENDAS'] or modulos['OS']}">
+                <li>
+                    <a class="sh-mais__link" href="${ctx}/clientes" ${shAtivo == 'clientes' ? 'aria-current="page"' : ''}>
+                        <i class="bi bi-person-lines-fill" aria-hidden="true"></i> Clientes
+                    </a>
+                </li>
+                </c:if>
                 <c:if test="${podeGerenciar}">
                 <li>
                     <a class="sh-mais__link" href="${ctx}/membros" ${shAtivo == 'membros' ? 'aria-current="page"' : ''}>

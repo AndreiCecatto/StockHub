@@ -430,6 +430,24 @@
                                 <c:if test="${not empty mov.observacao}">
                                     <p class="v3e-obs"><c:out value="${mov.observacao}" /></p>
                                 </c:if>
+                                <c:if test="${not empty mov.estornoDeId}">
+                                    <p class="v3e-obs v3e-marca">Estorno da movimentação <span class="sh-mono">#<c:out value="${mov.estornoDeId}" /></span></p>
+                                </c:if>
+                                <c:if test="${jaDesfeitas.contains(mov.id)}">
+                                    <p class="v3e-obs v3e-marca">Desfeita por um estorno</p>
+                                </c:if>
+                                <c:if test="${estornaveis.contains(mov.id)}">
+                                    <details class="v3e-desfazer">
+                                        <summary class="v3e-desfazer__abrir">Desfazer</summary>
+                                        <form method="post" action="<c:out value='${ctx}/estoque/${mov.id}/estornar'/>" class="v3e-desfazer__form">
+                                            <input type="hidden" name="<c:out value='${_csrf.parameterName}'/>" value="<c:out value='${_csrf.token}'/>" />
+                                            <label class="visually-hidden" for="motivo-estorno-<c:out value='${mov.id}'/>">Motivo de desfazer</label>
+                                            <input id="motivo-estorno-<c:out value='${mov.id}'/>" class="form-control form-control-sm" type="text" name="motivo"
+                                                maxlength="200" required autocomplete="off" placeholder="Por que está desfazendo?">
+                                            <button type="submit" class="btn btn-outline-secondary btn-sm">Confirmar</button>
+                                        </form>
+                                    </details>
+                                </c:if>
                             </div>
                             <span class="v3e-qtd-col v3e-qtd-col--${tCls} sh-mono">
                                 <span class="visually-hidden"><c:out value="${tRotulo}" /> de </span><c:choose>
