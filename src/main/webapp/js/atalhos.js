@@ -66,12 +66,22 @@
   }
 
   function focarBusca() {
-    var campo = document.querySelector('[data-sh-busca-lista]') || document.querySelector('[data-sh-busca-global]');
+    var campo = document.querySelector('[data-sh-busca-lista]');
     if (campo) {
       campo.focus();
       if (campo.select) {
         campo.select();
       }
+      return true;
+    }
+    // nas outras telas, "/" abre a paleta de comandos (js/paleta.js), que busca produtos, telas e ações
+    if (SH.paleta && document.getElementById('sh-paleta')) {
+      SH.paleta.abrir('');
+      return true;
+    }
+    campo = document.querySelector('[data-sh-busca-global]');
+    if (campo && campo.focus) {
+      campo.focus();
       return true;
     }
     return false;

@@ -1,9 +1,169 @@
 /*
- * StockHub: estrutura da página (seção 2 de docs/design-system.md).
- * Barra lateral recolhível, barra superior, barra inferior no celular, cabeçalho da página,
- * barra de ações de formulário e a moldura das telas de entrada (login e cadastro).
+ * StockHub v2: estrutura da página (seção 2 e "v2: com personalidade" de docs/design-system.md).
+ * Barra lateral ("capa da caderneta", recolhível), barra superior, barra inferior no celular, cabeçalho da página,
+ * barra de ações de formulário e a transição entre páginas (View Transitions entre documentos).
+ * As telas de entrada (login e cadastro) ficam em css/entrar.css; o início, em css/inicio.css.
  * Tamanhos e cores vêm de tokens.css. Pontos de quebra: 576, 768, 992 e 1200 px (os do Bootstrap).
  */
+
+/* ---------- Transição entre páginas, sem sensação de recarga ----------
+   Chrome e Edge (126+) e Safari recente: o navegador guarda uma "foto" da página antiga e anima até a nova.
+   As peças que se repetem (barra lateral, barra superior, barra inferior) têm nome, então ficam paradas; só o
+   conteúdo faz fade e desliza um pouco. O marcador do item atual desliza de um item para o outro.
+   Firefox ainda não tem: a regra é ignorada e entra o plano B (js/navegacao.js + .sh-sem-vt mais abaixo).
+   Honestidade: a próxima página continua sendo carregada do servidor; o que muda é a continuidade visual. */
+@view-transition {
+  navigation: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}
+
+.sh-lateral {
+  view-transition-name: lateral;
+}
+
+.sh-topbar {
+  view-transition-name: topo;
+}
+
+.sh-inferior {
+  view-transition-name: inferior;
+}
+
+.sh-main {
+  view-transition-name: conteudo;
+}
+
+.sh-nav__marcador,
+.sh-inferior__marcador {
+  view-transition-name: marcador;
+}
+
+/* Fundo da página: fade curto (igual dos dois lados, não pisca) */
+::view-transition-group(root) {
+  animation-duration: var(--sh-dur-fast);
+}
+
+/* Peças fixas: a nova aparece na hora por cima da antiga (mesmo desenho, sem fade, sem piscar) */
+::view-transition-group(lateral),
+::view-transition-group(inferior) {
+  animation: none;
+}
+
+::view-transition-old(lateral),
+::view-transition-old(inferior) {
+  display: none;
+}
+
+::view-transition-new(lateral),
+::view-transition-new(inferior) {
+  animation: none;
+}
+
+/* Barra superior: o título e as migalhas mudam, então fade bem curto */
+::view-transition-group(topo) {
+  animation-duration: var(--sh-dur-fast);
+}
+
+/* Marcador do menu: desliza de um item ao outro (corpo da peça sem esticar) */
+::view-transition-group(marcador) {
+  animation-duration: var(--sh-dur-slow);
+  animation-timing-function: var(--sh-ease-mola);
+}
+
+::view-transition-old(marcador),
+::view-transition-new(marcador) {
+  height: 100%;
+  object-fit: fill;
+}
+
+/* Conteúdo: o grupo não anima o tamanho (páginas têm alturas diferentes, e assim a foto não estica) */
+::view-transition-group(conteudo) {
+  animation: none;
+}
+
+::view-transition-old(conteudo) {
+  animation: sh-vt-sai var(--sh-dur-fast) var(--sh-ease-in) both;
+}
+
+::view-transition-new(conteudo) {
+  animation: sh-vt-entra var(--sh-dur-slow) var(--sh-ease-out) 40ms both;
+}
+
+/* Direção: para dentro (lista para detalhe) o conteúdo novo vem da direita; para fora, da esquerda */
+html:active-view-transition-type(para-frente)::view-transition-old(conteudo) {
+  animation-name: sh-vt-sai-esq;
+}
+
+html:active-view-transition-type(para-frente)::view-transition-new(conteudo) {
+  animation-name: sh-vt-entra-dir;
+}
+
+html:active-view-transition-type(para-tras)::view-transition-old(conteudo) {
+  animation-name: sh-vt-sai-dir;
+}
+
+html:active-view-transition-type(para-tras)::view-transition-new(conteudo) {
+  animation-name: sh-vt-entra-esq;
+}
+
+@keyframes sh-vt-sai {
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes sh-vt-entra {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@keyframes sh-vt-sai-esq {
+  to {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+}
+
+@keyframes sh-vt-sai-dir {
+  to {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+}
+
+@keyframes sh-vt-entra-dir {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}
+
+@keyframes sh-vt-entra-esq {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+}
+
+/* Plano B (sem View Transitions): o conteúdo entra com fade e sobe um pouco, e sai com fade ao clicar.
+   js/navegacao-init.js marca o <html> com data-sh-vt quando o navegador faz a transição sozinho. */
+html:not([data-sh-vt]) .sh-main {
+  animation: sh-vt-entra var(--sh-dur-slow) var(--sh-ease-out) both;
+}
+
+html.sh-saindo:not([data-sh-vt]) .sh-main {
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity var(--sh-dur-fast) var(--sh-ease-in), transform var(--sh-dur-fast) var(--sh-ease-in);
+}
 
 /* ---------- Link "Pular para o conteúdo" (primeiro item da ordem de tabulação) ---------- */
 .sh-pular {
@@ -61,7 +221,7 @@
   }
 }
 
-/* ---------- Barra lateral (só a partir de 992 px) ---------- */
+/* ---------- Barra lateral: a "capa" da caderneta (só a partir de 992 px) ---------- */
 .sh-lateral {
   display: none;
 }
@@ -76,17 +236,24 @@
     height: 100dvh;
     flex: 0 0 248px;
     width: 248px;
-    padding: var(--sh-space-4) var(--sh-space-3);
-    background: var(--sh-side-bg);
+    padding: var(--sh-space-5) var(--sh-space-3) var(--sh-space-4);
+    background-color: var(--sh-side-bg);
     color: var(--sh-side-text);
     overflow-x: hidden;
     overflow-y: auto;
+    /* costura da capa: pontilhado a 10 px da borda direita */
+    background-image:
+      repeating-linear-gradient(to bottom, rgba(255, 255, 255, .14) 0 6px, transparent 6px 12px);
+    background-size: 2px 100%;
+    background-position: calc(100% - 10px) 0;
+    background-repeat: no-repeat;
+    border-radius: 0 var(--sh-radius-lg) var(--sh-radius-lg) 0;
     transition: width var(--sh-dur-slow) var(--sh-ease), flex-basis var(--sh-dur-slow) var(--sh-ease);
   }
 
   html[data-sh-lateral="recolhida"] .sh-lateral {
-    flex-basis: 68px;
-    width: 68px;
+    flex-basis: 72px;
+    width: 72px;
     padding-inline: var(--sh-space-2);
   }
 }
@@ -105,6 +272,7 @@
   color: #fff;
 }
 
+/* Quadrinho com ícone (usado pela página de erro ainda na v1) */
 .sh-marca__logo {
   display: inline-flex;
   align-items: center;
@@ -112,20 +280,44 @@
   flex: 0 0 36px;
   width: 36px;
   height: 36px;
-  border-radius: var(--sh-radius-sm);
+  border-radius: var(--sh-radius-folha);
   background: var(--sh-accent);
   color: #fff;
   font-size: 1.125rem;
 }
 
+.sh-marca__mascote {
+  flex: 0 0 44px;
+  width: 44px;
+  transition: transform var(--sh-dur) var(--sh-ease-mola);
+}
+
+.sh-marca:hover .sh-marca__mascote {
+  transform: rotate(-6deg) scale(1.06);
+}
+
+.sh-marca__texto {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
 .sh-marca__nome {
-  font-size: var(--sh-text-lg);
+  font-family: var(--sh-font-display);
+  font-variation-settings: "SOFT" 100;
+  font-size: 1.375rem;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
 
-/* Foco nos painéis escuros (barra lateral e painel de marca do login): o índigo do tema claro teria
-   só 2,2:1 contra o fundo escuro, então o anel usa a cor do marcador (7,5:1 no claro, 8,9:1 no escuro). */
+.sh-marca__sub {
+  margin-top: 3px;
+  color: var(--sh-side-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+/* Foco nos painéis escuros: anel claro (o anel do tema claro teria pouco contraste contra o fundo escuro) */
 .sh-lateral :focus-visible,
 .sh-auth__marca :focus-visible {
   outline-color: var(--sh-side-marker) !important;
@@ -138,8 +330,10 @@
 .sh-nav__titulo {
   margin: 0 0 var(--sh-space-1);
   padding: 0 var(--sh-space-3);
-  font-size: var(--sh-text-sm);
-  font-weight: 500;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--sh-side-muted);
 }
 
@@ -158,18 +352,20 @@
   gap: var(--sh-space-3);
   min-height: 44px;
   padding: var(--sh-space-2) var(--sh-space-3);
-  border-radius: var(--sh-radius-sm);
+  border-radius: 10px 10px 10px 4px;
   color: var(--sh-side-text);
   font-size: var(--sh-text-base);
   font-weight: 500;
   text-decoration: none;
-  transition: background-color var(--sh-dur-fast) var(--sh-ease), color var(--sh-dur-fast) var(--sh-ease);
+  transition: background-color var(--sh-dur-fast) var(--sh-ease), color var(--sh-dur-fast) var(--sh-ease),
+    transform var(--sh-dur) var(--sh-ease-out);
 }
 
 .sh-nav__link .bi {
   flex: 0 0 20px;
   font-size: 1.25rem;
   line-height: 1;
+  transition: transform var(--sh-dur) var(--sh-ease-mola);
 }
 
 .sh-nav__link:hover {
@@ -177,19 +373,25 @@
   color: #fff;
 }
 
+.sh-nav__link:hover .bi {
+  transform: translateX(2px) rotate(-6deg);
+}
+
 .sh-nav__link[aria-current="page"] {
   background: var(--sh-side-active-bg);
   color: #fff;
+  font-weight: 600;
 }
 
-.sh-nav__link[aria-current="page"]::before {
-  content: "";
+/* Marcador do item atual (a "fita" de marcar página). Só existe no item atual; na transição entre páginas ele
+   desliza do item antigo para o novo. */
+.sh-nav__marcador {
   position: absolute;
   left: 0;
-  top: 8px;
-  bottom: 8px;
-  width: 3px;
-  border-radius: 0 3px 3px 0;
+  top: 9px;
+  bottom: 9px;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
   background: var(--sh-side-marker);
 }
 
@@ -229,7 +431,7 @@
 
 /* Recolhida: só os ícones; os rótulos continuam no DOM, visualmente ocultos */
 html[data-sh-lateral="recolhida"] .sh-nav__rotulo,
-html[data-sh-lateral="recolhida"] .sh-marca__nome,
+html[data-sh-lateral="recolhida"] .sh-marca__texto,
 html[data-sh-lateral="recolhida"] .sh-nav__titulo,
 html[data-sh-lateral="recolhida"] .sh-lateral__alternar-rotulo {
   position: absolute;
@@ -264,7 +466,7 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   border-top: 1px solid var(--sh-side-active-bg);
 }
 
-/* ---------- Barra superior (56 px, fixa) ---------- */
+/* ---------- Barra superior (60 px, fixa) ---------- */
 .sh-topbar {
   position: sticky;
   top: 0;
@@ -272,9 +474,11 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   display: flex;
   align-items: center;
   gap: var(--sh-space-3);
-  min-height: 56px;
+  min-height: 60px;
   padding: var(--sh-space-2) var(--sh-gutter);
-  background: var(--sh-surface);
+  background-color: var(--sh-bg);
+  background-image: var(--sh-papel);
+  background-size: 180px 180px;
   border-bottom: 1px solid var(--sh-border);
 }
 
@@ -285,15 +489,16 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   flex: 0 0 auto;
   min-height: 44px;
   color: var(--sh-text);
+  font-family: var(--sh-font-display);
+  font-variation-settings: "SOFT" 100;
+  font-size: 1.25rem;
   font-weight: 700;
   text-decoration: none;
 }
 
-.sh-topbar__marca .sh-marca__logo {
-  flex-basis: 32px;
-  width: 32px;
-  height: 32px;
-  font-size: 1rem;
+.sh-topbar__marca .sh-marca__mascote {
+  flex-basis: 38px;
+  width: 38px;
 }
 
 .sh-topbar__voltar {
@@ -352,36 +557,89 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   }
 }
 
-.sh-busca-global {
-  position: relative;
+/* Gatilho da paleta de comandos: parece um campo de busca, mas é um botão (abre a paleta, Ctrl K) */
+.sh-paleta-gatilho {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sh-space-2);
   flex: 1 1 auto;
   min-width: 0;
-  max-width: 520px;
-  margin: 0;
+  max-width: 460px;
+  min-height: 44px;
+  margin-left: auto;
+  padding: 0 var(--sh-space-3);
+  border: 1px solid var(--sh-border-strong);
+  border-radius: 10px 10px 10px 4px;
+  background: var(--sh-surface);
+  color: var(--sh-text-muted);
+  font: inherit;
+  text-align: left;
+  transition: border-color var(--sh-dur-fast) var(--sh-ease), background-color var(--sh-dur-fast) var(--sh-ease),
+    transform var(--sh-dur) var(--sh-ease-out);
 }
 
-.sh-busca-global .bi {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
+.sh-paleta-gatilho:hover {
+  border-color: var(--sh-accent);
+  color: var(--sh-text);
+  transform: translateY(-1px);
+}
+
+.sh-paleta-gatilho:active {
+  transform: translateY(1px);
+}
+
+.sh-paleta-gatilho .bi {
+  flex: 0 0 auto;
   color: var(--sh-text-subtle);
-  pointer-events: none;
 }
 
-.sh-busca-global .form-control {
-  padding-left: 38px;
+.sh-paleta-gatilho__texto {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.sh-topbar__espaco {
-  flex: 1 1 0;
+.sh-paleta-gatilho__tecla {
+  display: none;
+  flex: 0 0 auto;
+  padding: 1px 7px;
+  border: 1px solid var(--sh-border-strong);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--sh-surface-2);
+  color: var(--sh-text-muted);
+  font: inherit;
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .sh-paleta-gatilho__tecla {
+    display: inline-block;
+  }
+}
+
+/* No celular o gatilho vira só o botão da lupa */
+@media (max-width: 575.98px) {
+  .sh-paleta-gatilho {
+    flex: 0 0 44px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .sh-paleta-gatilho__texto,
+  .sh-paleta-gatilho__tecla {
+    display: none;
+  }
 }
 
 .sh-topbar__acoes {
   display: flex;
   align-items: center;
   gap: var(--sh-space-2);
-  margin-left: auto;
+  margin-left: 0;
 }
 
 .sh-topbar__novo {
@@ -416,13 +674,15 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 32px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--sh-accent-soft);
-  color: var(--sh-accent-text);
-  font-size: var(--sh-text-md);
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50% 50% 50% 28%;
+  background: var(--sh-terra-soft);
+  color: var(--sh-terra-text);
+  font-family: var(--sh-font-display);
+  font-variation-settings: "SOFT" 100;
+  font-size: 1.0625rem;
   font-weight: 700;
 }
 
@@ -454,7 +714,9 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
 .sh-menu-usuario__loja strong {
   display: block;
   color: var(--sh-text);
-  font-size: var(--sh-text-base);
+  font-family: var(--sh-font-display);
+  font-variation-settings: "SOFT" 100;
+  font-size: 1.125rem;
   overflow-wrap: anywhere;
 }
 
@@ -503,8 +765,11 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   align-items: stretch;
   height: calc(64px + env(safe-area-inset-bottom, 0px));
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  background: var(--sh-surface);
+  background-color: var(--sh-surface);
+  background-image: var(--sh-papel);
+  background-size: 180px 180px;
   border-top: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-lg) var(--sh-radius-lg) 0 0;
 }
 
 @media (min-width: 992px) {
@@ -529,30 +794,35 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   font-size: 0.75rem;
   font-weight: 600;
   text-decoration: none;
+  transition: color var(--sh-dur-fast) var(--sh-ease);
 }
 
 .sh-inferior__item .bi {
   font-size: 1.375rem;
   line-height: 1;
+  transition: transform var(--sh-dur) var(--sh-ease-mola);
+}
+
+.sh-inferior__item:active .bi {
+  transform: scale(.82);
 }
 
 .sh-inferior__item:hover {
   color: var(--sh-text);
 }
 
-/* Item atual: cor, barra no topo e o aria-current (não depende só de cor) */
+/* Item atual: cor, fita no topo e o aria-current (não depende só de cor) */
 .sh-inferior__item[aria-current="page"] {
   color: var(--sh-accent-text);
 }
 
-.sh-inferior__item[aria-current="page"]::before {
-  content: "";
+.sh-inferior__marcador {
   position: absolute;
   top: 0;
-  left: 24%;
-  right: 24%;
-  height: 3px;
-  border-radius: 0 0 3px 3px;
+  left: 26%;
+  right: 26%;
+  height: 4px;
+  border-radius: 0 0 4px 4px;
   background: var(--sh-accent-text);
 }
 
@@ -565,12 +835,19 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 36px;
-  margin-top: -14px;
-  border-radius: var(--sh-radius-pill);
+  width: 52px;
+  height: 38px;
+  margin-top: -16px;
+  border-radius: 16px 16px 16px 6px;
   background: var(--sh-accent);
+  box-shadow: 0 3px 0 var(--sh-accent-hover);
   color: #fff;
+  transition: transform var(--sh-dur) var(--sh-ease-mola), box-shadow var(--sh-dur) var(--sh-ease);
+}
+
+.sh-inferior__item--principal:active .sh-inferior__icone {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--sh-accent-hover);
 }
 
 .sh-inferior__item--principal:hover .sh-inferior__icone {
@@ -650,7 +927,7 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
 .sh-page-header {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
   gap: var(--sh-space-3) var(--sh-space-4);
   margin-bottom: var(--sh-space-6);
@@ -663,16 +940,18 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
 
 .sh-page-header__titulo {
   margin: 0;
-  font-size: var(--sh-text-xl);
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-family: var(--sh-font-display);
+  font-variation-settings: "SOFT" 100;
+  font-size: var(--sh-text-2xl);
+  font-weight: 650;
+  letter-spacing: -0.015em;
   overflow-wrap: anywhere;
 }
 
 .sh-page-header__desc {
   margin: var(--sh-space-1) 0 0;
   color: var(--sh-text-muted);
-  font-size: var(--sh-text-md);
+  font-size: var(--sh-text-base);
 }
 
 .sh-page-header__acoes {
@@ -683,7 +962,7 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
 
 @media (min-width: 992px) {
   .sh-page-header__titulo {
-    font-size: var(--sh-text-2xl);
+    font-size: 2.125rem;
   }
 }
 
@@ -716,127 +995,4 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   .sh-form-actions .btn {
     flex: 1 1 auto;
   }
-}
-
-/* ---------- Telas de entrada (login e cadastro) ---------- */
-.sh-auth {
-  display: flex;
-  min-height: 100vh;
-  min-height: 100dvh;
-}
-
-.sh-auth__marca {
-  display: none;
-}
-
-.sh-auth__lado {
-  position: relative;
-  flex: 1 1 0;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--sh-space-12) var(--sh-gutter) var(--sh-space-8);
-}
-
-.sh-auth__tema {
-  position: absolute;
-  top: var(--sh-space-3);
-  right: var(--sh-space-3);
-}
-
-.sh-auth__caixa {
-  width: 100%;
-  max-width: 420px;
-}
-
-.sh-auth__logo-mobile {
-  display: flex;
-  align-items: center;
-  gap: var(--sh-space-3);
-  margin-bottom: var(--sh-space-6);
-  color: var(--sh-text);
-  font-size: var(--sh-text-xl);
-  font-weight: 700;
-}
-
-.sh-auth__titulo {
-  margin: 0 0 var(--sh-space-1);
-  font-size: var(--sh-text-xl);
-  font-weight: 700;
-}
-
-.sh-auth__sub {
-  margin: 0 0 var(--sh-space-6);
-  color: var(--sh-text-muted);
-}
-
-.sh-auth__troca {
-  margin: var(--sh-space-6) 0 0;
-  text-align: center;
-  color: var(--sh-text-muted);
-}
-
-@media (min-width: 992px) {
-  .sh-auth__marca {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    flex: 0 0 44%;
-    max-width: 640px;
-    padding: var(--sh-space-12);
-    background: var(--sh-side-bg);
-    color: var(--sh-side-text);
-  }
-
-  .sh-auth__logo-mobile {
-    display: none;
-  }
-
-  .sh-auth__titulo {
-    font-size: var(--sh-text-2xl);
-  }
-}
-
-.sh-auth__marca .sh-marca {
-  padding: 0;
-}
-
-.sh-auth__frase {
-  margin: 0 0 var(--sh-space-6);
-  max-width: 18ch;
-  color: #fff;
-  font-size: 2.25rem;
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-}
-
-.sh-auth__beneficios {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: var(--sh-space-4);
-}
-
-.sh-auth__beneficios li {
-  display: flex;
-  gap: var(--sh-space-3);
-  align-items: flex-start;
-  font-size: var(--sh-text-lg);
-}
-
-.sh-auth__beneficios .bi {
-  flex: 0 0 24px;
-  color: var(--sh-side-marker);
-  font-size: 1.25rem;
-  line-height: 1.4;
-}
-
-.sh-auth__rodape-marca {
-  margin: 0;
-  color: var(--sh-side-muted);
-  font-size: var(--sh-text-sm);
 }

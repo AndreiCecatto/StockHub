@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="sh" tagdir="/WEB-INF/tags" %>
 <%--
     Uso (em WEB-INF/pages/*.jsp):
 
@@ -58,7 +59,7 @@
                     </c:when>
                     <c:otherwise>
                         <a class="sh-topbar__marca" href="${ctx}/dashboard">
-                            <span class="sh-marca__logo"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
+                            <sh:mascote estado="contente" tamanho="p" classe="sh-marca__mascote" />
                             <span>StockHub</span>
                         </a>
                     </c:otherwise>
@@ -70,13 +71,20 @@
                         </ol>
                     </nav>
                 </c:if>
-                <form class="sh-busca-global" role="search" action="${ctx}/produtos" method="get">
-                    <label class="visually-hidden" for="sh-busca-global">Buscar produtos</label>
+                <%-- Paleta de comandos (Ctrl K): parece um campo de busca, mas é um botão. Sem JavaScript, vale a busca comum. --%>
+                <button type="button" class="sh-paleta-gatilho" data-sh-abrir-paleta data-sh-busca-global
+                    aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" aria-label="Buscar produto ou ir para uma tela">
                     <i class="bi bi-search" aria-hidden="true"></i>
-                    <input id="sh-busca-global" class="form-control" type="search" name="busca" maxlength="120"
-                        placeholder="Buscar produto" autocomplete="off" aria-keyshortcuts="/"
-                        data-sh-busca-global data-sh-limpar-esc>
-                </form>
+                    <span class="sh-paleta-gatilho__texto">Buscar produto ou ir para&hellip;</span>
+                    <kbd class="sh-paleta-gatilho__tecla" data-sh-tecla-paleta aria-hidden="true">Ctrl K</kbd>
+                </button>
+                <noscript>
+                    <form class="sh-busca-global" role="search" action="${ctx}/produtos" method="get">
+                        <label class="visually-hidden" for="sh-busca-global">Buscar produtos</label>
+                        <input id="sh-busca-global" class="form-control" type="search" name="busca" maxlength="120"
+                            placeholder="Buscar produto" autocomplete="off">
+                    </form>
+                </noscript>
                 <div class="sh-topbar__acoes">
                     <div class="dropdown sh-topbar__novo">
                         <button type="button" class="btn btn-primary" data-bs-toggle="dropdown" aria-expanded="false">
@@ -112,6 +120,9 @@
                                 </jsp:include>
                             </div>
                             <hr class="dropdown-divider">
+                            <button type="button" class="dropdown-item" data-sh-abrir-paleta>
+                                <i class="bi bi-command" aria-hidden="true"></i> Paleta de comandos
+                            </button>
                             <button type="button" class="dropdown-item" data-sh-abrir-atalhos>
                                 <i class="bi bi-keyboard" aria-hidden="true"></i> Atalhos de teclado
                             </button>
@@ -137,6 +148,7 @@
     <jsp:include page="/WEB-INF/includes/sh/mais.jsp" />
     <jsp:include page="/WEB-INF/includes/sh/modal-exclusao.jsp" />
     <jsp:include page="/WEB-INF/includes/sh/modal-atalhos.jsp" />
+    <jsp:include page="/WEB-INF/includes/sh/paleta.jsp" />
     <div id="sh-toasts" class="sh-toasts" aria-live="polite" aria-relevant="additions"></div>
     <div id="sh-anuncio" class="visually-hidden" role="status"></div>
 </body>

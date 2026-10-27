@@ -12,8 +12,10 @@
             </div>
             <div class="modal-body">
                 <dl class="sh-atalhos">
+                    <dt><kbd class="sh-tecla">Ctrl</kbd> + <kbd class="sh-tecla">K</kbd> (no Mac, <kbd class="sh-tecla">&#8984;</kbd> + <kbd class="sh-tecla">K</kbd>)</dt>
+                    <dd>Paleta de comandos: buscar produto, ir para uma tela ou fazer uma ação (vale até digitando)</dd>
                     <dt><kbd class="sh-tecla">/</kbd></dt>
-                    <dd>Buscar (na lista, no campo da lista; nas outras telas, na busca do topo)</dd>
+                    <dd>Buscar (na lista, no campo da lista; nas outras telas, abre a paleta de comandos)</dd>
                     <dt><kbd class="sh-tecla">n</kbd></dt>
                     <dd>Novo produto (em Categorias, nova categoria)</dd>
                     <dt><kbd class="sh-tecla">m</kbd></dt>

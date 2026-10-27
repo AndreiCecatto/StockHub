@@ -1,0 +1,265 @@
+/*
+ * StockHub v2: paleta de comandos (Ctrl+K). Usa o <dialog> nativo (camada superior, fundo inerte, Esc nativo).
+ * O gatilho da barra superior está em css/layout.css (.sh-paleta-gatilho).
+ */
+
+dialog.sh-paleta {
+  width: min(660px, calc(100vw - 24px));
+  max-height: min(78vh, 600px);
+  margin: 10vh auto auto;
+  padding: 0;
+  border: 1px solid var(--sh-border-strong);
+  border-radius: var(--sh-radius-folha);
+  background-color: var(--sh-surface);
+  background-image: var(--sh-papel);
+  color: var(--sh-text);
+  box-shadow: var(--sh-shadow-modal);
+  overflow: hidden;
+}
+
+dialog.sh-paleta[open] {
+  display: block;
+  animation: sh-paleta-entra var(--sh-dur) var(--sh-ease-mola);
+}
+
+dialog.sh-paleta[open].is-fechando {
+  animation: sh-paleta-sai var(--sh-dur-fast) var(--sh-ease-in) forwards;
+}
+
+dialog.sh-paleta::backdrop {
+  background: rgba(38, 28, 15, .5);
+}
+
+dialog.sh-paleta[open]::backdrop {
+  animation: sh-paleta-fundo var(--sh-dur) var(--sh-ease-out);
+}
+
+@keyframes sh-paleta-entra {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(.97);
+  }
+}
+
+@keyframes sh-paleta-sai {
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(.98);
+  }
+}
+
+@keyframes sh-paleta-fundo {
+  from {
+    opacity: 0;
+  }
+}
+
+.sh-paleta__caixa {
+  display: flex;
+  flex-direction: column;
+  max-height: inherit;
+}
+
+.sh-paleta__topo {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-space-3);
+  padding: 0 var(--sh-space-3) 0 var(--sh-space-4);
+  border-bottom: 1px dashed var(--sh-border-strong);
+}
+
+.sh-paleta__topo > .bi {
+  color: var(--sh-text-subtle);
+  font-size: 1.125rem;
+}
+
+.sh-paleta__entrada {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 56px;
+  border: 0;
+  background: transparent;
+  color: var(--sh-text);
+  font: inherit;
+  font-size: var(--sh-text-lg);
+}
+
+.sh-paleta__entrada::placeholder {
+  color: var(--sh-text-subtle);
+  opacity: 1;
+}
+
+/* O foco do campo é o próprio painel: anel desenhado no contorno interno, nunca escondido */
+.sh-paleta__entrada:focus-visible {
+  outline: 3px solid var(--sh-focus) !important;
+  outline-offset: -3px;
+  border-radius: 6px;
+}
+
+.sh-paleta__fechar {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 0 9px;
+  border: 1px solid var(--sh-border-strong);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--sh-surface-2);
+  color: var(--sh-text-muted);
+  font: inherit;
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+}
+
+.sh-paleta__fechar:hover {
+  color: var(--sh-text);
+}
+
+.sh-paleta__lista {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--sh-space-2);
+}
+
+.sh-paleta__grupo-titulo {
+  margin: 0;
+  padding: var(--sh-space-3) var(--sh-space-3) var(--sh-space-1);
+  color: var(--sh-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sh-paleta__opcao {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-space-3);
+  min-height: 46px;
+  padding: var(--sh-space-2) var(--sh-space-3);
+  border-radius: 10px 10px 10px 4px;
+  color: var(--sh-text);
+  cursor: pointer;
+  scroll-margin: 36px 8px 8px;
+}
+
+.sh-paleta__opcao > .bi {
+  flex: 0 0 22px;
+  color: var(--sh-text-muted);
+  font-size: 1.125rem;
+  text-align: center;
+}
+
+.sh-paleta__opcao[aria-selected="true"] {
+  background: var(--sh-accent-soft);
+  box-shadow: inset 4px 0 0 var(--sh-accent);
+}
+
+.sh-paleta__opcao[aria-selected="true"] > .bi {
+  color: var(--sh-accent-text);
+}
+
+.sh-paleta__texto {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.sh-paleta__nome {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.sh-paleta__sub {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+.sh-paleta__lado {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-space-2);
+  flex: 0 0 auto;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-paleta mark {
+  padding: 0;
+  background: var(--sh-marca-texto);
+  color: inherit;
+  border-radius: 3px;
+}
+
+.sh-paleta__aviso {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-space-2);
+  margin: var(--sh-space-2) var(--sh-space-3);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.sh-paleta__ponto {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sh-text-muted);
+  animation: sh-paleta-ponto 900ms ease-in-out infinite;
+}
+
+.sh-paleta__ponto:nth-child(2) {
+  animation-delay: 150ms;
+}
+
+.sh-paleta__ponto:nth-child(3) {
+  animation-delay: 300ms;
+}
+
+@keyframes sh-paleta-ponto {
+  50% {
+    transform: translateY(-4px);
+    opacity: .4;
+  }
+}
+
+.sh-paleta__rodape {
+  display: none;
+  flex: 0 0 auto;
+  gap: var(--sh-space-4);
+  margin: 0;
+  padding: var(--sh-space-2) var(--sh-space-4);
+  border-top: 1px dashed var(--sh-border-strong);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+.sh-paleta__rodape kbd {
+  padding: 0 5px;
+  border: 1px solid var(--sh-border-strong);
+  border-radius: 4px;
+  background: var(--sh-surface-2);
+  color: var(--sh-text-muted);
+  font: inherit;
+}
+
+@media (min-width: 768px) {
+  .sh-paleta__rodape {
+    display: flex;
+  }
+}
+
+@media (max-width: 575.98px) {
+  dialog.sh-paleta {
+    margin-top: 8px;
+    max-height: calc(100dvh - 16px);
+  }
+}

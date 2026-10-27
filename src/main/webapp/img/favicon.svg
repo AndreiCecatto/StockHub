@@ -1,5 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="StockHub">
-  <rect width="32" height="32" rx="7" fill="#4338CA"/>
-  <path d="M16 6.5 25 11v10l-9 4.5L7 21V11l9-4.5Z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M7.5 11.2 16 15.6l8.5-4.4M16 15.6v9.4" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>StockHub</title>
+  <rect width="64" height="64" rx="14" fill="#3E5A2F"/>
+  <path d="M15 27 L11 15 C10.6 13.8 11.6 13 12.8 13.2 L24 15 L25 27 Z" fill="#EBCF9F" stroke="#2B2118" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M49 27 L53 15 C53.4 13.8 52.4 13 51.2 13.2 L40 15 L39 27 Z" fill="#EBCF9F" stroke="#2B2118" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M13.5 27.5 C23 26.8 41 27.2 50.5 26.8 C51.8 36 51.4 48 50.6 57 C40 57.8 23.5 58 13.8 57.2 C12.8 48 13 36 13.5 27.5 Z" fill="#D9AE72" stroke="#2B2118" stroke-width="2.6" stroke-linejoin="round"/>
+  <circle cx="25" cy="39.5" r="4.6" fill="#FFF8EC" stroke="#2B2118" stroke-width="1.8"/>
+  <circle cx="39" cy="39.5" r="4.6" fill="#FFF8EC" stroke="#2B2118" stroke-width="1.8"/>
+  <circle cx="25.4" cy="40" r="2.2" fill="#2B2118"/>
+  <circle cx="38.6" cy="40" r="2.2" fill="#2B2118"/>
+  <path d="M27 47 C29.5 52 34.5 52 37 47 C33 48.2 31 48.2 27 47 Z" fill="#8A3A24" stroke="#2B2118" stroke-width="1.8" stroke-linejoin="round"/>
 </svg>

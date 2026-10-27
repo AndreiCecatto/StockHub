@@ -8,7 +8,7 @@
 (function () {
   'use strict';
 
-  var SH = window.SH || {};
+  var SH = window.SH || (window.SH = {});
   var DURACAO = 700;
 
   function reduz() {
@@ -46,16 +46,28 @@
     window.requestAnimationFrame(quadro);
   }
 
-  if (formatadores && !reduz() && window.requestAnimationFrame) {
-    var numeros = document.querySelectorAll('[data-contar]');
+  /** Anima todo [data-contar] dentro de "raiz" (o documento, por padrão). Cada elemento anima uma vez só. */
+  function animarNumeros(raiz) {
+    if (!formatadores || reduz() || !window.requestAnimationFrame) {
+      return;
+    }
+    var numeros = (raiz || document).querySelectorAll('[data-contar]');
     for (var i = 0; i < numeros.length; i++) {
+      if (numeros[i].getAttribute('data-contado') === 'sim') {
+        continue;
+      }
       var alvo = parseFloat(numeros[i].getAttribute('data-contar'));
       var formato = numeros[i].getAttribute('data-formato') === 'moeda' ? 'moeda' : 'inteiro';
+      numeros[i].setAttribute('data-contado', 'sim');
       if (isFinite(alvo) && alvo > 0) {
         contar(numeros[i], alvo, formatadores[formato]);
       }
     }
   }
+
+  SH.animarNumeros = animarNumeros;
+  window.SH = SH;
+  animarNumeros(document);
 
   /* ---------- Destaque do item recém-criado ---------- */
   var listas = document.querySelectorAll('[data-destacar-primeiro]');
