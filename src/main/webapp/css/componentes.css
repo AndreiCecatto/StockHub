@@ -1,6 +1,6 @@
 /*
  * StockHub v3: componentes (seção "v3: central de operações" de docs/design-system.md). Prefixo sh- sobre o Bootstrap 5.3.
- * Acabamento: bordas hairline (1 px), raios de 6 a 10 px, sombra só em sobreposições (menu, toast, modal, painel).
+ * Acabamento: bordas hairline (1 px), raios de 6 a 16 px, sombra só em sobreposições (menu, toast, modal, painel).
  * O movimento (entradas, esqueletos, barras) fica em css/movimento.css; o kit de rolagem, em css/rolagem.css;
  * o painel lateral "peek", em css/peek.css. Cores sempre por tokens.css.
  */
@@ -1928,4 +1928,78 @@ kbd.sh-tecla {
   font-size: var(--sh-text-sm);
   font-weight: 500;
   white-space: nowrap;
+}
+
+/* ============================== Refino v4 (acabamento "produto") ==============================
+ * Tudo por tokens: raios (tokens.css), sombra de cartão, hierarquia de títulos e microinterações.
+ * Nada aqui muda estrutura; só tira peso visual e dá profundidade sutil. */
+
+/* Superfícies elevadas: borda fina + sombra quase invisível (no escuro some, a borda separa) */
+.sh-card,
+.sh-metric,
+.sh-table-wrap,
+.v3e-razao-card,
+.nfe-painel,
+.v3r-painel,
+.in-saude__cartao,
+.sh-auth__caixa {
+  box-shadow: var(--sh-shadow-card);
+}
+
+/* Cartões clicáveis respondem com borda e fundo, sem "levitar" */
+.sh-metric:hover {
+  background: color-mix(in srgb, var(--sh-surface-2) 55%, var(--sh-surface));
+}
+
+/* Cabeçalho da página: mais respiro e título com tracking de produto */
+.sh-page-header {
+  margin-bottom: var(--sh-space-8);
+}
+
+.sh-page-header__titulo {
+  font-weight: 680;
+  letter-spacing: -0.03em;
+}
+
+.sh-page-header__desc {
+  margin-top: var(--sh-space-2);
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+/* Cabeçalho de tabela: legenda discreta, sem peso de fundo */
+.sh-table th {
+  padding-top: var(--sh-space-3);
+  padding-bottom: var(--sh-space-3);
+  font-weight: 560;
+}
+
+.sh-table td {
+  border-bottom-color: color-mix(in srgb, var(--sh-border) 70%, transparent);
+}
+
+/* Links de texto: sublinhado fino que acompanha o hover */
+a:not(.btn):not(.nav-link):not(.dropdown-item):not([class*="sh-"]) {
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+  transition: color var(--sh-t-1) var(--sh-ease), text-decoration-color var(--sh-t-1) var(--sh-ease);
+}
+
+/* Botão secundário: superfície com borda fina, hover só escurece o fundo */
+.btn-outline-secondary {
+  box-shadow: var(--sh-shadow-1);
+}
+
+.btn-outline-secondary:disabled,
+.btn-primary:disabled,
+.btn.disabled {
+  box-shadow: none;
+}
+
+/* Rolagem fina e discreta nos navegadores que suportam */
+@supports (scrollbar-width: thin) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--sh-border-strong) transparent;
+  }
 }
