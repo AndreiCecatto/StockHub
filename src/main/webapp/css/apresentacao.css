@@ -1,0 +1,1355 @@
+/*
+ * StockHub v3: apresentação pública (GET "/"). Só o que o kit de rolagem (css/rolagem.css) não cobre.
+ *
+ * Estrutura: seções empilhadas como "folhas" (cantos de cima arredondados, uma por cima da outra), alternando claro
+ * (segue o tema) e escuro (data-bs-theme="dark" só na seção: os tokens do tema escuro valem lá dentro nos dois temas).
+ * Cenas fixas = .sh-cena (kit): o palco fica preso e --sh-progresso (0 a 1) dirige tudo; aqui só se escolhe a JANELA
+ * de cada peça (--sh-de, --sh-ate, --sh-saida) e se monta a "pilha" de variantes que se trocam (troca de selo, de número).
+ * Estado final = padrão: sem JavaScript, com menos movimento e no celular (cenas viram blocos comuns) vale o final.
+ * Movimento só em transform e opacity (exceção do kit: traço SVG). Cores só por tokens (a única cor própria é o fundo
+ * das seções escuras, #0A0B0D, um degrau abaixo do grafite do tema escuro).
+ */
+
+.ap-pagina {
+  --ap-topo: 64px;
+  --ap-raio: 28px;
+  --ap-escuro-bg: #0A0B0D;
+  --ap-gutter: clamp(20px, 5vw, 48px);
+}
+
+/* Âncoras do menu: rolagem suave só quando o usuário não pediu menos movimento (a rolagem em si continua nativa) */
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.ap-pagina) {
+    scroll-behavior: smooth;
+  }
+}
+
+.ap-pagina #conteudo {
+  outline: none;
+}
+
+/* ============================== Barra superior pública ============================== */
+.ap-barra {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1000;
+  height: var(--ap-topo);
+  background: var(--sh-glass);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--sh-t-3) var(--sh-ease-out);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .ap-barra {
+    -webkit-backdrop-filter: saturate(180%) blur(18px);
+    backdrop-filter: saturate(180%) blur(18px);
+  }
+}
+
+.ap-barra.is-rolou {
+  border-bottom-color: var(--sh-glass-borda);
+}
+
+.ap-barra__in {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-space-6);
+  max-width: 1200px;
+  height: 100%;
+  margin-inline: auto;
+  padding-inline: var(--ap-gutter);
+}
+
+.ap-barra__marca {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sh-space-2);
+  color: var(--sh-text);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.ap-barra__marca:hover {
+  color: var(--sh-text);
+}
+
+.ap-barra__nav {
+  display: none;
+  margin-inline: auto;
+}
+
+.ap-barra__nav ul {
+  display: flex;
+  gap: var(--sh-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ap-barra__nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 var(--sh-space-3);
+  border-radius: var(--sh-radius-sm);
+  color: var(--sh-text);
+  font-size: var(--sh-text-md);
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color var(--sh-t-1) var(--sh-ease);
+}
+
+.ap-barra__nav a:hover {
+  background: var(--sh-surface-2);
+  color: var(--sh-text);
+}
+
+.ap-barra__nav a[aria-current="location"] {
+  background: var(--sh-accent-soft);
+  color: var(--sh-accent-text);
+}
+
+.ap-barra__acoes {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-space-2);
+  margin-left: auto;
+}
+
+.ap-barra__tema {
+  display: none;
+}
+
+@media (min-width: 576px) {
+  .ap-barra__tema {
+    display: block;
+  }
+}
+
+@media (min-width: 992px) {
+  .ap-barra__nav {
+    display: block;
+  }
+
+  .ap-barra__acoes {
+    margin-left: 0;
+  }
+}
+
+/* ============================== Seções como folhas ============================== */
+.ap-secao {
+  position: relative;
+  margin-top: calc(var(--ap-raio) * -1);
+  border-radius: var(--ap-raio) var(--ap-raio) 0 0;
+  background: var(--sh-bg);
+  color: var(--sh-text);
+  box-shadow: inset 0 1px 0 var(--sh-border);
+}
+
+.ap-escuro {
+  background: var(--ap-escuro-bg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06);
+}
+
+/* Cabeçalhos âncora não ficam atrás da barra fixa; as cenas começam exatamente sob ela (progresso 0) */
+.ap-secao {
+  scroll-margin-top: var(--ap-topo);
+}
+
+/* ============================== Entrada do hero (ao carregar) ============================== */
+@media (prefers-reduced-motion: no-preference) {
+  .ap-entra {
+    animation: ap-entra 760ms var(--sh-ease-out-forte) both;
+    animation-delay: calc(var(--ap-n, 0) * 80ms + 60ms);
+  }
+
+  .ap-entra--1 { --ap-n: 0; }
+  .ap-entra--2 { --ap-n: 1; }
+  .ap-entra--3 { --ap-n: 2; }
+  .ap-entra--4 { --ap-n: 3; }
+  .ap-entra--5 { --ap-n: 4; }
+  .ap-entra--6 { --ap-n: 5; }
+
+  .ap-entra--7 {
+    --ap-n: 6;
+    animation-name: ap-entra-grande;
+    animation-duration: 1100ms;
+  }
+
+  @keyframes ap-entra {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+
+  @keyframes ap-entra-grande {
+    from {
+      opacity: 0;
+      transform: translateY(44px) scale(.97);
+    }
+  }
+}
+
+/* ============================== Hero ============================== */
+.ap-hero {
+  margin-top: 0;
+  padding: calc(var(--ap-topo) + clamp(40px, 8vh, 96px)) var(--ap-gutter) calc(var(--ap-raio) + 8px);
+  border-radius: 0;
+  box-shadow: none;
+  text-align: center;
+  overflow-x: clip;
+}
+
+.ap-hero__texto {
+  max-width: 1000px;
+  margin-inline: auto;
+}
+
+.ap-hero__titulo {
+  margin-block: var(--sh-space-4) var(--sh-space-6);
+  font-size: clamp(2.5rem, 0.9rem + 6.6vw, 5.75rem);
+  font-weight: 750;
+}
+
+.ap-hero__titulo > span {
+  display: block;
+}
+
+.ap-acento {
+  color: var(--sh-accent-text);
+}
+
+.ap-hero__sub {
+  max-width: 38rem;
+  margin: 0 auto var(--sh-space-8);
+}
+
+.ap-hero__ctas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sh-space-3);
+}
+
+.ap-hero__figura {
+  max-width: 1040px;
+  margin: clamp(48px, 8vh, 88px) auto 0;
+  text-align: left;
+}
+
+.ap-fig-legenda {
+  margin: var(--sh-space-3) 0 0;
+  color: var(--sh-text-subtle);
+  font-size: var(--sh-text-sm);
+  text-align: center;
+}
+
+/* ---------- Maquete do painel ---------- */
+.ap-painel {
+  max-height: 430px;
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-lg) var(--sh-radius-lg) 0 0;
+  background: var(--sh-bg);
+  box-shadow: var(--sh-shadow-modal);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, #000 72%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 72%, transparent 100%);
+}
+
+.ap-painel__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sh-space-4);
+  padding: 10px var(--sh-space-4);
+  border-bottom: 1px solid var(--sh-border);
+  background: var(--sh-surface);
+}
+
+.ap-painel__marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--sh-text-md);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.ap-painel__busca {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  min-width: 320px;
+  padding: 5px 10px;
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-sm);
+  background: var(--sh-bg);
+  color: var(--sh-text-subtle);
+  font-size: var(--sh-text-sm);
+}
+
+.ap-painel__busca kbd,
+.ap-paleta__esc,
+.ap-paleta__rodape kbd {
+  margin-left: auto;
+  padding: 0 6px;
+  border: 1px solid var(--sh-border-strong);
+  border-radius: var(--sh-radius-xs);
+  background: var(--sh-surface-2);
+  color: var(--sh-text-muted);
+  font-family: var(--sh-font-mono);
+  font-size: 0.6875rem;
+}
+
+@media (min-width: 640px) {
+  .ap-painel__busca {
+    display: inline-flex;
+  }
+}
+
+.ap-painel__corpo {
+  padding: var(--sh-space-5);
+}
+
+.ap-painel__titulo {
+  margin: 0 0 var(--sh-space-4);
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.ap-kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sh-space-3);
+  margin-bottom: var(--sh-space-4);
+}
+
+@media (min-width: 640px) {
+  .ap-kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.ap-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--sh-space-3) var(--sh-space-4);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius);
+  background: var(--sh-surface);
+}
+
+.ap-kpi__valor {
+  font-size: clamp(1.125rem, 0.9rem + 0.8vw, 1.5rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+
+.ap-kpi__rotulo {
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+.ap-kpi--alerta .ap-kpi__valor {
+  color: var(--sh-estoque-baixo-fg);
+}
+
+.ap-painel__grade {
+  display: grid;
+  gap: var(--sh-space-3);
+}
+
+@media (min-width: 768px) {
+  .ap-painel__grade {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+}
+
+.ap-bloco {
+  min-width: 0;
+  padding: var(--sh-space-4);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius);
+  background: var(--sh-surface);
+}
+
+.ap-bloco__titulo {
+  margin: 0 0 var(--sh-space-3);
+  font-size: var(--sh-text-md);
+  font-weight: 650;
+}
+
+.ap-mini {
+  display: grid;
+  gap: var(--sh-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ap-mini li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 64px;
+  align-items: center;
+  gap: var(--sh-space-3);
+  font-size: var(--sh-text-md);
+}
+
+.ap-mini__nome {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.ap-mini .sh-meter {
+  min-width: 0;
+}
+
+.ap-grafico-mini {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--sh-accent-text);
+}
+
+/* ============================== Cenas fixas ============================== */
+.ap-cena {
+  --sh-cena-topo: var(--ap-topo);
+  --sh-cena-altura: 280vh;
+}
+
+.ap-cena--mov { --sh-cena-altura: 300vh; }
+.ap-cena--alertas { --sh-cena-altura: 290vh; }
+.ap-cena--atalhos { --sh-cena-altura: 250vh; }
+
+.ap-palco {
+  align-items: center;
+  padding: var(--sh-space-4) var(--ap-gutter) calc(var(--ap-raio) + var(--sh-space-4));
+}
+
+.ap-palco__grade {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  align-items: center;
+  gap: clamp(32px, 5vw, 72px);
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+.ap-texto .sh-display {
+  margin: var(--sh-space-3) 0 var(--sh-space-4);
+  font-size: clamp(2rem, 1.1rem + 2.6vw, 3.25rem);
+}
+
+.ap-texto .sh-lead {
+  margin: 0 0 var(--sh-space-6);
+}
+
+.ap-demo {
+  min-width: 0;
+}
+
+/* Pilha: variantes na mesma célula; cada uma entra e sai por --sh-progresso. Troca limpa, sem deslocamento. */
+.ap-pilha {
+  display: grid;
+  align-items: center;
+  justify-items: start;
+}
+
+.ap-pilha > * {
+  grid-area: 1 / 1;
+  --sh-rampa: 10;
+}
+
+.ap-pilha > .sh-cena-fade {
+  transform: none;
+}
+
+.ap-cartao {
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-lg);
+  background: var(--sh-surface);
+  box-shadow: var(--sh-shadow-pop);
+  overflow: hidden;
+}
+
+.ap-cartao__cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sh-space-4);
+  padding: var(--sh-space-3) var(--sh-space-4);
+  border-bottom: 1px solid var(--sh-border);
+  background: var(--sh-surface-2);
+}
+
+.ap-cartao__titulo {
+  font-size: var(--sh-text-md);
+  font-weight: 650;
+}
+
+.ap-cartao__titulo em {
+  color: var(--sh-text-subtle);
+  font-style: normal;
+  font-weight: 500;
+}
+
+.ap-prod__nome {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ap-prod__nome strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--sh-text-md);
+  font-weight: 600;
+}
+
+.ap-prod__nome span {
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+/* ---------- Cena 1: lista de produtos ---------- */
+.ap-contador {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.ap-pilha--num {
+  font-family: var(--sh-font-mono);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.ap-contador__rotulo {
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+.ap-prods {
+  display: block;
+}
+
+.ap-prod {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) 44px minmax(56px, 1fr) 124px;
+  align-items: center;
+  gap: var(--sh-space-4);
+  padding: 11px var(--sh-space-4);
+  border-bottom: 1px solid var(--sh-border);
+}
+
+.ap-prod:last-child {
+  border-bottom: 0;
+}
+
+.ap-prod__saldo {
+  justify-items: end;
+  font-size: var(--sh-text-md);
+  font-weight: 600;
+  text-align: right;
+}
+
+.ap-pilha.ap-prod__saldo > * {
+  justify-self: end;
+}
+
+.ap-prod__selo {
+  justify-items: start;
+}
+
+/* Janelas de tempo (0 a 1) em que cada linha troca de estado */
+.ap-prod--det { --x: .22; --n1: .47; }
+.ap-prod--sab { --x: .45; --n1: 0; }
+.ap-prod--caf { --x: .68; --n1: .45; }
+
+.ap-ini {
+  --sh-de: -1;
+  --sh-saida: calc(var(--x) + .05);
+}
+
+.ap-fim {
+  --sh-de: calc(var(--x) - .05);
+}
+
+/* Contador "pedem atenção": 0, 1, 2, 3 nos mesmos momentos */
+.ap-c0 { --sh-de: -1; --sh-saida: .27; }
+.ap-c1 { --sh-de: .17; --sh-saida: .5; }
+.ap-c2 { --sh-de: .4; --sh-saida: .73; }
+.ap-c3 { --sh-de: .63; }
+
+/* Medidor: a barra encolhe com a rolagem (transform) e muda de cor (duas barras, uma por cor) */
+.ap-med {
+  width: 100%;
+  min-width: 0;
+}
+
+.ap-med__f {
+  --sh-rampa: 10;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  transform-origin: left center;
+}
+
+.ap-med__f--n { background: var(--sh-meter-normal); }
+.ap-med__f--b { background: var(--sh-meter-baixo); }
+.ap-med__f--s { background: var(--sh-meter-sem); }
+
+.ap-prod .ap-med__f {
+  --nivel: calc(1 + (var(--n1, 1) - 1) * clamp(0, calc((var(--sh-progresso) - var(--x, 0) + .1) / .1), 1));
+  transform: scaleX(var(--nivel));
+}
+
+.ap-prod .ap-med__f--cheio {
+  transform: none;
+}
+
+.ap-legenda {
+  display: grid;
+  gap: var(--sh-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ap-legenda li {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-space-3);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.ap-legenda .sh-badge {
+  flex: 0 0 auto;
+  min-width: 108px;
+}
+
+.ap-pontos {
+  display: grid;
+  gap: var(--sh-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--sh-text);
+  font-size: var(--sh-text-md);
+}
+
+.ap-pontos li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sh-space-3);
+}
+
+.ap-pontos .bi {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--sh-accent-text);
+  font-size: 1.125rem;
+}
+
+/* ---------- Cena 2: livro-razão ---------- */
+.ap-saldo-topo {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.ap-saldo-topo__rotulo {
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+/* Saldo de cima: 20, 60, 48, 45, no instante em que cada movimentação chega ao "novo" */
+.ap-s0 { --sh-de: -1; --sh-saida: .24; --sh-rampa: 14; }
+.ap-s1 { --sh-de: .16; --sh-saida: .44; --sh-rampa: 14; }
+.ap-s2 { --sh-de: .36; --sh-saida: .64; --sh-rampa: 14; }
+.ap-s3 { --sh-de: .56; --sh-rampa: 14; }
+
+.ap-razao {
+  position: relative;
+  margin: 0;
+  padding: var(--sh-space-4) var(--sh-space-4) var(--sh-space-2) 44px;
+  list-style: none;
+}
+
+/* Fio da linha do tempo: cresce de cima para baixo com a rolagem */
+.ap-razao::before {
+  content: "";
+  position: absolute;
+  top: 28px;
+  bottom: 24px;
+  left: 20px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--sh-border-strong);
+  transform-origin: center top;
+  transform: scaleY(clamp(0, calc((var(--sh-progresso) - .05) / .62), 1));
+}
+
+.ap-mov {
+  --sh-de: var(--r);
+  --sh-ate: calc(var(--r) + .1);
+  position: relative;
+  padding-bottom: var(--sh-space-4);
+}
+
+.ap-mov--1 { --r: .08; }
+.ap-mov--2 { --r: .28; }
+.ap-mov--3 { --r: .48; }
+.ap-mov--4 { --r: .68; }
+
+.ap-mov__no {
+  position: absolute;
+  top: 5px;
+  left: -30px;
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--sh-accent-text);
+  border-radius: 50%;
+  background: var(--sh-surface);
+  --sh-s0: .4;
+}
+
+.ap-mov--recusa .ap-mov__no {
+  border-color: var(--sh-estoque-sem-fg);
+}
+
+.ap-mov__linha1 {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-space-3);
+}
+
+.ap-mov__qtd {
+  font-size: var(--sh-text-md);
+  font-weight: 600;
+}
+
+.ap-mov__hora {
+  margin-left: auto;
+  color: var(--sh-text-subtle);
+  font-size: var(--sh-text-sm);
+}
+
+.ap-mov__saldos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  color: var(--sh-text-muted);
+  font-size: 1.125rem;
+}
+
+.ap-mov__saldos strong {
+  color: var(--sh-text);
+  font-weight: 650;
+}
+
+.ap-ant { --sh-de: calc(var(--r) + .05); }
+.ap-seta { --sh-de: calc(var(--r) + .08); }
+.ap-novo { --sh-de: calc(var(--r) + .11); }
+
+.ap-ant,
+.ap-seta,
+.ap-novo {
+  transform: none;
+}
+
+.ap-mov__obs {
+  margin: 4px 0 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+.ap-motivo {
+  margin-right: 6px;
+  padding: 0 6px;
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-xs);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ap-mov--recusa .ap-mov__qtd {
+  color: var(--sh-estoque-sem-fg);
+}
+
+.ap-trava {
+  --sh-de: .8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: var(--sh-space-3) var(--sh-space-4);
+  border-top: 1px solid var(--sh-border);
+  background: var(--sh-surface-2);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-weight: 500;
+}
+
+.ap-trava .bi {
+  color: var(--sh-accent-text);
+}
+
+/* ---------- Cena 3: nível em 14 dias e lista de reposição ---------- */
+.ap-cartao--grafico {
+  margin-bottom: var(--sh-space-3);
+}
+
+.ap-nivel {
+  display: block;
+  width: 100%;
+  max-height: 200px;
+  padding: var(--sh-space-2) var(--sh-space-3) var(--sh-space-1);
+}
+
+.ap-nivel__grade path {
+  fill: none;
+  stroke: var(--sh-border);
+  stroke-width: 1;
+}
+
+.ap-nivel__min {
+  --sh-de: -1;
+  --sh-saida: 9;
+  stroke: var(--sh-estoque-baixo-fg);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 5;
+  transform: none;
+}
+
+.ap-nivel__txt,
+.ap-nivel__rotulo,
+.ap-nivel__eixo {
+  fill: var(--sh-text-muted);
+  font-family: var(--sh-font);
+  font-size: 11px;
+}
+
+.ap-nivel__txt {
+  fill: var(--sh-estoque-baixo-fg);
+  font-weight: 600;
+  transform: none;
+}
+
+.ap-nivel__rotulo {
+  fill: var(--sh-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ap-nivel__guia {
+  fill: none;
+  stroke: var(--sh-text-muted);
+  stroke-width: 1;
+}
+
+.ap-nivel__linha {
+  fill: none;
+  stroke: var(--sh-accent-text);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  --sh-de: .04;
+  --sh-ate: .58;
+}
+
+.ap-nivel__area {
+  fill: var(--sh-accent-text);
+  fill-opacity: .1;
+  --sh-de: .1;
+  --sh-rampa: 3;
+  transform: none;
+}
+
+.ap-nivel__alvo {
+  fill: var(--sh-surface);
+  stroke: var(--sh-estoque-baixo-fg);
+  stroke-width: 2.5;
+}
+
+.ap-t-min { --sh-de: -1; --sh-saida: 9; }
+.ap-t-marca { --sh-de: .56; --sh-rampa: 10; transform: none; }
+
+.ap-repor {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ap-repor__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px auto auto;
+  align-items: center;
+  gap: var(--sh-space-4);
+  padding: 10px var(--sh-space-4);
+  border-bottom: 1px solid var(--sh-border);
+}
+
+.ap-repor__item:last-child {
+  border-bottom: 0;
+}
+
+.ap-repor .sh-spark {
+  color: var(--sh-estoque-baixo-fg);
+}
+
+.ap-repor .sh-spark.sh-tom--sem {
+  color: var(--sh-estoque-sem-fg);
+}
+
+.ap-repor .btn {
+  pointer-events: none;
+}
+
+.ap-r1 { --sh-de: .62; --sh-ate: .72; }
+.ap-r2 { --sh-de: .7; --sh-ate: .8; }
+.ap-r3 { --sh-de: .78; --sh-ate: .88; }
+
+/* ---------- Cena 4: barra de comando e atalhos ---------- */
+.ap-atalhos {
+  margin: 0;
+}
+
+.ap-atalhos dt,
+.ap-atalhos dd {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ap-a1 { --sh-de: .08; }
+.ap-a2 { --sh-de: .18; }
+.ap-a3 { --sh-de: .28; }
+.ap-a4 { --sh-de: .38; }
+.ap-a5 { --sh-de: .48; }
+
+.ap-paleta {
+  max-width: 600px;
+  margin-inline: auto;
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-lg);
+  background: var(--sh-surface);
+  box-shadow: var(--sh-shadow-modal);
+  overflow: hidden;
+}
+
+.ap-paleta__topo {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-space-3);
+  padding: var(--sh-space-4);
+  border-bottom: 1px solid var(--sh-border);
+  font-size: 1.0625rem;
+}
+
+.ap-paleta__topo .bi {
+  color: var(--sh-text-muted);
+}
+
+.ap-paleta__texto {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ap-q {
+  --sh-rampa: 60;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.ap-q--vazio { --sh-de: -1; --sh-saida: .1; color: var(--sh-text-subtle); font-size: var(--sh-text-md); }
+.ap-q1 { --sh-de: .1; --sh-saida: .18; }
+.ap-q2 { --sh-de: .18; --sh-saida: .26; }
+.ap-q3 { --sh-de: .26; --sh-saida: .34; }
+.ap-q4 { --sh-de: .34; }
+
+/* Cursor de texto depois da última letra digitada */
+.ap-q:not(.ap-q--vazio)::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  background: var(--sh-accent-text);
+}
+
+.ap-paleta__esc {
+  margin-left: 0;
+}
+
+.ap-paleta__corpo {
+  padding: var(--sh-space-2);
+}
+
+.ap-paleta__listas > * {
+  --sh-rampa: 60;
+  transform: none;
+}
+
+.ap-lista-a { --sh-de: -1; --sh-saida: .4; }
+.ap-lista-b { --sh-de: .36; }
+
+.ap-paleta__grupo {
+  margin: var(--sh-space-2) var(--sh-space-3) 4px;
+  color: var(--sh-text-subtle);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: var(--sh-track-rotulo);
+  text-transform: uppercase;
+}
+
+.ap-op {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-space-3);
+  min-height: 40px;
+  padding: 0 var(--sh-space-3);
+  border-radius: var(--sh-radius-sm);
+  font-size: var(--sh-text-md);
+}
+
+.ap-op .bi {
+  color: var(--sh-text-muted);
+}
+
+.ap-op__nome {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ap-op--sel {
+  background: var(--sh-accent-soft);
+}
+
+.ap-op--sel .bi {
+  color: var(--sh-accent-text);
+}
+
+.ap-op mark {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--sh-accent-text);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.ap-paleta__rodape {
+  display: flex;
+  gap: var(--sh-space-4);
+  margin: 0;
+  padding: var(--sh-space-3) var(--sh-space-4);
+  border-top: 1px solid var(--sh-border);
+  background: var(--sh-surface-2);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+.ap-paleta__rodape kbd {
+  margin-left: 0;
+}
+
+/* ============================== 05 Confiança ============================== */
+.ap-confianca {
+  padding: clamp(72px, 12vh, 128px) var(--ap-gutter) calc(clamp(72px, 12vh, 128px) + var(--ap-raio));
+}
+
+.ap-bloco-centro {
+  max-width: 760px;
+  margin: 0 auto clamp(40px, 7vh, 72px);
+  text-align: center;
+}
+
+.ap-bloco-centro .sh-display {
+  margin: var(--sh-space-3) 0 var(--sh-space-4);
+}
+
+.ap-garantias {
+  display: grid;
+  gap: var(--sh-space-4);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 576px) {
+  .ap-garantias {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 992px) {
+  .ap-garantias {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.ap-garantia {
+  padding: var(--sh-space-6);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-lg);
+  background: var(--sh-surface);
+}
+
+.ap-garantia .bi {
+  display: block;
+  margin-bottom: var(--sh-space-4);
+  color: var(--sh-accent-text);
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.ap-garantia h3 {
+  margin: 0 0 var(--sh-space-2);
+  font-size: 1.0625rem;
+  font-weight: 650;
+}
+
+.ap-garantia p {
+  margin: 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+  line-height: 1.5;
+}
+
+/* ============================== Chamada final e rodapé ============================== */
+.ap-final {
+  padding: clamp(96px, 18vh, 176px) var(--ap-gutter) calc(clamp(72px, 12vh, 128px) + var(--ap-raio) / 2);
+  text-align: center;
+}
+
+.ap-final__titulo {
+  max-width: 900px;
+  margin: 0 auto var(--sh-space-5);
+}
+
+.ap-final .sh-lead {
+  max-width: 34rem;
+  margin: 0 auto var(--sh-space-8);
+}
+
+.ap-rodape {
+  padding: var(--sh-space-6) var(--ap-gutter) var(--sh-space-8);
+  border-top: 1px solid var(--sh-border);
+  background: var(--sh-bg);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+.ap-rodape__in {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sh-space-3) var(--sh-space-6);
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+.ap-rodape__marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sh-text);
+  font-weight: 700;
+}
+
+.ap-rodape nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sh-space-1) var(--sh-space-4);
+}
+
+.ap-rodape a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  color: var(--sh-text-muted);
+  text-decoration-color: var(--sh-border-strong);
+  text-underline-offset: 0.25em;
+}
+
+.ap-rodape a:hover {
+  color: var(--sh-text);
+}
+
+/* ============================== Compacto: telas baixas ============================== */
+@media (max-height: 760px) {
+  .ap-prod {
+    padding-block: 8px;
+  }
+
+  .ap-nivel {
+    max-height: 150px;
+  }
+
+  .ap-repor__item {
+    padding-block: 7px;
+  }
+
+  .ap-mov {
+    padding-bottom: var(--sh-space-3);
+  }
+
+  .ap-fig-legenda {
+    margin-top: var(--sh-space-2);
+  }
+}
+
+/* ============================== Estado final fixo: celular, telas baixas, sem suporte ============================== */
+/* Abaixo de 992 px (ou altura menor que 600 px) o palco não cabe preso: a cena vira bloco comum e mostra o estado final.
+   !important vence o --sh-progresso que o plano B em JavaScript escreve na própria cena. */
+@media (max-width: 991.98px), (max-height: 599.98px) {
+  .ap-cena {
+    height: auto;
+    animation: none !important;
+    --sh-progresso: 1 !important;
+  }
+
+  .ap-cena .sh-cena__palco {
+    position: static;
+    height: auto;
+    overflow: visible;
+    padding-block: 56px calc(var(--ap-raio) + 56px);
+  }
+
+  .ap-palco__grade {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sh-space-8);
+  }
+
+  .ap-demo {
+    max-width: 640px;
+    width: 100%;
+    margin-inline: auto;
+  }
+
+  .ap-razao::before {
+    transform: none;
+  }
+}
+
+/* Firefox sem JavaScript: sem animation-timeline e sem o plano B, o estado final é o que vale */
+@supports not (animation-timeline: view()) {
+  html:not(.sh-rolagem-js) .ap-cena {
+    height: auto;
+    --sh-progresso: 1;
+  }
+
+  html:not(.sh-rolagem-js) .ap-cena .sh-cena__palco {
+    position: static;
+    height: auto;
+    overflow: visible;
+    padding-block: 56px calc(var(--ap-raio) + 56px);
+  }
+
+  html:not(.sh-rolagem-js) .ap-palco__grade {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 575.98px) {
+  .ap-prod {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "nome selo"
+      "saldo medidor";
+    gap: 8px var(--sh-space-3);
+  }
+
+  .ap-prod > .ap-prod__nome { grid-area: nome; }
+  .ap-prod > .ap-prod__selo { grid-area: selo; }
+  .ap-prod > .ap-prod__saldo { grid-area: saldo; justify-items: start; text-align: left; }
+  .ap-prod > .ap-med { grid-area: medidor; }
+  .ap-pilha.ap-prod__saldo > * { justify-self: start; }
+
+  .ap-repor__item {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "nome selo"
+      "spark botao";
+  }
+
+  .ap-repor__item > .ap-prod__nome { grid-area: nome; }
+  .ap-repor__item > .sh-badge { grid-area: selo; justify-self: end; }
+  .ap-repor__item > .sh-spark { grid-area: spark; }
+  .ap-repor__item > .btn { grid-area: botao; justify-self: end; }
+
+  .ap-razao {
+    padding-right: var(--sh-space-3);
+  }
+
+  .ap-legenda .sh-badge {
+    min-width: 0;
+  }
+
+  .ap-painel__corpo {
+    padding: var(--sh-space-3);
+  }
+}
+
+/* Impressão: tudo no estado final, sem barra fixa */
+@media print {
+  .ap-barra {
+    display: none;
+  }
+
+  .ap-secao {
+    border-radius: 0;
+    margin-top: 0;
+    background: #fff;
+    color: #000;
+  }
+}
+
+/* Barra mais opaca: o texto dela precisa de contraste também quando passa sobre as seções escuras */
+@supports (background: color-mix(in srgb, red 50%, transparent)) {
+  .ap-barra {
+    background: color-mix(in srgb, var(--sh-bg) 92%, transparent);
+  }
+}
+
+/* Estado final fixo: da paleta só importa o resultado da busca */
+@media (max-width: 991.98px), (max-height: 599.98px) {
+  .ap-lista-a {
+    display: none;
+  }
+}
+
+@supports not (animation-timeline: view()) {
+  html:not(.sh-rolagem-js) .ap-lista-a {
+    display: none;
+  }
+}
