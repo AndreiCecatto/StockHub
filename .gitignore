@@ -38,3 +38,12 @@ build/
 *.env
 .claude/settings.local.json
 src/main/resources/application-local.properties
+*.env.*
+*.pem
+*.key
+application-local.properties
+*-local.properties
+
+# ferramentas pessoais de assistente de IA (instruções e agentes locais)
+.claude/
+CLAUDE.md
