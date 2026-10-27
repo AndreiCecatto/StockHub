@@ -68,6 +68,8 @@ class OrdemServicoServiceTest {
     private EstoqueService estoque;
     @Mock
     private NumeradorOs numerador;
+    @Mock
+    private org.example.stockhubspring.repository.UsuarioRepository usuarioRepository;
 
     private OrdemServicoService service;
     private Usuario dono;
@@ -79,7 +81,7 @@ class OrdemServicoServiceTest {
     @BeforeEach
     void preparar() {
         service = new OrdemServicoService(osRepository, pecaRepository, servicoRepository, equipamentoRepository,
-                parceiroRepository, produtoRepository, membroRepository, estoque, numerador);
+                parceiroRepository, produtoRepository, membroRepository, estoque, numerador, usuarioRepository);
         dono = usuario(PapelMembro.DONO);
         mecanico = usuario(PapelMembro.MECANICO);
         os = new OrdemServico();

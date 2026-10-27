@@ -63,6 +63,7 @@ public class OrdemServicoController {
         Usuario loja = lojaComModulo();
         model.addAttribute("clientes", clienteService.listar(loja.getCodigo()));
         model.addAttribute("responsaveis", osService.responsaveis(loja.getCodigo()));
+        model.addAttribute("camposRamo", osService.camposPermitidos(loja));
         return "os-form";
     }
 
@@ -70,6 +71,8 @@ public class OrdemServicoController {
     public String criar(@RequestParam(required = false) Integer clienteId,
                         @RequestParam(required = false) String equipamento,
                         @RequestParam(required = false) String identificador,
+                        @RequestParam(required = false) String placa,
+                        @RequestParam(required = false) String modelo,
                         @RequestParam(required = false) String defeito,
                         @RequestParam(required = false) Integer responsavelId,
                         @RequestParam(required = false) Integer garantiaDias,
@@ -77,8 +80,8 @@ public class OrdemServicoController {
                         RedirectAttributes redirect) {
         Usuario loja = lojaComModulo();
         try {
-            OrdemServico os = osService.criar(loja, clienteId, equipamento, identificador, defeito, responsavelId,
-                    garantiaDias, observacoes);
+            OrdemServico os = osService.criar(loja, clienteId, equipamento, identificador, placa, modelo,
+                    defeito, responsavelId, garantiaDias, observacoes);
             redirect.addFlashAttribute("mensagem", "Ordem de serviço " + os.getNumero() + " criada.");
             return "redirect:/os/" + os.getId();
         } catch (RegraNegocioException e) {
@@ -86,6 +89,8 @@ public class OrdemServicoController {
             redirect.addFlashAttribute("clienteDigitado", clienteId);
             redirect.addFlashAttribute("equipamentoDigitado", equipamento);
             redirect.addFlashAttribute("identificadorDigitado", identificador);
+            redirect.addFlashAttribute("placaDigitada", placa);
+            redirect.addFlashAttribute("modeloDigitado", modelo);
             redirect.addFlashAttribute("defeitoDigitado", defeito);
             redirect.addFlashAttribute("garantiaDigitada", garantiaDias);
             redirect.addFlashAttribute("observacoesDigitadas", observacoes);

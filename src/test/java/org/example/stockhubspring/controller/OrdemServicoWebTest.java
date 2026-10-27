@@ -104,7 +104,7 @@ class OrdemServicoWebTest extends ControllerTestBase {
     @DisplayName("quem conduz OS cria e vai para o detalhe")
     void cria(PapelMembro papel) throws Exception {
         tipo(TipoLoja.OFICINA);
-        when(ordemServicoService.criar(any(Usuario.class), eq(4), eq("Uno"), eq("ABC1D23"), eq("Não liga"),
+        when(ordemServicoService.criar(any(Usuario.class), eq(4), eq("Uno"), eq("ABC1D23"), any(), any(), eq("Não liga"),
                 any(), any(), any())).thenReturn(os(9, 12));
 
         mvc.perform(post("/os").with(logadoComo(7, papel)).with(csrf()).param("clienteId", "4")
@@ -118,7 +118,7 @@ class OrdemServicoWebTest extends ControllerTestBase {
     @DisplayName("recusa de regra ao criar volta ao formulário com o que foi digitado")
     void criaRecusa() throws Exception {
         tipo(TipoLoja.OFICINA);
-        when(ordemServicoService.criar(any(), any(), any(), any(), any(), any(), any(), any()))
+        when(ordemServicoService.criar(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenThrow(new RegraNegocioException("Descreva o defeito relatado pelo cliente."));
 
         mvc.perform(post("/os").with(logadoComo(7, PapelMembro.MECANICO)).with(csrf()).param("equipamento", "Uno"))

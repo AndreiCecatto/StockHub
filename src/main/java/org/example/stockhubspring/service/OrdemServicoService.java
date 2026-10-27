@@ -21,6 +21,8 @@ import org.example.stockhubspring.repository.OsPecaRepository;
 import org.example.stockhubspring.repository.OsServicoRepository;
 import org.example.stockhubspring.repository.ParceiroRepository;
 import org.example.stockhubspring.repository.ProdutoRepository;
+import org.example.stockhubspring.repository.UsuarioRepository;
+import org.example.stockhubspring.model.Subtipo;
 import org.example.stockhubspring.util.Textos;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -32,7 +34,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Ordens de serviço (RN-77 a RN-90). Toda consulta é da loja (RN-01). Cada ação trava a linha da OS e só depois
@@ -52,6 +56,9 @@ public class OrdemServicoService {
     /** Desconto máximo, sobre o total de peças e serviços, para quem não é dono nem gerente (RN-86). */
     public static final BigDecimal DESCONTO_MAXIMO_OPERACIONAL = new BigDecimal("0.10");
 
+    private static final Pattern PLACA_ANTIGA = Pattern.compile("[A-Z]{3}[0-9]{4}");
+    private static final Pattern PLACA_MERCOSUL = Pattern.compile("[A-Z]{3}[0-9][A-Z][0-9]{2}");
+
     private static final ZoneId FUSO = ZoneId.of("America/Sao_Paulo");
 
     private final OrdemServicoRepository osRepository;
@@ -63,13 +70,14 @@ public class OrdemServicoService {
     private final MembroLojaRepository membroRepository;
     private final EstoqueService estoqueService;
     private final NumeradorOs numerador;
+    private final UsuarioRepository usuarioRepository;
 
     public OrdemServicoService(OrdemServicoRepository osRepository, OsPecaRepository pecaRepository,
                                OsServicoRepository servicoRepository,
                                EquipamentoClienteRepository equipamentoRepository,
                                ParceiroRepository parceiroRepository, ProdutoRepository produtoRepository,
                                MembroLojaRepository membroRepository, EstoqueService estoqueService,
-                               NumeradorOs numerador) {
+                               NumeradorOs numerador, UsuarioRepository usuarioRepository) {
         this.osRepository = osRepository;
         this.pecaRepository = pecaRepository;
         this.servicoRepository = servicoRepository;
@@ -79,6 +87,7 @@ public class OrdemServicoService {
         this.membroRepository = membroRepository;
         this.estoqueService = estoqueService;
         this.numerador = numerador;
+        this.usuarioRepository = usuarioRepository;
     }
 
     /** A OS com as peças, os serviços e os totais, para a tela de detalhe e a impressão. */
@@ -127,10 +136,25 @@ public class OrdemServicoService {
 
     // ---------------------------------------------------------------- criação e dados
 
+    /** Campos do veículo que valem para a loja (AD-18), pelo subtipo atual lido do banco; usado pelas telas. */
+    @Transactional(readOnly = true)
+    public CamposRamo.Permitidos camposPermitidos(Usuario usuario) {
+        return CamposRamo.permitidos(subtipoDaLoja(usuario));
+    }
+
     @Transactional
     public OrdemServico criar(Usuario usuario, Integer clienteId, String equipamentoDescricao,
                               String identificador, String defeito, Integer responsavelId,
                               Integer garantiaDias, String observacoes) {
+        return criar(usuario, clienteId, equipamentoDescricao, identificador, null, null, defeito, responsavelId,
+                garantiaDias, observacoes);
+    }
+
+    /** Cria a OS; placa e modelo (AD-18, RN-104 a RN-107) só valem em MECANICA e MOTO e são ignorados nos demais. */
+    @Transactional
+    public OrdemServico criar(Usuario usuario, Integer clienteId, String equipamentoDescricao,
+                              String identificador, String placaInformada, String modeloInformado,
+                              String defeito, Integer responsavelId, Integer garantiaDias, String observacoes) {
         Parceiro cliente = clienteId == null ? null : parceiroRepository.findById(clienteId)
                 .filter(p -> p.isCliente() && p.getUsuario().getCodigo().equals(usuario.getCodigo())).orElse(null);
         if (cliente == null) {
@@ -139,7 +163,13 @@ public class OrdemServicoService {
         if (!cliente.isAtivo()) {
             throw new RegraNegocioException("Este cliente está inativo. Reative o cadastro em Clientes para abrir uma ordem.");
         }
+        CamposRamo.Permitidos veiculo = camposPermitidos(usuario);
+        String placa = veiculo.placa() ? normalizarPlaca(placaInformada) : null;
+        String modelo = veiculo.modelo() ? validarModelo(modeloInformado) : null;
         String descricao = Textos.limpar(equipamentoDescricao);
+        if (descricao == null && modelo != null) {
+            descricao = modelo;
+        }
         if (descricao == null) {
             throw new RegraNegocioException("Informe o equipamento ou veículo, por exemplo \"Notebook Dell\" ou \"Fiat Uno\".");
         }
@@ -163,7 +193,7 @@ public class OrdemServicoService {
         os.setUsuario(usuario);
         os.setNumero(numerador.proximo(usuario.getCodigo()));
         os.setCliente(cliente);
-        os.setEquipamento(equipamentoDe(usuario, cliente, descricao, ident));
+        os.setEquipamento(equipamentoDe(usuario, cliente, descricao, ident, placa, modelo));
         os.setDefeito(Textos.limpar(defeito));
         os.setResponsavel(responsavel);
         os.setGarantiaDias(garantia);
@@ -408,13 +438,61 @@ public class OrdemServicoService {
                 .orElseThrow(() -> new RegraNegocioException("Escolha um responsável da equipe."));
     }
 
-    private EquipamentoCliente equipamentoDe(Usuario loja, Parceiro cliente, String descricao, String ident) {
-        for (EquipamentoCliente e : equipamentoRepository
-                .findByUsuarioCodigoAndParceiroIdOrderByIdAsc(loja.getCodigo(), cliente.getId())) {
-            boolean mesmaDescricao = e.getDescricao().equalsIgnoreCase(descricao);
-            boolean mesmoIdent = e.getIdentificador() == null ? ident == null : e.getIdentificador().equalsIgnoreCase(ident);
-            if (mesmaDescricao && mesmoIdent) {
+    private Subtipo subtipoDaLoja(Usuario usuario) {
+        return usuarioRepository.findSubtipoByCodigo(usuario.getCodigo()).orElse(usuario.getSubtipo());
+    }
+
+    /** Tira espaços e hífen, passa para maiúsculas e confere AAA9999 ou Mercosul AAA9A99 (RN-105); vazio vira null. */
+    static String normalizarPlaca(String placa) {
+        if (placa == null) {
+            return null;
+        }
+        String limpa = placa.replaceAll("[\\s-]", "").toUpperCase(Locale.ROOT);
+        if (limpa.isEmpty()) {
+            return null;
+        }
+        if (!PLACA_ANTIGA.matcher(limpa).matches() && !PLACA_MERCOSUL.matcher(limpa).matches()) {
+            throw new RegraNegocioException("Placa inválida. Use o formato ABC-1234 ou ABC1D23.");
+        }
+        return limpa;
+    }
+
+    /** Modelo opcional de até 80 caracteres, sem caracteres de controle (RN-106). */
+    static String validarModelo(String modelo) {
+        String texto = Textos.limpar(modelo);
+        if (texto == null) {
+            return null;
+        }
+        if (texto.length() > CamposRamo.MODELO_MAX) {
+            throw new RegraNegocioException("O modelo deve ter no máximo " + CamposRamo.MODELO_MAX + " caracteres.");
+        }
+        if (texto.chars().anyMatch(Character::isISOControl)) {
+            throw new RegraNegocioException("O modelo tem caracteres inválidos.");
+        }
+        return texto;
+    }
+
+    private EquipamentoCliente equipamentoDe(Usuario loja, Parceiro cliente, String descricao, String ident,
+                                             String placa, String modelo) {
+        if (placa != null) {
+            var existente = equipamentoRepository.findFirstByUsuarioCodigoAndParceiroIdAndPlaca(
+                    loja.getCodigo(), cliente.getId(), placa);
+            if (existente.isPresent()) {
+                EquipamentoCliente e = existente.get();
+                if (e.getModelo() == null && modelo != null) {
+                    e.setModelo(modelo);
+                    return equipamentoRepository.saveAndFlush(e);
+                }
                 return e;
+            }
+        } else {
+            for (EquipamentoCliente e : equipamentoRepository
+                    .findByUsuarioCodigoAndParceiroIdOrderByIdAsc(loja.getCodigo(), cliente.getId())) {
+                boolean mesmaDescricao = e.getDescricao().equalsIgnoreCase(descricao);
+                boolean mesmoIdent = e.getIdentificador() == null ? ident == null : e.getIdentificador().equalsIgnoreCase(ident);
+                if (mesmaDescricao && mesmoIdent) {
+                    return e;
+                }
             }
         }
         EquipamentoCliente novo = new EquipamentoCliente();
@@ -422,6 +500,8 @@ public class OrdemServicoService {
         novo.setParceiro(cliente);
         novo.setDescricao(descricao);
         novo.setIdentificador(ident);
+        novo.setPlaca(placa);
+        novo.setModelo(modelo);
         return equipamentoRepository.saveAndFlush(novo);
     }
 
