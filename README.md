@@ -1,160 +1,143 @@
-<h1 align="center">StockHub</h1>
+<div align="center">
 
-<p align="center">
-  Sistema web de gestão de estoque com histórico imutável de movimentações,<br>
-  alertas de reposição e uma interface pensada para o dia a dia de uma loja.
-</p>
+# StockHub
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white" alt="Java 17">
-  <img src="https://img.shields.io/badge/Spring_Boot-4.1-6DB33F?logo=springboot&logoColor=white" alt="Spring Boot 4.1">
-  <img src="https://img.shields.io/badge/PostgreSQL-14+-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL 14+">
-  <img src="https://img.shields.io/badge/Flyway-migrations-CC0200?logo=flyway&logoColor=white" alt="Flyway">
-  <img src="https://img.shields.io/badge/testes-470_passando-2EA44F" alt="470 testes passando">
-</p>
+**Gestão de estoque para lojas, com histórico imutável de movimentações e alertas de reposição.**
 
-<p align="center">
-  <img src="docs/img/demo.gif" alt="Demonstração do StockHub: apresentação, painel, busca de produtos e registro de uma movimentação" width="860">
-</p>
+![Java 17](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)
+![Spring Boot 4.1](https://img.shields.io/badge/Spring_Boot-4.1-6DB33F?logo=springboot&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-4169E1?logo=postgresql&logoColor=white)
+![Testes](https://img.shields.io/badge/testes-470_passando-2EA44F)
+![Licença MIT](https://img.shields.io/badge/licença-MIT-blue)
 
-## Sumário
+[Funcionalidades](#funcionalidades) · [Como rodar](#como-rodar) · [Arquitetura](#arquitetura) · [Documentação](#documentação)
 
-- [Sobre](#sobre)
-- [Telas](#telas)
-- [Funcionalidades](#funcionalidades)
-- [Regras que o sistema garante](#regras-que-o-sistema-garante)
-- [Tecnologias](#tecnologias)
-- [Arquitetura](#arquitetura)
-- [Como rodar](#como-rodar)
-- [Testes](#testes)
-- [Segurança](#segurança)
-- [Documentação](#documentação)
-- [Licença](#licença)
-- [Autor](#autor)
+<img src="docs/img/demo.gif" alt="Demonstração do StockHub" width="880">
+
+</div>
 
 ## Sobre
 
-O StockHub controla o estoque de lojas. Cada conta é uma loja, com seus próprios produtos, categorias e movimentações, e uma loja nunca enxerga os dados de outra.
+Cada conta do StockHub é uma loja, com seus próprios produtos, categorias e movimentações. A regra central do sistema é simples: **o saldo de um produto só muda por uma movimentação** (entrada, saída ou ajuste). Cada movimentação guarda o saldo de antes e o de depois e não pode ser editada nem apagada, então o histórico funciona como trilha de auditoria.
 
-A ideia central é que **o saldo de um produto só muda por uma movimentação** (entrada, saída ou ajuste). Cada movimentação guarda o saldo de antes e o de depois e não pode ser editada nem apagada, então o histórico serve como trilha de auditoria: dá para saber quanto havia, quanto saiu, quando e por quê.
-
-Projeto acadêmico do curso de Sistemas para Internet da Universidade Federal de Santa Maria (UFSM).
+Projeto acadêmico de Sistemas para Internet, da Universidade Federal de Santa Maria (UFSM).
 
 ## Telas
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/img/dashboard.png" alt="Painel Visão geral"><br><sub><b>Visão geral:</b> indicadores, produtos que pedem reposição, saúde do estoque e movimentos dos últimos 14 dias.</sub></td>
-    <td width="50%"><img src="docs/img/movimentacoes.png" alt="Movimentações"><br><sub><b>Movimentações:</b> console de lançamento e livro-razão filtrável, com saldo antes e depois.</sub></td>
+    <td width="33%"><img src="docs/img/dashboard.png" alt="Visão geral"></td>
+    <td width="33%"><img src="docs/img/movimentacoes.png" alt="Movimentações"></td>
+    <td width="33%"><img src="docs/img/produtos.png" alt="Produtos"></td>
   </tr>
   <tr>
-    <td><img src="docs/img/produtos.png" alt="Lista de produtos"><br><sub><b>Produtos:</b> busca ao digitar, filtros por situação e categoria, ajuste rápido de saldo e exportação em CSV.</sub></td>
-    <td><img src="docs/img/produto-peek.png" alt="Painel de detalhe do produto"><br><sub><b>Detalhe sem sair da lista:</b> saldo, tendência e últimas movimentações em um painel lateral.</sub></td>
-  </tr>
-  <tr>
-    <td><img src="docs/img/apresentacao.png" alt="Página inicial pública"><br><sub><b>Página inicial pública:</b> apresentação em rolagem, com as cenas surgindo conforme você desce.</sub></td>
-    <td><img src="docs/img/dashboard-escuro.png" alt="Painel no tema escuro"><br><sub><b>Tema escuro:</b> claro, escuro ou o do sistema.</sub></td>
+    <td align="center"><sub><b>Visão geral</b><br>indicadores e reposição</sub></td>
+    <td align="center"><sub><b>Movimentações</b><br>lançamento e livro-razão</sub></td>
+    <td align="center"><sub><b>Produtos</b><br>busca, filtros e ajuste rápido</sub></td>
   </tr>
 </table>
 
-<p align="center">
-  <img src="docs/img/dashboard-celular.png" alt="Painel no celular" width="240">
-  &nbsp;&nbsp;
-  <img src="docs/img/produtos-celular.png" alt="Produtos no celular" width="240">
-  <br><sub>Responsivo: no celular a navegação vai para a barra inferior.</sub>
-</p>
+<details>
+<summary>Ver mais telas (detalhe, tema escuro, página inicial e celular)</summary>
+<br>
+<table>
+  <tr>
+    <td width="50%"><img src="docs/img/produto-peek.png" alt="Painel de detalhe do produto"></td>
+    <td width="50%"><img src="docs/img/dashboard-escuro.png" alt="Tema escuro"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Detalhe sem sair da lista</b></sub></td>
+    <td align="center"><sub><b>Tema escuro</b></sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/img/apresentacao.png" alt="Página inicial pública"></td>
+    <td width="50%" align="center"><img src="docs/img/dashboard-celular.png" alt="Celular" width="200"> <img src="docs/img/produtos-celular.png" alt="Produtos no celular" width="200"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Página inicial pública</b></sub></td>
+    <td align="center"><sub><b>Versão para celular</b></sub></td>
+  </tr>
+</table>
+</details>
 
 ## Funcionalidades
 
-**Estoque**
-- Produtos com categoria, preço, saldo e estoque mínimo; cada produto é classificado como *normal*, *baixo* ou *sem estoque*.
-- Ajuste rápido de saldo direto na lista, com opção de desfazer.
-- Busca ao digitar, filtros, ordenação e painel de detalhe.
-- Categorias organizadas por loja; uma categoria em uso não pode ser excluída.
+| Área | O que faz |
+| :--- | :--- |
+| **Contas** | Cadastro e login de lojas; cada loja só enxerga os próprios dados. |
+| **Produtos** | Cadastro, edição, busca ao digitar, filtros por categoria e situação, ajuste rápido de saldo com desfazer, painel de detalhe. |
+| **Categorias** | Organização por loja; uma categoria em uso não pode ser excluída. |
+| **Movimentações** | Entrada, saída e ajuste com observação; livro-razão filtrável por produto, tipo e período. |
+| **Painel e relatórios** | Indicadores, produtos a repor, saúde do estoque, gráfico de 14 dias e relatórios de estoque baixo, unidades e valor. |
+| **Exportação** | CSV de produtos (todos, filtrados ou só os marcados) e do histórico. |
+| **Usabilidade** | Paleta de comandos (`Ctrl+K`), atalhos de teclado (`?`), tema claro, escuro ou do sistema, navegação por teclado e respeito à preferência de menos movimento. |
 
-**Movimentações**
-- Entrada, saída e ajuste, com observação e motivos rápidos.
-- Livro-razão com filtros por produto, tipo e período.
-- Produtos com histórico são inativados em vez de apagados, preservando a trilha.
+### Regras que o sistema garante
 
-**Gestão**
-- Painel com valor em estoque, unidades, produtos a repor e gráfico dos últimos 14 dias (com tabela equivalente para leitores de tela).
-- Relatórios de estoque baixo, unidades e valor do estoque.
-- Exportação em CSV de produtos (todos, filtrados ou só os marcados) e do histórico de movimentações.
-
-**Experiência**
-- Paleta de comandos (`Ctrl+K`) para buscar produtos e ir a qualquer tela.
-- Atalhos de teclado (`?` abre a lista) e navegação por teclado nas listas.
-- Tema claro, escuro ou do sistema; animação ao trocar de página; respeita a preferência de menos movimento.
-- Acessível: foco visível, rótulos em todos os campos e contraste verificado.
-
-## Regras que o sistema garante
-
-- O saldo nunca fica negativo, e duas pessoas movimentando o mesmo produto ao mesmo tempo não corrompem a contagem (bloqueio pessimista no banco).
+- O saldo nunca fica negativo, mesmo com várias pessoas movimentando o mesmo produto ao mesmo tempo (bloqueio pessimista no banco).
 - O saldo só muda por movimentação, e a movimentação é imutável.
+- Produtos com histórico são inativados em vez de apagados.
 - Cada loja acessa apenas os próprios dados, inclusive nos arquivos CSV.
-- O estoque inicial de um produto novo é registrado como uma entrada, para o histórico fechar com o saldo.
 
-O catálogo completo (RN-01 a RN-14) está em [docs/regras-negocio.md](docs/regras-negocio.md).
+As 14 regras completas estão em [docs/regras-negocio.md](docs/regras-negocio.md).
 
 ## Tecnologias
 
 | Camada | Tecnologias |
 | :--- | :--- |
-| Backend | Java 17, Spring Boot 4.1, Spring MVC, Spring Security, Spring Data JPA (Hibernate), Bean Validation |
-| Frontend | JSP e JSTL, Bootstrap 5, JavaScript e CSS próprios, sem etapa de build e sem CDN |
+| Backend | Java 17, Spring Boot 4.1, Spring MVC, Spring Security, Spring Data JPA, Bean Validation |
+| Frontend | JSP e JSTL, Bootstrap 5, JavaScript e CSS próprios, GSAP na página inicial; sem etapa de build e sem CDN |
 | Banco | PostgreSQL 14+ com migrations Flyway |
-| Qualidade | JUnit 5, Mockito, Spring Security Test, 470 testes |
-| Build | Maven (wrapper incluso) |
-
-As bibliotecas do front ficam em `src/main/webapp/vendor/`, com versão e licença em [VERSOES.md](src/main/webapp/vendor/VERSOES.md). A rolagem da página inicial usa GSAP com ScrollTrigger.
+| Qualidade | JUnit 5, Mockito, Spring Security Test (470 testes) |
+| Build | Maven, com wrapper incluso |
 
 ## Arquitetura
 
-Camadas bem separadas, no fluxo `Controller → Service → Repository → PostgreSQL`:
+O fluxo é `Controller → Service → Repository → PostgreSQL`:
 
-- **Controller:** recebe a requisição e escolhe a resposta. Nunca acessa repositório.
-- **Service:** guarda as regras de negócio e as transações.
-- **Repository:** acesso a dados com Spring Data JPA.
-- **DTOs na entrada, entidades na saída:** formulários não permitem preencher campos internos como `id` ou dono.
-- **Flyway manda, Hibernate só valida:** o schema é versionado em migrations e a aplicação não sobe se o modelo e o banco divergirem.
+- **Controller** recebe a requisição e escolhe a resposta, sem acessar repositórios.
+- **Service** concentra as regras de negócio e as transações.
+- **Repository** faz o acesso a dados com Spring Data JPA.
+- **DTOs na entrada, entidades na saída**, para que formulários não preencham campos internos.
+- **Flyway manda, Hibernate só valida**: o schema é versionado em migrations, e a aplicação não sobe se o modelo e o banco divergirem.
+
+<details>
+<summary>Estrutura de pastas</summary>
 
 ```text
 src/main/java/org/example/stockhubspring/
   config/ controller/ dto/ exception/ model/ repository/ service/ util/
 src/main/resources/
-  application.properties            configuração (sem credenciais)
+  application.properties            configuração, sem credenciais
   db/migration/                     migrations Flyway
 src/main/webapp/
   WEB-INF/pages/ tags/ includes/    telas JSP
-  css/ js/ img/ vendor/             arquivos estáticos
-docs/                               arquitetura, regras de negócio, design e mercado
+  css/ js/ img/ vendor/             arquivos estáticos e bibliotecas
+docs/                               arquitetura, regras, design e mercado
 ```
-
-As decisões e os motivos de cada uma estão em [docs/arquitetura.md](docs/arquitetura.md).
+</details>
 
 ## Como rodar
 
-**Requisitos:** JDK 17 ou superior, PostgreSQL 14+ e Git. O Maven vem no projeto.
+**Requisitos:** JDK 17 ou superior, PostgreSQL 14+ e Git. O Maven já vem no projeto.
 
-**1. Clone o repositório**
+**1. Clone e entre na pasta**
 
 ```bash
-git clone <url-do-repositorio>
+git clone https://github.com/AndreiCecatto/StockHub.git
 cd StockHub
 ```
 
-**2. Crie o banco**
+**2. Crie o banco.** As tabelas são criadas sozinhas na primeira execução.
 
 ```sql
 CREATE DATABASE stockhub;
 ```
 
-As tabelas são criadas sozinhas pelas migrations na primeira execução.
+**3. Informe usuário e senha do banco.** Eles nunca ficam no código. Escolha uma opção:
 
-**3. Informe usuário e senha do banco.** Eles nunca ficam no código. Escolha uma das opções:
-
-*Opção A: variáveis de ambiente*
+<details open>
+<summary>Opção A: variáveis de ambiente</summary>
 
 ```bash
 # Linux e macOS
@@ -167,13 +150,18 @@ export DB_PASSWORD=sua_senha
 $env:DB_USERNAME="seu_usuario"
 $env:DB_PASSWORD="sua_senha"
 ```
+</details>
 
-*Opção B: arquivo local*, que o Git ignora. Crie `src/main/resources/application-local.properties` com:
+<details>
+<summary>Opção B: arquivo local (ignorado pelo Git)</summary>
+
+Crie `src/main/resources/application-local.properties`:
 
 ```properties
 spring.datasource.username=seu_usuario
 spring.datasource.password=sua_senha
 ```
+</details>
 
 **4. Execute**
 
@@ -181,9 +169,10 @@ spring.datasource.password=sua_senha
 ./mvnw spring-boot:run        # Windows: mvnw.cmd spring-boot:run
 ```
 
-Abra http://localhost:8080 e crie uma conta em **Criar conta** (a senha precisa de pelo menos 8 caracteres). Se o `JAVA_HOME` apontar para um Java anterior ao 17, aponte-o para um JDK 17 ou superior antes de rodar o Maven.
+Abra http://localhost:8080 e crie uma conta em **Criar conta** (senha com pelo menos 8 caracteres). Se o `JAVA_HOME` apontar para um Java anterior ao 17, aponte-o para um JDK 17 ou superior antes de rodar.
 
-### Configurações opcionais
+<details>
+<summary>Configurações opcionais</summary>
 
 | Variável | Para que serve |
 | :--- | :--- |
@@ -192,24 +181,19 @@ Abra http://localhost:8080 e crie uma conta em **Criar conta** (a senha precisa 
 | `COOKIE_SECURE=true` | obrigatório em produção com HTTPS |
 
 Para gerar o pacote executável: `./mvnw clean package`.
+</details>
 
-## Testes
+### Testes
 
 ```bash
 ./mvnw test
 ```
 
-São 470 testes: regras de serviço com Mockito, controllers com `@WebMvcTest` e Spring Security Test, e testes de integração contra o PostgreSQL configurado acima. Cada teste de integração desfaz o que gravou (rollback), então não deixa dados no banco.
+São 470 testes: regras de serviço (Mockito), controllers (`@WebMvcTest` e Spring Security Test) e integração contra o PostgreSQL configurado acima. Cada teste de integração desfaz o que gravou, então não deixa dados no banco.
 
 ## Segurança
 
-- Login com Spring Security e senhas com BCrypt; limite de 72 bytes validado.
-- Proteção CSRF em todos os formulários e nas chamadas JSON; logout por POST.
-- Isolamento por loja em todas as consultas, inclusive busca, relatórios e exportações.
-- Saída escapada nas telas (`<c:out>`), sem JavaScript ou estilo embutido nas páginas e sem recursos externos.
-- Cookie de sessão `HttpOnly` e `SameSite=Lax`; páginas de erro sem detalhes internos.
-- CSV protegido contra injeção de fórmulas em planilhas.
-- Credenciais fora do código, por variável de ambiente.
+Login com Spring Security e BCrypt, proteção CSRF em formulários e chamadas JSON, isolamento por loja em todas as consultas, saída escapada nas telas, cookie de sessão `HttpOnly` e `SameSite`, CSV protegido contra injeção de fórmulas e credenciais fora do código.
 
 ## Documentação
 
@@ -220,10 +204,8 @@ São 470 testes: regras de serviço com Mockito, controllers com `@WebMvcTest` e
 | [Design e front-end](docs/design-system.md) | identidade visual, componentes, movimento e acessibilidade |
 | [Mercado e requisitos](docs/mercado-requisitos.md) | levantamento que orientou os recursos |
 
-## Licença
+## Licença e autor
 
-Distribuído sob a licença MIT. Veja o arquivo [LICENSE](LICENSE). As bibliotecas do front mantêm as próprias licenças, em `src/main/webapp/vendor/`. Em especial, o GSAP (animação da página inicial) **não** é MIT: usa a [licença Standard "no charge"](https://gsap.com/standard-license) da GreenSock, gratuita inclusive para uso comercial, mas com a restrição de não servir para criar ferramentas visuais de animação concorrentes.
+Distribuído sob a licença MIT (veja [LICENSE](LICENSE)). As bibliotecas do front mantêm as próprias licenças, listadas em [VERSOES.md](src/main/webapp/vendor/VERSOES.md). O GSAP, usado na animação da página inicial, **não** é MIT: segue a [licença Standard "no charge"](https://gsap.com/standard-license), gratuita inclusive para uso comercial, mas que proíbe criar ferramentas visuais de animação concorrentes.
 
-## Autor
-
-**Andrei Cecatto**, estudante de Sistemas para Internet na UFSM.
+**Andrei Cecatto**, estudante de Sistemas para Internet na UFSM · [@AndreiCecatto](https://github.com/AndreiCecatto)
