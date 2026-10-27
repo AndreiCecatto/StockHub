@@ -275,6 +275,7 @@
             <%-- ==================== Histórico: livro-razão ==================== --%>
             <section class="v3e-razao-card" aria-labelledby="titulo-historico"
                 data-v3e-razao data-v3e-pagina="<c:out value='${paginaAtual}'/>"
+                data-v3e-pode-desfazer="<c:out value='${podeDesfazer ? "sim" : "nao"}'/>"
                 data-v3e-filtro-produto="<c:out value='${filtroProduto}'/>" data-v3e-filtro-tipo="<c:out value='${filtroTipo}'/>"
                 data-v3e-filtro-de="<c:out value='${filtroDe}'/>" data-v3e-filtro-ate="<c:out value='${filtroAte}'/>"
                 data-v3e-tamanho="50">

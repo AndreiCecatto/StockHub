@@ -231,10 +231,48 @@
     saldo.appendChild(oculto(' para '));
     saldo.appendChild(el('strong', null, fmt(r.saldoNovo)));
 
+    // "Desfazer": mesmo desenho da linha do servidor, só quando o papel pode e a movimentação muda o saldo
+    if (razao.getAttribute('data-v3e-pode-desfazer') === 'sim' && r.saldoAnterior !== r.saldoNovo) {
+      prod.appendChild(criarDesfazer(r.movimentacaoId));
+    }
+
     [hora, tipo, prod, qtd, saldo].forEach(function (c) {
       li.appendChild(c);
     });
     return li;
+  }
+
+  function criarDesfazer(id) {
+    var det = el('details', 'v3e-desfazer');
+    det.appendChild(el('summary', 'v3e-desfazer__abrir', 'Desfazer'));
+    var f = el('form', 'v3e-desfazer__form');
+    f.method = 'post';
+    f.action = (SH.contexto || '') + '/estoque/' + encodeURIComponent(id) + '/estornar';
+    var csrf = form.querySelector('input[type="hidden"][name="_csrf"]');
+    if (csrf) {
+      var oculto = el('input');
+      oculto.type = 'hidden';
+      oculto.name = csrf.name;
+      oculto.value = csrf.value;
+      f.appendChild(oculto);
+    }
+    var rotulo = el('label', 'visually-hidden', 'Motivo de desfazer');
+    rotulo.setAttribute('for', 'motivo-estorno-' + id);
+    var campo = el('input', 'form-control form-control-sm');
+    campo.id = 'motivo-estorno-' + id;
+    campo.type = 'text';
+    campo.name = 'motivo';
+    campo.maxLength = 200;
+    campo.required = true;
+    campo.autocomplete = 'off';
+    campo.placeholder = 'Por que está desfazendo?';
+    var confirmar = el('button', 'btn btn-outline-secondary btn-sm', 'Confirmar');
+    confirmar.type = 'submit';
+    f.appendChild(rotulo);
+    f.appendChild(campo);
+    f.appendChild(confirmar);
+    det.appendChild(f);
+    return det;
   }
 
   function criarGrupoHoje(iso, agora) {

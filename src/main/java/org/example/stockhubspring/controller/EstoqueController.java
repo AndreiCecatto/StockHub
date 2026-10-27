@@ -136,6 +136,8 @@ public class EstoqueController {
         // Botão "Desfazer" só para quem pode e só nas movimentações que ainda podem ser desfeitas (RN-69)
         model.addAttribute("estornaveis", estoqueService.estornaveis(historico.getContent(), usuario));
         model.addAttribute("jaDesfeitas", estoqueService.jaDesfeitas(historico.getContent()));
+        // Só a tela precisa saber se o papel pode desfazer: o JS usa isto na linha que insere depois de lançar
+        model.addAttribute("podeDesfazer", usuario.getPapel() != null && usuario.getPapel().gerenciaLoja());
         // Filtros aplicados (já validados), para repor nos campos e montar os links de página/exportação
         model.addAttribute("filtroProduto", filtro.produtoId());
         model.addAttribute("filtroTipo", filtro.tipoParametro());
