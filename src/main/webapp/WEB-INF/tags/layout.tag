@@ -15,7 +15,7 @@
 
     Atributos:
       titulo       texto do <title> (obrigatório)
-      ativo        item do menu atual: dashboard, estoque, produtos, categorias, estoqueBaixo, unidades, valorEstoque
+      ativo        item do menu atual: dashboard, estoque, produtos, compras, categorias, estoqueBaixo, unidades, valorEstoque
       largura      "form" estreita o conteúdo para 960 px (formulários); "larga" abre para 1440 px; padrão 1200 px
       formulario   true nas telas de formulário: a barra inferior some e entra a barra de ações fixa
       voltarUrl    caminho (sem o contexto) do nível acima; vira o link "‹ Produtos" da barra superior no celular

@@ -66,6 +66,7 @@
     { grupo: 'telas', icone: 'bi-box-seam', nome: 'Produtos', dica: 'lista itens catálogo', url: '/produtos?tamanho=25' },
     { grupo: 'telas', icone: 'bi-tags', nome: 'Categorias', dica: 'grupos', url: '/categorias' },
     { grupo: 'telas', icone: 'bi-arrow-left-right', nome: 'Movimentações', dica: 'histórico entradas saídas ajustes estoque', url: '/estoque' },
+    { grupo: 'telas', icone: 'bi-receipt', nome: 'Compras (NF-e)', dica: 'nota fiscal xml importar fornecedor compra entrada', url: '/compras/nfe' },
     { grupo: 'telas', icone: 'bi-exclamation-triangle', nome: 'Estoque baixo', dica: 'alertas reposição acabando faltando', url: '/estoque-baixo' },
     { grupo: 'telas', icone: 'bi-stack', nome: 'Unidades', dica: 'quantidade relatório', url: '/unidades' },
     { grupo: 'telas', icone: 'bi-cash-coin', nome: 'Valor do estoque', dica: 'dinheiro financeiro relatório', url: '/valor-estoque' }

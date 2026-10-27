@@ -1,0 +1,752 @@
+/*
+ * StockHub v3: Compras (NF-e). Telas nfe-lista, nfe-revisao e nfe-detalhe.
+ * Carregado depois de tokens, layout e componentes. Só tokens (--sh-*); sem style inline nas JSPs.
+ * Prefixo: nfe. A classe "nfe-js" no <html> vem de js/nfe-init.js (síncrono no head): sem ela (sem JavaScript)
+ * todos os painéis de ação da revisão ficam visíveis.
+ */
+
+/* ============================== Utilidades ============================== */
+.nfe-so-js {
+  display: none;
+}
+
+.nfe-js .nfe-so-js {
+  display: inline;
+}
+
+.nfe-chave {
+  display: inline-block;
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+  word-spacing: 0.25em;
+}
+
+.nfe-sep {
+  margin: 0 var(--sh-space-1);
+  color: var(--sh-text-subtle);
+}
+
+.nfe-titulo-secao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sh-space-2);
+  margin: 0 0 var(--sh-space-3);
+  font-size: var(--sh-text-lg);
+  font-weight: 650;
+  letter-spacing: var(--sh-track-titulo);
+}
+
+.nfe-contagem {
+  color: var(--sh-text-muted);
+  font-weight: 500;
+}
+
+.nfe-sub {
+  margin: calc(var(--sh-space-1) * -1) 0 var(--sh-space-3);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+/* ============================== Envio do XML ============================== */
+.nfe-zona {
+  display: grid;
+  gap: var(--sh-space-2);
+  justify-items: start;
+  padding: var(--sh-space-5);
+  border: 2px dashed var(--sh-border-strong);
+  border-radius: var(--sh-radius-lg);
+  background: var(--sh-surface-2);
+  transition: border-color var(--sh-t-2) var(--sh-ease), background-color var(--sh-t-2) var(--sh-ease);
+}
+
+.nfe-zona.is-arrastando {
+  border-color: var(--sh-accent);
+  border-style: solid;
+  background: var(--sh-accent-soft);
+}
+
+.nfe-zona__icone {
+  color: var(--sh-accent-text);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.nfe-zona__titulo {
+  margin: 0;
+  font-weight: 650;
+}
+
+.nfe-zona .form-control {
+  max-width: 560px;
+}
+
+.nfe-envio__estado {
+  min-height: 1.5em;
+  margin: var(--sh-space-3) 0 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+  overflow-wrap: anywhere;
+}
+
+.nfe-envio__estado:empty {
+  display: none;
+}
+
+.nfe-envio__erro {
+  margin: var(--sh-space-3) 0 0;
+}
+
+.nfe-envio__erro[hidden] {
+  display: none;
+}
+
+.nfe-envio__erro a {
+  color: inherit;
+  font-weight: 650;
+  text-decoration: underline;
+}
+
+.nfe-envio__acoes {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: var(--sh-space-4);
+}
+
+.nfe-envio__acoes .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sh-space-2);
+}
+
+@media (max-width: 575.98px) {
+  .nfe-envio__acoes .btn {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+/* ============================== Pendentes ============================== */
+.nfe-pendentes {
+  display: grid;
+  gap: var(--sh-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nfe-pendente {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sh-space-3) var(--sh-space-4);
+  padding: var(--sh-space-3) var(--sh-space-4);
+  border: 1px solid var(--sh-border);
+  border-left: 3px solid var(--sh-warning-fg);
+  border-radius: var(--sh-radius);
+  background: var(--sh-surface);
+}
+
+.nfe-pendente__info {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.nfe-pendente__chave,
+.nfe-pendente__meta {
+  margin: 0;
+}
+
+.nfe-pendente__meta {
+  margin-top: var(--sh-space-1);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.nfe-pendente__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sh-space-2);
+}
+
+@media (max-width: 575.98px) {
+  .nfe-pendente__acoes {
+    width: 100%;
+  }
+
+  .nfe-pendente__acoes > * {
+    flex: 1 1 auto;
+  }
+
+  .nfe-pendente__acoes .btn {
+    width: 100%;
+  }
+}
+
+/* ============================== Lista de notas ============================== */
+.nfe-nota-link {
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.nfe-nota-link:hover {
+  text-decoration: underline;
+}
+
+.nfe-serie {
+  color: var(--sh-text-muted);
+  font-weight: 500;
+}
+
+.nfe-fornecedor {
+  display: inline-block;
+  max-width: 28ch;
+  overflow-wrap: anywhere;
+}
+
+.nfe-col-acao {
+  text-align: right;
+}
+
+@media (max-width: 767.98px) {
+  .nfe-fornecedor {
+    max-width: none;
+  }
+
+  .nfe-tabela .nfe-col-acao {
+    justify-content: flex-end;
+  }
+}
+
+/* ============================== Dados da nota (revisão e detalhe) ============================== */
+.nfe-aviso-verificacao {
+  margin-bottom: var(--sh-space-4);
+}
+
+.nfe-lista-avisos {
+  margin: var(--sh-space-1) 0 0;
+  padding-left: 1.25rem;
+}
+
+.nfe-expira {
+  margin: 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.nfe-dados {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--sh-space-4) var(--sh-space-6);
+  margin: 0;
+}
+
+.nfe-dado {
+  min-width: 0;
+}
+
+.nfe-dado--largo {
+  grid-column: 1 / -1;
+}
+
+.nfe-dado dt,
+.nfe-valores dt,
+.nfe-item__dados dt {
+  margin: 0 0 2px;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+}
+
+.nfe-dado dd,
+.nfe-valores dd,
+.nfe-item__dados dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.nfe-fantasia {
+  color: var(--sh-text-muted);
+}
+
+.nfe-doc {
+  display: block;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.nfe-fornecedor-estado {
+  display: block;
+  margin-top: var(--sh-space-2);
+}
+
+.nfe-presencas {
+  display: grid;
+  gap: var(--sh-space-1);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.nfe-presenca .bi {
+  margin-right: var(--sh-space-1);
+}
+
+.nfe-valores {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sh-space-3) var(--sh-space-4);
+  margin: var(--sh-space-5) 0 0;
+  padding-top: var(--sh-space-4);
+  border-top: 1px solid var(--sh-border);
+}
+
+@media (min-width: 768px) {
+  .nfe-valores {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.nfe-valores__total dd {
+  font-size: var(--sh-text-lg);
+  font-weight: 700;
+}
+
+.nfe-nota-rodape {
+  margin: var(--sh-space-4) 0 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+/* ============================== Resumo (revisão e detalhe) ============================== */
+.nfe-resumo {
+  margin-bottom: var(--sh-space-6);
+}
+
+.nfe-resumo__lista {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-lg);
+  background: var(--sh-border);
+  overflow: hidden;
+}
+
+.nfe-resumo__lista--solta {
+  margin-bottom: var(--sh-space-6);
+}
+
+.nfe-resumo__fig {
+  padding: var(--sh-space-3) var(--sh-space-4);
+  background: var(--sh-surface);
+}
+
+.nfe-resumo__fig--entra {
+  background: var(--sh-success-bg);
+  color: var(--sh-success-fg);
+}
+
+.nfe-resumo__fig dt {
+  margin: 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+}
+
+.nfe-resumo__fig--entra dt,
+.nfe-resumo__fig--entra .nfe-resumo__nota {
+  color: var(--sh-success-fg);
+}
+
+.nfe-resumo__fig dd {
+  margin: 0;
+}
+
+.nfe-resumo__fig dd.sh-mono {
+  margin-top: 2px;
+  font-size: var(--sh-text-metric);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.nfe-resumo__nota {
+  margin-top: 2px;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+@media (max-width: 575.98px) {
+  .nfe-resumo__lista {
+    grid-template-columns: 1fr;
+  }
+
+  .nfe-resumo__fig {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    column-gap: var(--sh-space-3);
+  }
+
+  .nfe-resumo__fig dt {
+    grid-column: 1;
+  }
+
+  .nfe-resumo__fig dd.sh-mono {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin: 0;
+    font-size: var(--sh-text-xl);
+  }
+
+  .nfe-resumo__nota {
+    grid-column: 1;
+  }
+}
+
+/* ============================== Itens da revisão ============================== */
+.nfe-itens {
+  display: grid;
+  gap: var(--sh-space-3);
+  margin: 0 0 var(--sh-space-6);
+  padding: 0;
+  list-style: none;
+}
+
+.nfe-item {
+  padding: var(--sh-space-4);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-lg);
+  background: var(--sh-surface);
+}
+
+.nfe-item--travado {
+  background: var(--sh-surface-2);
+}
+
+.nfe-item__cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sh-space-1) var(--sh-space-3);
+  margin-bottom: var(--sh-space-3);
+}
+
+.nfe-item__numero {
+  padding: 1px 8px;
+  border-radius: var(--sh-radius-pill);
+  background: var(--sh-accent-soft);
+  color: var(--sh-accent-text);
+  font-size: var(--sh-text-sm);
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.nfe-item__nome {
+  flex: 1 1 240px;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--sh-text-base);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.nfe-item__dados {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--sh-space-2) var(--sh-space-4);
+  margin: 0 0 var(--sh-space-3);
+  font-size: var(--sh-text-md);
+}
+
+.nfe-item__aviso[hidden] {
+  display: none;
+}
+
+.nfe-item__aviso {
+  margin-bottom: var(--sh-space-3);
+}
+
+.nfe-travado {
+  display: flex;
+  gap: var(--sh-space-2);
+  margin: 0;
+  padding: var(--sh-space-3);
+  border: 1px solid var(--sh-border-strong);
+  border-radius: var(--sh-radius);
+  color: var(--sh-text);
+  font-size: var(--sh-text-md);
+}
+
+.nfe-travado .bi {
+  flex: 0 0 auto;
+  line-height: 1.5;
+}
+
+/* Escolha da ação: controle segmentado (rádios visualmente ocultos, o rótulo é o alvo) */
+.nfe-acao {
+  min-width: 0;
+  margin: 0 0 var(--sh-space-3);
+  padding: 0;
+  border: 0;
+}
+
+.nfe-acao__legenda {
+  float: none;
+  width: auto;
+  margin: 0 0 var(--sh-space-2);
+  padding: 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+}
+
+.nfe-seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sh-space-2);
+}
+
+.nfe-seg__opcao {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sh-space-2);
+  min-height: var(--sh-alvo);
+  padding: 0 var(--sh-space-4);
+  border: 1px solid var(--sh-border-strong);
+  border-radius: var(--sh-radius);
+  background: var(--sh-surface);
+  color: var(--sh-text);
+  font-size: var(--sh-text-md);
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--sh-t-1) var(--sh-ease), border-color var(--sh-t-1) var(--sh-ease);
+}
+
+.nfe-seg__opcao:hover {
+  background: var(--sh-surface-2);
+}
+
+.nfe-seg input:checked + .nfe-seg__opcao {
+  border-color: var(--sh-accent);
+  background: var(--sh-accent-soft);
+  color: var(--sh-accent-text);
+  box-shadow: inset 0 0 0 1px var(--sh-accent);
+}
+
+.nfe-seg input:checked + .nfe-seg__opcao::after {
+  content: "\2713";
+  font-weight: 700;
+}
+
+.nfe-seg input:focus-visible + .nfe-seg__opcao {
+  outline: 3px solid var(--sh-focus);
+  outline-offset: 2px;
+}
+
+@media (max-width: 575.98px) {
+  .nfe-seg {
+    flex-direction: column;
+  }
+
+  .nfe-seg__opcao {
+    width: 100%;
+  }
+}
+
+/* Painéis por ação */
+.nfe-painel {
+  padding-top: var(--sh-space-3);
+  border-top: 1px dashed var(--sh-border);
+}
+
+.nfe-painel[hidden] {
+  display: none;
+}
+
+/* Sem JavaScript não há como trocar de painel: mostra todos */
+html:not(.nfe-js) .nfe-painel[hidden] {
+  display: block;
+}
+
+.nfe-sugestao {
+  display: flex;
+  gap: var(--sh-space-2);
+  margin: 0 0 var(--sh-space-3);
+  color: var(--sh-text);
+  font-size: var(--sh-text-md);
+}
+
+.nfe-sugestao .bi {
+  flex: 0 0 auto;
+  color: var(--sh-accent-text);
+  line-height: 1.5;
+}
+
+.nfe-sugestao--nenhuma {
+  color: var(--sh-text-muted);
+}
+
+.nfe-sugestao__motivo {
+  color: var(--sh-text-muted);
+}
+
+.nfe-aviso-unidade {
+  margin: var(--sh-space-3) 0 0;
+}
+
+.nfe-aviso-unidade[hidden] {
+  display: none;
+}
+
+.nfe-ignorar {
+  margin: 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+/* ============================== Confirmação e barra fixa ============================== */
+.nfe-confirma__aviso {
+  margin-bottom: var(--sh-space-4);
+}
+
+.nfe-confirma__ok {
+  margin: 0 0 var(--sh-space-4);
+  color: var(--sh-success-fg);
+  font-weight: 600;
+}
+
+.nfe-confirma__check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sh-space-3);
+  min-height: var(--sh-alvo);
+  padding-left: 0;
+}
+
+.nfe-confirma__check .form-check-input {
+  flex: 0 0 auto;
+  float: none;
+  width: 1.375rem;
+  height: 1.375rem;
+  margin: 0;
+}
+
+.nfe-confirma__check .form-check-label {
+  padding-top: 1px;
+}
+
+.nfe-barra {
+  align-items: center;
+}
+
+.nfe-barra__resumo {
+  margin: 0 auto 0 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.nfe-barra__bloqueio {
+  flex: 1 1 100%;
+  order: -1;
+  margin: 0;
+  color: var(--sh-danger-fg);
+  font-size: var(--sh-text-md);
+  font-weight: 600;
+  text-align: right;
+}
+
+.nfe-barra__bloqueio[hidden] {
+  display: none;
+}
+
+@media (max-width: 575.98px) {
+  .nfe-barra__resumo {
+    flex: 1 1 100%;
+    margin: 0;
+    text-align: center;
+  }
+
+  .nfe-barra__bloqueio {
+    text-align: center;
+  }
+
+  .nfe-barra > form {
+    flex: 1 1 auto;
+  }
+
+  .nfe-barra > form .btn {
+    width: 100%;
+  }
+}
+
+/* ============================== Detalhe da nota ============================== */
+.nfe-desc {
+  display: block;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.nfe-desc__meta {
+  display: block;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+.nfe-produto-link {
+  display: block;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.nfe-mov-link {
+  display: inline-block;
+  margin-top: 2px;
+  font-size: var(--sh-text-sm);
+}
+
+.nfe-linha--fora td:first-child {
+  box-shadow: inset 3px 0 0 var(--sh-border-strong);
+}
+
+@media (max-width: 767.98px) {
+  .nfe-tabela--itens .nfe-desc {
+    text-align: right;
+  }
+
+  .nfe-tabela--itens .nfe-desc__meta {
+    text-align: right;
+  }
+
+  .nfe-tabela--itens .nfe-produto-link,
+  .nfe-tabela--itens .nfe-mov-link {
+    text-align: right;
+  }
+
+  .nfe-tabela--itens tr.nfe-linha--fora {
+    box-shadow: inset 3px 0 0 var(--sh-border-strong);
+  }
+
+  .nfe-tabela--itens tr.nfe-linha--fora td:first-child {
+    box-shadow: none;
+  }
+}
+
+/* ============================== Movimento reduzido ============================== */
+@media (prefers-reduced-motion: reduce) {
+  .nfe-zona,
+  .nfe-seg__opcao {
+    transition: none;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .nfe-tabela--itens td[data-label="Descrição"],
+  .nfe-tabela--itens td[data-label="Produto no estoque"] {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--sh-space-1);
+  }
+}

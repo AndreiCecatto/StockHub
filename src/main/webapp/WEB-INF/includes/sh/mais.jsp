@@ -15,6 +15,11 @@
         <nav aria-label="Mais opções">
             <ul class="sh-mais__lista">
                 <li>
+                    <a class="sh-mais__link" href="${ctx}/compras/nfe" ${shAtivo == 'compras' ? 'aria-current="page"' : ''}>
+                        <i class="bi bi-receipt" aria-hidden="true"></i> Compras (NF-e)
+                    </a>
+                </li>
+                <li>
                     <a class="sh-mais__link" href="${ctx}/categorias" ${shAtivo == 'categorias' ? 'aria-current="page"' : ''}>
                         <i class="bi bi-tags" aria-hidden="true"></i> Categorias
                     </a>

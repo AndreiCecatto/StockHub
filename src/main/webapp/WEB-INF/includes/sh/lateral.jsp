@@ -48,6 +48,12 @@
                         <i class="bi bi-tags" aria-hidden="true"></i><span class="sh-nav__rotulo">Categorias</span>
                     </a>
                 </li>
+                <li>
+                    <a class="sh-nav__link" href="${ctx}/compras/nfe" title="Compras (NF-e)" ${shAtivo == 'compras' ? 'aria-current="page"' : ''}>
+                        <c:if test="${shAtivo == 'compras'}"><span class="sh-nav__marcador" aria-hidden="true"></span></c:if>
+                        <i class="bi bi-receipt" aria-hidden="true"></i><span class="sh-nav__rotulo">Compras (NF-e)</span>
+                    </a>
+                </li>
             </ul>
         </div>
         <div class="sh-nav__grupo">
