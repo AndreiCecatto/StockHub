@@ -275,6 +275,27 @@
       if (rot) {
         rot.textContent = n === 1 ? 'selecionado' : 'selecionados';
       }
+      // com seleção, o CSV traz só os marcados (o servidor ainda restringe à loja); sem ela, o filtro inteiro
+      var csv = lote.querySelector('[data-v3-lote-csv]');
+      var nota = lote.querySelector('[data-v3-lote-nota]');
+      if (csv) {
+        if (!csv.hasAttribute('data-v3-csv-base')) {
+          csv.setAttribute('data-v3-csv-base', csv.getAttribute('href'));
+        }
+        var base = csv.getAttribute('data-v3-csv-base');
+        var ids = Array.prototype.map.call(selecionadas(), function (c) {
+          return encodeURIComponent(c.value);
+        });
+        csv.setAttribute('href', ids.length ? base + (base.indexOf('?') < 0 ? '?' : '&') + 'ids=' + ids.join(',') : base);
+      }
+      if (nota) {
+        if (!nota.hasAttribute('data-v3-nota-base')) {
+          nota.setAttribute('data-v3-nota-base', nota.textContent);
+        }
+        nota.textContent = n > 0
+          ? 'A exportação traz só ' + (n === 1 ? 'o produto marcado.' : 'os ' + n + ' produtos marcados.')
+          : nota.getAttribute('data-v3-nota-base');
+      }
       if (antes !== lote.hidden && SH.anunciar) {
         SH.anunciar(n === 0 ? 'Seleção limpa.' : n + (n === 1 ? ' produto selecionado.' : ' produtos selecionados.'));
       }

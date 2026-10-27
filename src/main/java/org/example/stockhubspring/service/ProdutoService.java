@@ -25,6 +25,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 
 /** Produtos da loja. Toda operação é escopada pelo usuário logado (RN-01) e só enxerga produtos ativos. */
@@ -76,6 +77,20 @@ public class ProdutoService {
     public Page<Produto> listarParaExportar(ProdutoFiltro filtro, Integer usuarioCodigo) {
         return produtoRepository.findAll(especificacao(filtro, usuarioCodigo),
                 PageRequest.of(0, LIMITE_EXPORTACAO, ordem(filtro)));
+    }
+
+    /**
+     * Exportação só dos produtos marcados na tela. A restrição à loja e aos ativos (RN-01, RN-08) continua
+     * valendo: ids de outra loja simplesmente não aparecem. Lista vazia equivale ao filtro inteiro.
+     */
+    @Transactional(readOnly = true)
+    public Page<Produto> listarParaExportar(ProdutoFiltro filtro, Integer usuarioCodigo, Collection<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return listarParaExportar(filtro, usuarioCodigo);
+        }
+        Specification<Produto> porIds = especificacao(filtro, usuarioCodigo)
+                .and((root, query, cb) -> root.get("id").in(ids));
+        return produtoRepository.findAll(porIds, PageRequest.of(0, LIMITE_EXPORTACAO, ordem(filtro)));
     }
 
     /** Produtos ativos da loja (RN-01, RN-08) com os filtros da listagem. */

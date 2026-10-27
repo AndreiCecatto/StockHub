@@ -318,7 +318,7 @@
                                             data-saldo="<c:out value='${produto.quantidade}'/>"
                                             class="${produto.nivelEstoque == 'SEM_ESTOQUE' ? 'sh-linha--sem' : (produto.nivelEstoque == 'BAIXO' ? 'sh-linha--baixo' : '')}">
                                             <td role="cell" class="v3-c-sel v3-so-js">
-                                                <input type="checkbox" class="form-check-input" data-v3-sel
+                                                <input type="checkbox" class="form-check-input" data-v3-sel value="<c:out value='${produto.id}'/>"
                                                     aria-label="Selecionar <c:out value='${produto.nome}'/>">
                                             </td>
                                             <td role="cell" class="v3-c-prod">
@@ -399,10 +399,10 @@
                         <div class="v3-lote" role="region" aria-label="Ações para os produtos selecionados" data-v3-lote hidden>
                             <p class="v3-lote__txt">
                                 <strong class="v3-mono" data-v3-lote-n>0</strong> <span data-v3-lote-rotulo>selecionados</span>
-                                <span class="v3-lote__nota">A exportação traz os <fmt:formatNumber value="${totalProdutosFiltro}" pattern="#,##0" /> produtos do filtro atual.</span>
+                                <span class="v3-lote__nota" data-v3-lote-nota>A exportação traz os <fmt:formatNumber value="${totalProdutosFiltro}" pattern="#,##0" /> produtos do filtro atual.</span>
                             </p>
                             <div class="v3-lote__acoes">
-                                <a class="btn btn-primary btn-sm" href="<c:out value='${urlCsv}'/>">
+                                <a class="btn btn-primary btn-sm" href="<c:out value='${urlCsv}'/>" data-v3-lote-csv>
                                     <i class="bi bi-download" aria-hidden="true"></i> Exportar CSV
                                 </a>
                                 <button type="button" class="btn btn-ghost btn-sm" data-v3-lote-limpar>Limpar seleção</button>

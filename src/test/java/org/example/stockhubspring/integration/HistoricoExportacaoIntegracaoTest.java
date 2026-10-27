@@ -246,6 +246,31 @@ class HistoricoExportacaoIntegracaoTest extends IntegracaoBase {
     }
 
     @Test
+    @DisplayName("CSV só dos marcados: filtra pelos ids e ignora id de outra loja ou produto inativo")
+    void csvSoDosMarcados() {
+        Produto a = novoProduto(loja, categoria, "Alfa", 3, 1);
+        Produto b = novoProduto(loja, categoria, "Beta", 3, 1);
+        Produto inativo = novoProduto(loja, categoria, "Inativo", 1, 0);
+        inativo.setAtivo(false);
+        produtoRepository.saveAndFlush(inativo);
+        Usuario outra = novoUsuario();
+        Produto alheio = novoProduto(outra, novaCategoria(outra, "X"), "Alheio", 1, 0);
+        limparSessao();
+
+        ProdutoFiltro todos = new ProdutoFiltro(null, null, null, "nome", "asc", 1, 8);
+        Page<Produto> marcados = produtoService.listarParaExportar(todos, loja.getCodigo(),
+                List.of(a.getId(), inativo.getId(), alheio.getId()));
+        em.clear();
+
+        assertThat(marcados.getContent()).extracting(Produto::getNome).containsExactly("Alfa");
+        assertThat(produtoService.listarParaExportar(todos, loja.getCodigo(), List.of(b.getId())).getContent())
+                .extracting(Produto::getNome).containsExactly("Beta");
+        // lista vazia = filtro inteiro, como antes
+        assertThat(produtoService.listarParaExportar(todos, loja.getCodigo(), List.of()).getContent())
+                .extracting(Produto::getNome).contains("Alfa", "Beta", "Caneta");
+    }
+
+    @Test
     @DisplayName("CSV do histórico do banco: filtros aplicados, só da loja, com saldo anterior e novo")
     void csvDoHistorico() {
         mover(caneta, TipoMovimentacao.SAIDA, 4, "=SOMA(1;2)", LocalDateTime.of(2026, 3, 2, 9, 30, 15));

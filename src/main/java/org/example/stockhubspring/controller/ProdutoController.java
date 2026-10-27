@@ -27,6 +27,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Objects;
 
 /** Só recebe, valida e redireciona; as regras ficam no {@link ProdutoService}. */
 @Controller
@@ -108,11 +110,17 @@ public class ProdutoController {
                                               @RequestParam(required = false) Integer categoriaId,
                                               @RequestParam(required = false) String nivelEstoque,
                                               @RequestParam(defaultValue = "id") String ordenacao,
-                                              @RequestParam(defaultValue = "desc") String direcao) {
+                                              @RequestParam(defaultValue = "desc") String direcao,
+                                              @RequestParam(required = false) List<Integer> ids) {
         Usuario usuario = usuarioAtualService.getUsuarioAtual();
         ProdutoFiltro filtro = ProdutoFiltro.de(busca, categoriaId, nivelEstoque, ordenacao, direcao, 1,
                 ProdutoFiltro.TAMANHO_PADRAO);
-        return RespostaCsv.de(exportacaoService.exportarProdutos(filtro, usuario.getCodigo()));
+        if (ids == null || ids.isEmpty()) {
+            return RespostaCsv.de(exportacaoService.exportarProdutos(filtro, usuario.getCodigo()));
+        }
+        // Teto defensivo: a tela só marca uma página (até 100); mais que isso é uso indevido
+        List<Integer> marcados = ids.stream().filter(Objects::nonNull).distinct().limit(500).toList();
+        return RespostaCsv.de(exportacaoService.exportarProdutos(filtro, usuario.getCodigo(), marcados));
     }
 
     @GetMapping("/novo")

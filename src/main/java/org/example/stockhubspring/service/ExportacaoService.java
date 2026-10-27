@@ -41,7 +41,14 @@ public class ExportacaoService {
 
     /** Produtos ativos da loja, com os mesmos filtros e ordenação da listagem (sem paginação). */
     public ArquivoCsv exportarProdutos(ProdutoFiltro filtro, Integer usuarioCodigo) {
-        Page<Produto> produtos = produtoService.listarParaExportar(filtro, usuarioCodigo);
+        return exportarProdutos(filtro, usuarioCodigo, List.of());
+    }
+
+    /** Igual ao anterior, mas restrito aos ids marcados na tela (lista vazia = todos do filtro). */
+    public ArquivoCsv exportarProdutos(ProdutoFiltro filtro, Integer usuarioCodigo, List<Integer> ids) {
+        Page<Produto> produtos = ids.isEmpty()
+                ? produtoService.listarParaExportar(filtro, usuarioCodigo)
+                : produtoService.listarParaExportar(filtro, usuarioCodigo, ids);
         List<String> linhas = new ArrayList<>();
         linhas.add(Csv.linha(Csv.texto("Código"), Csv.texto("Nome"), Csv.texto("Descrição"),
                 Csv.texto("Categoria"), Csv.texto("Preço (R$)"), Csv.texto("Quantidade"),

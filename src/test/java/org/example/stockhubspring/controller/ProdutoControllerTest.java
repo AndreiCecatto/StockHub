@@ -408,6 +408,17 @@ class ProdutoControllerTest extends ControllerTestBase {
     }
 
     @Test
+    @DisplayName("exportar.csv?ids= exporta só os marcados, sem repetidos, pela loja da sessão")
+    void exportarCsvSoDosMarcados() throws Exception {
+        when(produtoService.listarParaExportar(any(), eq(7), any())).thenReturn(new PageImpl<>(List.of()));
+
+        mvc.perform(get("/produtos/exportar.csv").with(logadoComo(7)).param("ids", "4,5,4"))
+                .andExpect(status().isOk());
+
+        verify(produtoService).listarParaExportar(any(), eq(7), eq(List.of(4, 5)));
+    }
+
+    @Test
     @DisplayName("exportar.csv respeita busca, categoria, nível e ordenação da listagem, sem paginação, só da loja da sessão")
     void exportarCsvRespeitaFiltros() throws Exception {
         when(produtoService.listarParaExportar(any(), eq(7))).thenReturn(new PageImpl<>(List.of()));
