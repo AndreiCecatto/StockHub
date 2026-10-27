@@ -41,6 +41,13 @@
                         <i class="bi bi-graph-up" aria-hidden="true"></i> Análises
                     </a>
                 </li>
+                <sh:modulo nome="OS">
+                <li>
+                    <a class="sh-mais__link" href="${ctx}/os" ${shAtivo == 'os' ? 'aria-current="page"' : ''}>
+                        <i class="bi bi-wrench-adjustable" aria-hidden="true"></i> Ordens de serviço
+                    </a>
+                </li>
+                </sh:modulo>
                 <c:if test="${modulos['VENDAS'] or modulos['OS']}">
                 <li>
                     <a class="sh-mais__link" href="${ctx}/clientes" ${shAtivo == 'clientes' ? 'aria-current="page"' : ''}>

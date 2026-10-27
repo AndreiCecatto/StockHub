@@ -73,6 +73,14 @@
     { grupo: 'telas', icone: 'bi-graph-up', nome: 'Análises', dica: 'gráficos curva abc cobertura parados caixa compras saídas dinheiro parado relatório', url: '/analises' }
   ];
 
+  // Módulo OS ligado (lojas Oficina e Misto): o servidor marca o diálogo; nas demais lojas o comando nem existe
+  if (dialogo.getAttribute('data-sh-modulo-os') === 'sim') {
+    COMANDOS.push(
+      { grupo: 'acoes', icone: 'bi-wrench-adjustable', nome: 'Nova ordem de serviço', dica: 'os orçamento conserto oficina abrir', url: '/os/nova' },
+      { grupo: 'telas', icone: 'bi-wrench-adjustable', nome: 'Ordens de serviço', dica: 'os orçamento conserto oficina aprovação entrega', url: '/os' }
+    );
+  }
+
   var TITULOS = { produtos: 'Produtos', acoes: 'Ações', telas: 'Ir para', busca: 'Buscar' };
 
   /* ---------- Texto sem acento, para comparar ---------- */

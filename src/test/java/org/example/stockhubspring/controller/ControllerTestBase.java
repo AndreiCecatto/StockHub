@@ -75,6 +75,9 @@ abstract class ControllerTestBase {
     @MockitoBean
     protected org.example.stockhubspring.service.ClienteService clienteService;
 
+    @MockitoBean
+    protected org.example.stockhubspring.service.OrdemServicoService ordemServicoService;
+
     @BeforeEach
     void montarMockMvc() {
         mvc = MockMvcBuilders.webAppContextSetup(contexto).apply(springSecurity()).build();

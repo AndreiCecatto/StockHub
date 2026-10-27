@@ -1,0 +1,263 @@
+/*
+ * StockHub: ordens de serviço (/os). Só tokens (--sh-*), sem style inline. Prefixo: os.
+ * Linha do tempo horizontal de status, situação em selos suaves, totais e página de impressão.
+ */
+.os-numero {
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  color: var(--sh-text);
+}
+
+.os-sub {
+  display: block;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------ situação ------------------------------ */
+.os-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--sh-radius-pill);
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.os-status--orcamento { color: var(--sh-warning-fg); background: var(--sh-warning-bg); border-color: var(--sh-warning-border); }
+.os-status--aprovada { color: var(--sh-info-fg); background: var(--sh-info-bg); border-color: var(--sh-info-border); }
+.os-status--em_execucao { color: var(--sh-accent-text); background: var(--sh-accent-soft); border-color: var(--sh-accent-soft); }
+.os-status--concluida { color: var(--sh-success-fg); background: var(--sh-success-bg); border-color: var(--sh-success-border); }
+.os-status--entregue { color: var(--sh-text-muted); background: var(--sh-surface-2); border-color: var(--sh-border); }
+.os-status--cancelada { color: var(--sh-danger-fg); background: var(--sh-danger-bg); border-color: var(--sh-danger-border); }
+
+/* ------------------------------ filtro da lista ------------------------------ */
+.os-filtro {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sh-space-2);
+  padding: var(--sh-space-4) var(--sh-space-5);
+  border-bottom: 1px solid var(--sh-border);
+}
+
+.os-filtro__contagem {
+  color: var(--sh-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------ passos ------------------------------ */
+.os-passos {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--sh-space-2);
+  margin: 0;
+  padding: var(--sh-space-5);
+  list-style: none;
+}
+
+.os-passo {
+  position: relative;
+  padding-top: var(--sh-space-4);
+  color: var(--sh-text-subtle);
+  font-size: var(--sh-text-md);
+}
+
+.os-passo::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: var(--sh-radius-pill);
+  background: var(--sh-border);
+}
+
+.os-passo--feito::before { background: var(--sh-success-solid); }
+.os-passo--atual::before { background: var(--sh-accent); }
+
+.os-passo__nome {
+  display: block;
+  font-weight: 600;
+  color: var(--sh-text-muted);
+}
+
+.os-passo--feito .os-passo__nome,
+.os-passo--atual .os-passo__nome { color: var(--sh-text); }
+
+.os-passo__data {
+  display: block;
+  font-variant-numeric: tabular-nums;
+}
+
+.os-cancelada {
+  margin: 0 var(--sh-space-5) var(--sh-space-5);
+}
+
+@media (max-width: 575.98px) {
+  .os-passos {
+    grid-template-columns: 1fr;
+  }
+
+  .os-passo {
+    padding: 0 0 0 var(--sh-space-4);
+  }
+
+  .os-passo::before {
+    right: auto;
+    bottom: 0;
+    width: 4px;
+    height: auto;
+  }
+}
+
+/* ------------------------------ dados e totais ------------------------------ */
+.os-dados {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--sh-space-4) var(--sh-space-6);
+  margin: 0;
+  padding: var(--sh-space-5);
+}
+
+.os-dados dt {
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-weight: 500;
+}
+
+.os-dados dd {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.os-dados__largo {
+  grid-column: 1 / -1;
+}
+
+.os-dinheiro {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.os-totais {
+  margin: 0;
+  padding: var(--sh-space-4) var(--sh-space-5);
+  border-top: 1px solid var(--sh-border);
+  display: grid;
+  gap: var(--sh-space-2);
+  justify-items: end;
+}
+
+.os-totais div {
+  display: flex;
+  gap: var(--sh-space-6);
+  justify-content: space-between;
+  min-width: min(100%, 280px);
+}
+
+.os-totais dt { font-weight: 400; color: var(--sh-text-muted); }
+.os-totais dd { margin: 0; font-variant-numeric: tabular-nums; }
+
+.os-totais__final dt,
+.os-totais__final dd {
+  color: var(--sh-text);
+  font-size: var(--sh-text-xl);
+  font-weight: 650;
+}
+
+.os-linha-form {
+  padding: var(--sh-space-4) var(--sh-space-5) var(--sh-space-5);
+  border-top: 1px solid var(--sh-border);
+}
+
+.os-acoes-celula {
+  text-align: right;
+}
+
+.os-acoes-celula form {
+  display: inline-block;
+  margin: 0;
+}
+
+.os-nota {
+  margin: 0;
+  padding: var(--sh-space-4) var(--sh-space-5);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+/* ------------------------------ impressão da OS ------------------------------ */
+.os-folha {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: var(--sh-space-8) var(--sh-gutter);
+  background: var(--sh-bg);
+  color: var(--sh-text);
+}
+
+.os-folha__barra {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sh-space-3);
+  margin-bottom: var(--sh-space-6);
+}
+
+.os-folha h1 {
+  margin: 0;
+  font-size: var(--sh-text-2xl);
+  letter-spacing: var(--sh-track-titulo);
+}
+
+.os-folha h2 {
+  margin: var(--sh-space-6) 0 var(--sh-space-2);
+  font-size: var(--sh-text-lg);
+}
+
+.os-folha__cab {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--sh-space-4);
+  padding-bottom: var(--sh-space-4);
+  border-bottom: 2px solid var(--sh-text);
+}
+
+.os-folha table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--sh-text-md);
+}
+
+.os-folha th,
+.os-folha td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--sh-border);
+  text-align: left;
+}
+
+.os-folha .os-direita { text-align: right; }
+
+.os-assinaturas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sh-space-10);
+  margin-top: var(--sh-space-16);
+}
+
+.os-assinaturas div {
+  padding-top: var(--sh-space-2);
+  border-top: 1px solid var(--sh-text);
+  text-align: center;
+  font-size: var(--sh-text-md);
+}
+
+@media print {
+  .os-folha { padding: 0; max-width: none; }
+  .os-folha__barra { display: none; }
+  .os-passos { break-inside: avoid; }
+}

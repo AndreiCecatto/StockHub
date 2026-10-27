@@ -54,6 +54,14 @@
                         <i class="bi bi-receipt" aria-hidden="true"></i><span class="sh-nav__rotulo">Compras (NF-e)</span>
                     </a>
                 </li>
+                <sh:modulo nome="OS">
+                <li>
+                    <a class="sh-nav__link" href="${ctx}/os" title="Ordens de serviço" ${shAtivo == 'os' ? 'aria-current="page"' : ''}>
+                        <c:if test="${shAtivo == 'os'}"><span class="sh-nav__marcador" aria-hidden="true"></span></c:if>
+                        <i class="bi bi-wrench-adjustable" aria-hidden="true"></i><span class="sh-nav__rotulo">Ordens de serviço</span>
+                    </a>
+                </li>
+                </sh:modulo>
             </ul>
         </div>
         <div class="sh-nav__grupo">

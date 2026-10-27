@@ -6,7 +6,7 @@
     lista é um listbox com grupos. O resultado é anunciado em #sh-paleta-status (aria-live polite).
     Sem JavaScript o botão que abre a paleta não faz nada: a barra superior traz um <noscript> com a busca comum.
 --%>
-<dialog class="sh-paleta" id="sh-paleta" aria-label="Barra de comando">
+<dialog class="sh-paleta" id="sh-paleta" aria-label="Barra de comando" data-sh-modulo-os="${modulos['OS'] ? 'sim' : 'nao'}">
     <div class="sh-paleta__caixa">
         <div class="sh-paleta__topo">
             <i class="bi bi-search" aria-hidden="true"></i>
