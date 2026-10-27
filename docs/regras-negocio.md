@@ -175,7 +175,17 @@ A loja envia o XML de uma NF-e de compra, revisa, e só depois de confirmar os i
 | RN | Regra | Motivo |
 |---|---|---|
 | RN-99 | **Campos no próprio produto.** `produto` ganha cinco colunas opcionais (NULL): tamanho, cor, lote, data de validade e número de série. Texto vazio vira NULL. Não há tabela de atributos nem JSON. | simplicidade e tipo garantido pelo banco |
-| RN-100 | **Quais campos valem em cada ramo.** O mapa é fechado e vive no service (`CamposRamo`): vestuário usa tamanho e cor; farmácia usa lote e validade; mercado usa validade; informática usa número de série. Subtipo sem entrada no mapa não tem campos extras. A oficina fica para a fatia 2. | cada loja vê só o que faz sentido |
+| RN-100 | **Quais campos valem em cada ramo.** O mapa é fechado e vive no service (`CamposRamo`): vestuário usa tamanho e cor; farmácia usa lote e validade; mercado usa validade; informática usa número de série. Subtipo sem entrada no mapa não tem campos extras. A oficina é tratada na fatia 2 (RN-104 a RN-108). | cada loja vê só o que faz sentido |
 | RN-101 | **Campo fora do ramo é ignorado.** Se o formulário trouxer um valor de um campo que o ramo da loja não usa, o servidor o descarta sem erro e sem gravar; a tela também não mostra o campo. A conferência é do servidor, não da tela. | quem decide é o servidor |
 | RN-102 | **Validade opcional.** Nesta fatia a data de validade não é obrigatória, mesmo em farmácia e mercado. Se informada, é uma data válida (AAAA-MM-DD) entre 2000-01-01 e 2100-12-31. Não há bloqueio de venda nem alerta de vencimento. | cadastro rápido; controle de vencimento fica para depois |
 | RN-103 | **Trocar o subtipo da loja não apaga nada.** Os valores já gravados em campos que o novo ramo não usa permanecem no banco e ficam apenas ocultos; ao voltar ao ramo anterior, reaparecem. | nunca perder dado por mudança de configuração |
+
+## Veículo da oficina (fatia 2, AD-18)
+
+| RN | Regra | Motivo |
+|---|---|---|
+| RN-104 | **Placa e modelo no equipamento.** `equipamento_cliente` ganha `placa` e `modelo`, ambos opcionais (NULL; texto vazio vira NULL). Valem só nas lojas de subtipo MECANICA e MOTO, definido no mapa `CamposRamo`. Em outro subtipo (ou sem subtipo) os valores enviados são descartados sem erro, como na RN-101. | o veículo é o equipamento do cliente; quem decide é o servidor |
+| RN-105 | **Formato da placa.** Se informada, após remover espaços e hífen e passar para maiúsculas, deve ter 7 caracteres no padrão `AAA9999` ou Mercosul `AAA9A99`. Caso contrário a OS é recusada com mensagem clara. O banco repete a conferência (CHECK). Guarda-se sem hífen; a tela pode mostrar com hífen. | dado limpo e busca previsível |
+| RN-106 | **Modelo.** Texto de até 80 caracteres, sem caracteres de controle. Em MECANICA e MOTO a descrição do equipamento deixa de ser obrigatória quando o modelo for informado (a descrição passa a ser o modelo); sem descrição e sem modelo continua recusado (RN-79). | evitar digitar duas vezes o mesmo dado |
+| RN-107 | **Reaproveitamento do veículo.** Com placa informada, o veículo do cliente é reaproveitado se tiver a mesma placa (RN-79 continua valendo para os sem placa: descrição e identificador iguais). Reaproveitar não sobrescreve o modelo já gravado. A mesma placa pode existir em clientes diferentes. | histórico do mesmo carro junto, sem apagar dado |
+| RN-108 | **Exibição.** Onde a OS mostra o equipamento (detalhe, lista, impressão, resumo do cliente), a placa e o modelo aparecem quando existem. A loja existente e as OS antigas não mudam. | compatibilidade |
