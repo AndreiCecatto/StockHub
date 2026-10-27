@@ -26,6 +26,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -51,6 +52,9 @@ public class ProdutoService {
     public static final int BUSCA_LIMITE_MAXIMO = 20;
     /** Quantos nomes a busca tolerante examina por consulta (teto de segurança; uma loja média tem bem menos). */
     public static final int BUSCA_TOLERANTE_MAXIMO_NOMES = 5000;
+    /** Faixa aceita para a data de validade (evita erros de digitação como o ano 0020). */
+    private static final LocalDate VALIDADE_MINIMA = LocalDate.of(2000, 1, 1);
+    private static final LocalDate VALIDADE_MAXIMA = LocalDate.of(2100, 12, 31);
 
     /** Resultado da busca com sugestões: os {@code exatos} primeiros casam com o texto; o restante é "parecido". */
     public record ResultadoBusca(List<Produto> produtos, int exatos) {
@@ -260,7 +264,7 @@ public class ProdutoService {
 
         Produto produto = new Produto();
         produto.setUsuario(usuario);
-        preencher(produto, form, nome, categoria);
+        preencher(produto, form, nome, categoria, usuario);
         produto.setQuantidade(0); // o saldo só nasce por movimentação (RN-03)
         produto.setAtivo(true);
         produto = gravar(produto, nome);
@@ -276,17 +280,59 @@ public class ProdutoService {
         // Edição: carrega o produto DA LOJA LOGADA (evita IDOR); o id do formulário nunca é confiável
         Produto produto = buscarPorId(form.getId(), usuario.getCodigo());
         validarNomeUnico(nome, usuario.getCodigo(), produto.getId());
-        preencher(produto, form, nome, categoria);
+        preencher(produto, form, nome, categoria, usuario);
         return gravar(produto, nome);
     }
 
     /** Copia os campos editáveis. Quantidade e ativo ficam de fora de propósito. */
-    private void preencher(Produto produto, ProdutoForm form, String nome, Categoria categoria) {
+    private void preencher(Produto produto, ProdutoForm form, String nome, Categoria categoria, Usuario usuario) {
         produto.setNome(nome);
         produto.setDescricao(Textos.limpar(form.getDescricao()));
         produto.setPreco(form.getPreco());
         produto.setEstoqueMinimo(form.getEstoqueMinimo() == null ? 0 : form.getEstoqueMinimo());
         produto.setCategoria(categoria);
+        aplicarCamposRamo(produto, form, usuario);
+    }
+
+    /** Campos permitidos ao ramo da loja do usuário (para as telas e a busca). */
+    public CamposRamo.Permitidos camposPermitidos(Usuario usuario) {
+        return CamposRamo.permitidos(usuario.getSubtipo());
+    }
+
+    /**
+     * Aplica os campos por ramo (AD-17). Só os permitidos ao subtipo da loja são lidos e validados (RN-101);
+     * os demais ficam como estão no produto, sem apagar nada (RN-103). Vazio vira null (RN-99); validade é opcional (RN-102).
+     */
+    private void aplicarCamposRamo(Produto produto, ProdutoForm form, Usuario usuario) {
+        var permitidos = CamposRamo.permitidos(usuario.getSubtipo());
+        if (permitidos.tamanho()) {
+            produto.setTamanho(limitar(form.getTamanho(), CamposRamo.TAMANHO_MAX, "O tamanho"));
+        }
+        if (permitidos.cor()) {
+            produto.setCor(limitar(form.getCor(), CamposRamo.COR_MAX, "A cor"));
+        }
+        if (permitidos.lote()) {
+            produto.setLote(limitar(form.getLote(), CamposRamo.LOTE_MAX, "O lote"));
+        }
+        if (permitidos.numeroSerie()) {
+            produto.setNumeroSerie(limitar(form.getNumeroSerie(), CamposRamo.NUMERO_SERIE_MAX, "O número de série"));
+        }
+        if (permitidos.validade()) {
+            LocalDate validade = form.getDataValidade();
+            if (validade != null && (validade.isBefore(VALIDADE_MINIMA) || validade.isAfter(VALIDADE_MAXIMA))) {
+                throw new RegraNegocioException("A data de validade deve estar entre " + VALIDADE_MINIMA.getYear()
+                        + " e " + VALIDADE_MAXIMA.getYear() + ".");
+            }
+            produto.setDataValidade(validade);
+        }
+    }
+
+    private static String limitar(String valor, int maximo, String rotulo) {
+        String limpo = Textos.limpar(valor);
+        if (limpo != null && limpo.length() > maximo) {
+            throw new RegraNegocioException(rotulo + " deve ter no máximo " + maximo + " caracteres.");
+        }
+        return limpo;
     }
 
     private Produto gravar(Produto produto, String nome) {

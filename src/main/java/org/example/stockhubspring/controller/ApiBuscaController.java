@@ -32,12 +32,15 @@ public class ApiBuscaController {
     @GetMapping(value = "/busca", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<ProdutoBusca> buscar(@RequestParam(required = false) String q,
                                      @RequestParam(required = false) String limite) {
-        Integer loja = usuarioAtualService.getUsuarioAtual().getCodigo();
+        var usuario = usuarioAtualService.getUsuarioAtual();
+        Integer loja = usuario.getCodigo();
+        var campos = produtoService.camposPermitidos(usuario);
         var resultado = produtoService.buscarTolerante(q, lerInteiro(limite, ProdutoService.BUSCA_LIMITE_PADRAO), loja);
         List<ProdutoBusca> itens = new ArrayList<>();
         for (int i = 0; i < resultado.produtos().size(); i++) {
             var produto = resultado.produtos().get(i);
-            itens.add(i < resultado.exatos() ? ProdutoBusca.de(produto) : ProdutoBusca.parecido(produto));
+            itens.add(i < resultado.exatos() ? ProdutoBusca.de(produto, campos)
+                    : ProdutoBusca.parecido(produto, campos));
         }
         return itens;
     }

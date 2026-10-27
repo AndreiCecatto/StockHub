@@ -127,6 +127,7 @@ public class ProdutoController {
     public String novo(Model model) {
         Usuario usuario = usuarioAtualService.getUsuarioAtual();
         model.addAttribute("produto", new ProdutoForm());
+        model.addAttribute("camposRamo", produtoService.camposPermitidos(usuario));
         model.addAttribute("categorias", categoriaService.listarParaSelecao(usuario.getCodigo()));
         return "produto-form";
     }
@@ -137,6 +138,7 @@ public class ProdutoController {
         // Primeiro confirma que o produto é da loja (senão 404); só então busca o histórico dele
         Produto produto = produtoService.buscarPorId(id, usuario.getCodigo());
         model.addAttribute("produto", produto);
+        model.addAttribute("camposRamo", produtoService.camposPermitidos(usuario));
         model.addAttribute("saldoProduto", estoqueService.saldoDoProduto(produto, usuario.getCodigo()));
         model.addAttribute("movimentacoesProduto",
                 estoqueService.ultimasDoProduto(id, usuario.getCodigo(), MOVIMENTACOES_NO_DETALHE));
@@ -148,6 +150,7 @@ public class ProdutoController {
         Usuario usuario = usuarioAtualService.getUsuarioAtual();
         Produto produto = produtoService.buscarPorId(id, usuario.getCodigo());
         model.addAttribute("produto", ProdutoForm.de(produto));
+        model.addAttribute("camposRamo", produtoService.camposPermitidos(usuario));
         model.addAttribute("categorias", categoriaService.listarParaSelecao(usuario.getCodigo()));
         return "produto-form";
     }
@@ -161,6 +164,7 @@ public class ProdutoController {
         if (resultado.hasErrors()) {
             // Volta ao MESMO formulário, com o que o usuário digitou e os erros
             errosFormulario.publicar(resultado, model);
+            model.addAttribute("camposRamo", produtoService.camposPermitidos(usuario));
             model.addAttribute("categorias", categoriaService.listarParaSelecao(usuario.getCodigo()));
             return "produto-form";
         }
@@ -169,6 +173,7 @@ public class ProdutoController {
             produtoService.salvar(produto, usuario);
         } catch (RegraNegocioException e) {
             model.addAttribute("erro", e.getMessage());
+            model.addAttribute("camposRamo", produtoService.camposPermitidos(usuario));
             model.addAttribute("categorias", categoriaService.listarParaSelecao(usuario.getCodigo()));
             return "produto-form";
         }
