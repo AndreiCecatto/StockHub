@@ -1,4 +1,4 @@
-# Regras de negócio do StockHub
+﻿# Regras de negócio do StockHub
 
 Todas as regras vivem na camada de serviço, nunca no controller nem na JSP. O banco repete as que forem restrições de integridade, como última defesa.
 
@@ -178,7 +178,7 @@ A loja envia o XML de uma NF-e de compra, revisa, e só depois de confirmar os i
 | RN-100 | **Quais campos valem em cada ramo.** O mapa é fechado e vive no service (`CamposRamo`): vestuário usa tamanho e cor; farmácia usa lote e validade; mercado usa validade; informática usa número de série. Subtipo sem entrada no mapa não tem campos extras. A oficina é tratada na fatia 2 (RN-104 a RN-108). | cada loja vê só o que faz sentido |
 | RN-101 | **Campo fora do ramo é ignorado.** Se o formulário trouxer um valor de um campo que o ramo da loja não usa, o servidor o descarta sem erro e sem gravar; a tela também não mostra o campo. A conferência é do servidor, não da tela. | quem decide é o servidor |
 | RN-102 | **Validade opcional.** Nesta fatia a data de validade não é obrigatória, mesmo em farmácia e mercado. Se informada, é uma data válida (AAAA-MM-DD) entre 2000-01-01 e 2100-12-31. Não há bloqueio de venda nem alerta de vencimento. | cadastro rápido; controle de vencimento fica para depois |
-| RN-103 | **Trocar o subtipo da loja não apaga nada.** Os valores já gravados em campos que o novo ramo não usa permanecem no banco e ficam apenas ocultos; ao voltar ao ramo anterior, reaparecem. | nunca perder dado por mudança de configuração |
+| RN-103 | **Trocar o subtipo da loja não apaga nada.** Os valores já gravados em campos que o novo ramo não usa permanecem no banco e ficam apenas ocultos nas telas de **produto**; ao voltar ao ramo anterior, reaparecem. Para o veículo da OS vale a RN-108 (continua visível nas OS já criadas). | nunca perder dado por mudança de configuração |
 
 ## Veículo da oficina (fatia 2, AD-18)
 
@@ -188,4 +188,6 @@ A loja envia o XML de uma NF-e de compra, revisa, e só depois de confirmar os i
 | RN-105 | **Formato da placa.** Se informada, após remover espaços e hífen e passar para maiúsculas, deve ter 7 caracteres no padrão `AAA9999` ou Mercosul `AAA9A99`. Caso contrário a OS é recusada com mensagem clara. O banco repete a conferência (CHECK). Guarda-se sem hífen; a tela pode mostrar com hífen. | dado limpo e busca previsível |
 | RN-106 | **Modelo.** Texto de até 80 caracteres, sem caracteres de controle. Em MECANICA e MOTO a descrição do equipamento deixa de ser obrigatória quando o modelo for informado (a descrição passa a ser o modelo); sem descrição e sem modelo continua recusado (RN-79). | evitar digitar duas vezes o mesmo dado |
 | RN-107 | **Reaproveitamento do veículo.** Com placa informada, o veículo do cliente é reaproveitado se tiver a mesma placa (RN-79 continua valendo para os sem placa: descrição e identificador iguais). Reaproveitar não sobrescreve o modelo já gravado. A mesma placa pode existir em clientes diferentes. | histórico do mesmo carro junto, sem apagar dado |
-| RN-108 | **Exibição.** Onde a OS mostra o equipamento (detalhe, lista, impressão, resumo do cliente), a placa e o modelo aparecem quando existem. A loja existente e as OS antigas não mudam. | compatibilidade |
+| RN-108 | **Exibição.** Onde a OS mostra o equipamento (detalhe, lista, impressão, resumo do cliente), a placa e o modelo aparecem quando existem. A loja existente e as OS antigas não mudam. **A exibição não depende do subtipo atual da loja:** a OS é documento histórico, então depois de trocar o subtipo (por exemplo de MECANICA para OUTRO_SERVICO) as OS antigas continuam mostrando placa e modelo gravados. Só o formulário de nova OS e a gravação seguem o subtipo atual (RN-104). Diferente do produto (RN-103), onde o campo oculto some da tela. | compatibilidade e documento histórico |
+
+Decisão de recorte (placa e modelo): permanecem só em MECANICA e MOTO. ELETRICA_ELETRONICA, ASSISTENCIA_TECNICA e REFRIGERACAO atendem aparelhos, não veículos com placa; o identificador (série) já cobre esses casos. Rever se um ramo pedir de fato.
