@@ -3,15 +3,15 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="sh" tagdir="/WEB-INF/tags" %>
 <%--
-    Início (dashboard) v2 "caderneta de balcão". Rotas "/" e "/dashboard".
+    Início (dashboard). Estrutura v1/v2 mantida (será refeita como narrativa de rolagem). Rotas "/" e "/dashboard".
     Dados do DashboardController (inalterados): resumo (totalProdutos, totalCategorias, produtosEstoqueBaixo que INCLUI o
     sem estoque, produtosSemEstoque, quantidadeTotalItens, valorTotalEstoque), produtosRecentes (6) e produtosEstoqueBaixo
     (6 de menor saldo; cada Produto traz categoria.nome e nivelEstoque).
-    Ordem: saudação com o mascote (reage ao estado do estoque), "o que fazer hoje" (reposição com ação rápida), saúde do
+    Ordem: título com a data, "o que fazer hoje" (reposição com ação rápida), saúde do
     estoque (anel interativo), gráfico de 14 dias, os números da loja e o que chegou por último.
     Dados vindos por fetch (js/inicio.js): GET /api/dashboard/movimentos?dias=14 -> [{dia, entradas, saidas, ajustes}].
     Se o endpoint não existir ou falhar, o gráfico mostra um estado de erro e o resto da tela segue normal.
-    Saudação por horário e data de hoje são feitas no navegador (js/humano.js); o texto do servidor é o plano B.
+    A data de hoje é escrita no navegador (js/tempo.js); o texto do servidor é o plano B.
     Sem script nem style inline: larguras por classes (.sh-w-N) e números animados por js/numeros.js (data-contar).
 --%>
 <fmt:setLocale value="pt_BR" scope="request" />
@@ -38,9 +38,6 @@
 <c:set var="aBaixo" value="${pBaixo > 2 ? pBaixo - 1 : pBaixo}" />
 <c:set var="aSem" value="${pSem > 2 ? pSem - 1 : pSem}" />
 
-<%-- Estado do mascote: dormindo (loja nova), contente (tudo em dia), atenta (só baixo), preocupada (há ruptura) --%>
-<c:set var="estadoMascote" value="${nTotal == 0 ? 'dormindo' : (nReposicao == 0 ? 'contente' : (nSem > 0 ? 'preocupada' : 'atenta'))}" />
-
 <sh:layout titulo="Início" ativo="dashboard">
     <jsp:attribute name="scripts">
         <link rel="stylesheet" href="${ctx}/css/inicio.css">
@@ -51,23 +48,22 @@
         <section class="sh-hero" aria-labelledby="titulo-saudacao">
             <div class="sh-hero__texto">
                 <p class="sh-hero__data" data-sh-data-hoje></p>
-                <h1 class="sh-hero__titulo" id="titulo-saudacao"><span data-sh-saudacao>Olá</span>,
-                    <span class="sh-rabisco"><c:out value="${usuarioLogado.nome}" /></span></h1>
+                <h1 class="sh-hero__titulo" id="titulo-saudacao">Visão geral</h1>
                 <p class="sh-hero__frase">
                     <c:choose>
-                        <c:when test="${nTotal == 0}">A caderneta está em branco. Vamos abrir a primeira página?</c:when>
-                        <c:when test="${nReposicao == 0}"><strong>Nada acabando por aqui.</strong> Pode tocar o balcão em paz.</c:when>
+                        <c:when test="${nTotal == 0}">Nenhum produto cadastrado ainda. Comece criando uma categoria e o primeiro produto.</c:when>
+                        <c:when test="${nReposicao == 0}"><strong>Nenhum produto abaixo do mínimo.</strong> O estoque está em dia.</c:when>
                         <c:when test="${nSem > 0 and nBaixo > 0}">
                             <strong><c:out value="${nSem}" /> <c:out value="${nSem == 1 ? 'produto acabou' : 'produtos acabaram'}" /></strong>
-                            e <c:out value="${nBaixo}" /> <c:out value="${nBaixo == 1 ? 'está' : 'estão'}" /> no fim da prateleira.
+                            e <c:out value="${nBaixo}" /> <c:out value="${nBaixo == 1 ? 'está' : 'estão'}" /> abaixo do mínimo.
                         </c:when>
                         <c:when test="${nSem > 0}">
                             <strong><c:out value="${nSem}" /> <c:out value="${nSem == 1 ? 'produto acabou' : 'produtos acabaram'}" />.</strong>
-                            Vale repor hoje.
+                            Reposição necessária.
                         </c:when>
                         <c:otherwise>
-                            <strong><c:out value="${nBaixo}" /> <c:out value="${nBaixo == 1 ? 'produto está' : 'produtos estão'}" /> no fim.</strong>
-                            Dá para repor com calma.
+                            <strong><c:out value="${nBaixo}" /> <c:out value="${nBaixo == 1 ? 'produto está' : 'produtos estão'}" /> abaixo do mínimo.</strong>
+                            Programe a reposição.
                         </c:otherwise>
                     </c:choose>
                 </p>
@@ -76,22 +72,6 @@
                     <a class="btn btn-outline-secondary" href="${ctx}/estoque?movTipo=SAIDA">Registrar saída</a>
                     <a class="sh-hero__link" href="${ctx}/produtos/novo">Novo produto</a>
                 </div>
-            </div>
-            <div class="sh-hero__mascote">
-                <button type="button" class="sh-mascote-btn" data-sh-mascote-btn data-sh-olhar
-                    aria-label="Fazer um carinho na caixinha">
-                    <sh:mascote estado="${estadoMascote}" tamanho="g" />
-                </button>
-                <p class="sh-hero__fala" data-sh-fala aria-hidden="true">
-                    <c:choose>
-                        <c:when test="${nTotal == 0}">Zzz... acorda quando tiver produto.</c:when>
-                        <c:when test="${nReposicao == 0}">Conferi tudo hoje!</c:when>
-                        <c:when test="${nSem > 0}">Ai, ai... falta coisa.</c:when>
-                        <c:otherwise>De olho no estoque.</c:otherwise>
-                    </c:choose>
-                </p>
-                <span class="sh-festa" data-sh-festa aria-hidden="true"
-                    ${nTotal > 0 and nReposicao == 0 ? 'data-sh-festa-auto' : ''}></span>
             </div>
         </section>
 
@@ -140,10 +120,9 @@
                         <c:choose>
                             <c:when test="${nReposicao == 0}">
                                 <div class="sh-hoje__ok">
-                                    <sh:mascote estado="contente" tamanho="m" />
                                     <div>
                                         <p class="sh-hoje__ok-titulo">Nada para repor.</p>
-                                        <p class="sh-hoje__ok-texto">Todos os <c:out value="${nTotal}" /> produtos estão acima do mínimo. Aproveite para conferir a prateleira ou cadastrar algo novo.</p>
+                                        <p class="sh-hoje__ok-texto">Todos os <c:out value="${nTotal}" /> produtos estão acima do mínimo.</p>
                                         <a class="btn btn-outline-secondary btn-sm" href="${ctx}/produtos/novo">Novo produto</a>
                                     </div>
                                 </div>
@@ -295,15 +274,13 @@
                     </div>
                 </div>
                 <div class="sh-grafico__estado sh-grafico__estado--msg" data-grafico-estado="erro" hidden>
-                    <sh:mascote estado="preocupada" tamanho="m" />
                     <div>
-                        <p class="sh-grafico__msg-titulo">Não consegui buscar os movimentos agora.</p>
+                        <p class="sh-grafico__msg-titulo">Não foi possível carregar os movimentos.</p>
                         <p class="sh-grafico__msg-texto" data-grafico-erro-texto>O resto da tela continua valendo. Tente de novo em instantes.</p>
                         <button type="button" class="btn btn-outline-secondary btn-sm" data-grafico-tentar>Tentar de novo</button>
                     </div>
                 </div>
                 <div class="sh-grafico__estado sh-grafico__estado--msg" data-grafico-estado="vazio" hidden>
-                    <sh:mascote estado="dormindo" tamanho="m" />
                     <div>
                         <p class="sh-grafico__msg-titulo">Nenhum movimento nesses 14 dias.</p>
                         <p class="sh-grafico__msg-texto">Quando você registrar entradas e saídas, elas aparecem aqui, dia a dia.</p>
@@ -343,7 +320,7 @@
                     <a class="sh-numero" href="${ctx}/unidades">
                         <span class="sh-numero__valor sh-num" data-contar="<c:out value='${resumo.quantidadeTotalItens}'/>" data-formato="inteiro"><c:out value="${resumo.quantidadeTotalItens}" /></span>
                         <span class="sh-numero__rotulo">unidades</span>
-                        <span class="sh-numero__apoio">somando as prateleiras</span>
+                        <span class="sh-numero__apoio">soma dos saldos</span>
                     </a>
                 </li>
                 <li>
