@@ -53,6 +53,7 @@ Modelo: `tipo_loja` (grande) + `subtipo` (ramo), guardados na conta (Flyway V6, 
 - Fluxo: orçamento, aprovação, execução, entrega.
 - Peças (baixam estoque), mão de obra, equipamento ou veículo do cliente, garantia.
 - Impressão da OS; histórico por cliente.
+  - **Feito (6a):** V11, AD-15, RN-77 a RN-90: lista com filtro, detalhe com linha do tempo, reserva e baixa de peças, desconto por papel, impressão. Falta: histórico por cliente, busca de peça e edição do equipamento.
 
 ## Etapa 7. Fechamento de cada ciclo
 - README: testes (470 para o número atual), funcionalidade NF-e, RN-01 a RN-42.
