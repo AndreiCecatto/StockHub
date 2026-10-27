@@ -20,7 +20,12 @@ Escrito em 2026-10-27 para retomar o trabalho em outra sessão, sem depender da 
    - **Fatia 1 concluída** (V13, AD-17, RN-99 a RN-103, 9+ commits locais): produto com tamanho e cor (vestuário), lote e validade (farmácia), validade (mercado, que é o ramo de "alimentos"; não existe subtipo ALIMENTOS) e número de série (informática), pelo mapa `CamposRamo`.
    - **Fatia 2 em andamento** (V14, AD-18, RN-104 a RN-108): oficina com placa e modelo no `equipamento_cliente`, só em MECANICA e MOTO. Plano de execução: banco-migrations (V14), dev-backend, designer-ui, testador-qa.
    - **Pendências da fatia 1:** (a) as JSPs de produto ainda não têm teste de renderização real (só testes de controller/modelo); (b) a lista de produtos não recebe `camposRamo` em todos os caminhos de renderização; (c) o fluxo de funcionário (membro da loja) segue sem teste dos campos por ramo.
-5. **Personalização pelo dono ("modular").** O dono da loja escolhe quais blocos, atalhos e informações aparecem no início e nas listas. Plano antes de codar: modelo de configuração por loja (tabela de preferências ou JSON validado), lista fechada de blocos disponíveis por tipo/subtipo, só DONO/GERENTE alteram.
+5. **Personalização pelo dono ("modular").** Modelo decidido: AD-19 e RN-109 a RN-114 (tabela `preferencia_bloco` por loja e tela, ausência de linha = comportamento atual, lista fechada de blocos no enum `BlocoTela`, só DONO/GERENTE gravam, upsert sem DELETE). Execução fatiada:
+   - **Fatia 1 (próxima):** ocultar/mostrar blocos do Início (V15, `PersonalizacaoService`, tela em `/conta/personalizacao`, `c:if` no `dashboard.jsp`). Usa só classes CSS existentes; a identidade visual segue em aberto.
+   - **Fatia 2:** colunas visíveis na lista de produtos (mesma tabela, `tela = PRODUTOS`).
+   - **Fatia 3:** ordem dos blocos (coluna `ordem`) e atalhos por lista fechada de destinos.
+   - Só reaplicar o visual da personalização depois que o dono escolher a direção visual (item 1).
+   - Decisões já tomadas na revisão do item 4: a OS antiga continua mostrando placa e modelo após trocar o subtipo (RN-108); placa e modelo ficam só em MECANICA e MOTO.
 
 ## Decisões que dependem do dono
 - Enviar os commits ao GitHub.
