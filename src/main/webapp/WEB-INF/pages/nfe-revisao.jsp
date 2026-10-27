@@ -77,7 +77,7 @@
             <div class="sh-card__corpo">
                 <dl class="nfe-dados">
                     <div class="nfe-dado nfe-dado--largo">
-                        <dt>Fornecedor (emitente)</dt>
+                        <dt>Fornecedor</dt>
                         <dd>
                             <strong><c:out value="${nota.emitente.nome}" /></strong>
                             <c:if test="${not empty nota.emitente.fantasia and nota.emitente.fantasia != nota.emitente.nome}">
@@ -94,23 +94,23 @@
                         </dd>
                     </div>
                     <div class="nfe-dado">
-                        <dt>Nota</dt>
-                        <dd class="sh-mono">NF <c:out value="${nota.numero}" /> &middot; série <c:out value="${nota.serie}" /> &middot; modelo <c:out value="${nota.modelo}" /></dd>
+                        <dt>Número da nota</dt>
+                        <dd class="sh-mono"><c:out value="${nota.numero}" /></dd>
                     </div>
                     <div class="nfe-dado">
-                        <dt>Emitida em</dt>
+                        <dt>Data da compra</dt>
                         <dd><sh:dataHora valor="${nota.emitidaEm}" /></dd>
                     </div>
                     <div class="nfe-dado nfe-dado--largo">
-                        <dt>Natureza da operação</dt>
+                        <dt>Tipo da operação</dt>
                         <dd><c:out value="${nota.naturezaOperacao}" /></dd>
                     </div>
                     <div class="nfe-dado nfe-dado--largo">
-                        <dt>Chave de acesso</dt>
+                        <dt>Código da nota</dt>
                         <dd><sh:chaveNfe valor="${nota.chaveAcesso}" /></dd>
                     </div>
                     <div class="nfe-dado nfe-dado--largo">
-                        <dt>Destinatário</dt>
+                        <dt>Comprador</dt>
                         <dd>
                             <c:choose>
                                 <c:when test="${semDest}">Não informado no arquivo.</c:when>
@@ -130,8 +130,12 @@
                         </dd>
                     </div>
                     <div class="nfe-dado nfe-dado--largo">
-                        <dt>O que o arquivo traz (sem verificação)</dt>
-                        <dd class="nfe-presencas">
+                        <dt>Detalhes fiscais</dt>
+                        <dd>
+                        <details class="nfe-detalhes">
+                        <summary>Ver série, modelo e verificações</summary>
+                        <p class="nfe-detalhes__linha">Série <span class="sh-mono"><c:out value="${nota.serie}" /></span> &middot; modelo <span class="sh-mono"><c:out value="${nota.modelo}" /></span></p>
+                        <div class="nfe-presencas">
                             <span class="nfe-presenca">
                                 <i class="bi ${nota.assinaturaPresente ? 'bi-patch-question' : 'bi-dash-circle'}" aria-hidden="true"></i>
                                 <c:choose>
@@ -146,6 +150,8 @@
                                     <c:otherwise>Sem protocolo de autorização</c:otherwise>
                                 </c:choose>
                             </span>
+                        </div>
+                        </details>
                         </dd>
                     </div>
                 </dl>
@@ -227,9 +233,9 @@
                             <div><dt>Total</dt><dd class="sh-mono"><strong>R$ <fmt:formatNumber value="${it.valorTotal}" pattern="#,##0.00" /></strong></dd></div>
                             <div><dt>Custo unitário</dt><dd class="sh-mono">R$ <fmt:formatNumber value="${it.custoUnitario}" pattern="#,##0.00##" /></dd></div>
                             <c:if test="${not empty it.codigoFornecedor}"><div><dt>Código do fornecedor</dt><dd class="sh-mono"><c:out value="${it.codigoFornecedor}" /></dd></div></c:if>
-                            <c:if test="${not empty it.ean}"><div><dt>EAN</dt><dd class="sh-mono"><c:out value="${it.ean}" /></dd></div></c:if>
-                            <c:if test="${not empty it.ncm}"><div><dt>NCM</dt><dd class="sh-mono"><c:out value="${it.ncm}" /></dd></div></c:if>
-                            <c:if test="${not empty it.cfop}"><div><dt>CFOP</dt><dd class="sh-mono"><c:out value="${it.cfop}" /><c:if test="${not empty it.cfopEntrada}"> &rarr; <c:out value="${it.cfopEntrada}" /></c:if></dd></div></c:if>
+                            <c:if test="${not empty it.ean}"><div><dt>Código de barras</dt><dd class="sh-mono"><c:out value="${it.ean}" /></dd></div></c:if>
+                            <c:if test="${not empty it.ncm}"><div><dt title="NCM">Classificação fiscal</dt><dd class="sh-mono"><c:out value="${it.ncm}" /></dd></div></c:if>
+                            <c:if test="${not empty it.cfop}"><div><dt>Tipo da operação</dt><dd><sh:cfop codigo="${it.cfop}" /></dd></div></c:if>
                         </dl>
 
                         <c:forEach var="av" items="${it.avisos}">
@@ -285,7 +291,7 @@
                                                     <span class="nfe-sugestao__motivo">
                                                         &ndash;
                                                         <c:choose>
-                                                            <c:when test="${it.motivoSugestao == 'EAN'}">tem o mesmo código de barras (EAN).</c:when>
+                                                            <c:when test="${it.motivoSugestao == 'EAN'}">tem o mesmo código de barras.</c:when>
                                                             <c:when test="${it.motivoSugestao == 'CODIGO_FORNECEDOR'}">já foi comprado deste fornecedor com o mesmo código.</c:when>
                                                             <c:when test="${it.motivoSugestao == 'NOME'}">tem nome parecido. Confira se é o mesmo produto.</c:when>
                                                             <c:otherwise>sugerido pelo sistema.</c:otherwise>

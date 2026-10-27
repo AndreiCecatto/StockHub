@@ -750,3 +750,20 @@ html:not(.nfe-js) .nfe-painel[hidden] {
     gap: var(--sh-space-1);
   }
 }
+
+/* ============================== Linguagem simples: detalhes recolhidos ============================== */
+.nfe-detalhes summary {
+  cursor: pointer;
+  color: var(--sh-text-muted, inherit);
+  font-size: 0.875rem;
+}
+
+.nfe-detalhes__linha {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+}
+
+.nfe-cfop__num {
+  color: var(--sh-text-muted, inherit);
+  font-size: 0.75rem;
+}

@@ -72,7 +72,7 @@
                     <c:forEach var="p" items="${pendentes}">
                         <li class="nfe-pendente">
                             <div class="nfe-pendente__info">
-                                <p class="nfe-pendente__chave"><span class="visually-hidden">Chave de acesso: </span><sh:chaveNfe valor="${p.chaveAcesso}" /></p>
+                                <p class="nfe-pendente__chave"><span class="visually-hidden">Código da nota: </span><sh:chaveNfe valor="${p.chaveAcesso}" /></p>
                                 <p class="nfe-pendente__meta">
                                     Enviada em <sh:dataHora valor="${p.criadaEm}" />
                                     <span class="nfe-sep" aria-hidden="true">&middot;</span>
@@ -120,26 +120,26 @@
                             <caption class="visually-hidden">Notas fiscais importadas, <c:out value="${totalNotas}" /> no total</caption>
                             <thead role="rowgroup">
                                 <tr role="row">
-                                    <th scope="col" role="columnheader">Nota</th>
+                                    <th scope="col" role="columnheader">Número da nota</th>
                                     <th scope="col" role="columnheader">Fornecedor</th>
-                                    <th scope="col" role="columnheader">Emitida em</th>
-                                    <th scope="col" role="columnheader">Importada em</th>
-                                    <th scope="col" role="columnheader" class="sh-col-num">Valor total</th>
+                                    <th scope="col" role="columnheader">Data da compra</th>
+                                    <th scope="col" role="columnheader">Importada no sistema em</th>
+                                    <th scope="col" role="columnheader" class="sh-col-num">Total da nota</th>
                                     <th scope="col" role="columnheader"><span class="visually-hidden">Ações</span></th>
                                 </tr>
                             </thead>
                             <tbody role="rowgroup">
                                 <c:forEach var="n" items="${notas}">
                                     <tr role="row">
-                                        <td role="cell" data-label="Nota">
+                                        <td role="cell" data-label="Número da nota">
                                             <a class="nfe-nota-link" href="<c:out value='${ctx}/compras/nfe/${n.id}'/>">
-                                                NF <c:out value="${n.numero}" /><span class="nfe-serie"> série <c:out value="${n.serie}" /></span>
+                                                Nota <c:out value="${n.numero}" />
                                             </a>
                                         </td>
                                         <td role="cell" data-label="Fornecedor"><span class="nfe-fornecedor"><c:out value="${n.parceiro.nome}" /></span></td>
-                                        <td role="cell" data-label="Emitida em"><sh:dataHora valor="${n.emitidaEm}" soData="true" /></td>
-                                        <td role="cell" data-label="Importada em"><sh:dataHora valor="${n.importadaEm}" /></td>
-                                        <td role="cell" class="sh-col-num sh-mono" data-label="Valor total"><strong>R$ <fmt:formatNumber value="${n.valorTotal}" pattern="#,##0.00" /></strong></td>
+                                        <td role="cell" data-label="Data da compra"><sh:dataHora valor="${n.emitidaEm}" soData="true" /></td>
+                                        <td role="cell" data-label="Importada no sistema em"><sh:dataHora valor="${n.importadaEm}" /></td>
+                                        <td role="cell" class="sh-col-num sh-mono" data-label="Total da nota"><strong>R$ <fmt:formatNumber value="${n.valorTotal}" pattern="#,##0.00" /></strong></td>
                                         <td role="cell" class="nfe-col-acao">
                                             <a class="btn btn-outline-secondary btn-sm" href="<c:out value='${ctx}/compras/nfe/${n.id}'/>">
                                                 Ver itens<span class="visually-hidden"> da nota <c:out value="${n.numero}" /></span>

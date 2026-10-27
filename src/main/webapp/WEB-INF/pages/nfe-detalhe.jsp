@@ -72,28 +72,33 @@
                         <dd><strong><c:out value="${nota.parceiro.nome}" /></strong></dd>
                     </div>
                     <div class="nfe-dado">
-                        <dt>Nota</dt>
-                        <dd class="sh-mono">NF <c:out value="${nota.numero}" /> &middot; série <c:out value="${nota.serie}" /> &middot; modelo <c:out value="${nota.modelo}" /></dd>
+                        <dt>Número da nota</dt>
+                        <dd class="sh-mono"><c:out value="${nota.numero}" /></dd>
                     </div>
                     <div class="nfe-dado">
-                        <dt>Emitida em</dt>
+                        <dt>Data da compra</dt>
                         <dd><sh:dataHora valor="${nota.emitidaEm}" /></dd>
                     </div>
                     <div class="nfe-dado">
-                        <dt>Importada em</dt>
+                        <dt>Importada no sistema em</dt>
                         <dd><sh:dataHora valor="${nota.importadaEm}" /></dd>
                     </div>
                     <div class="nfe-dado">
-                        <dt>Destinatário (documento)</dt>
+                        <dt>Comprador (documento)</dt>
                         <dd><sh:documentoBr valor="${nota.cnpjDestinatario}" /></dd>
                     </div>
                     <div class="nfe-dado nfe-dado--largo">
-                        <dt>Natureza da operação</dt>
+                        <dt>Tipo da operação</dt>
                         <dd><c:out value="${nota.naturezaOperacao}" /></dd>
                     </div>
                     <div class="nfe-dado nfe-dado--largo">
-                        <dt>Chave de acesso</dt>
+                        <dt>Código da nota</dt>
                         <dd><sh:chaveNfe valor="${nota.chaveAcesso}" /></dd>
+                    </div>
+                    <div class="nfe-dado nfe-dado--largo">
+                        <dt>Detalhes fiscais</dt>
+                        <dd><details class="nfe-detalhes"><summary>Ver série e modelo</summary>
+                            <p class="nfe-detalhes__linha">Série <span class="sh-mono"><c:out value="${nota.serie}" /></span> &middot; modelo <span class="sh-mono"><c:out value="${nota.modelo}" /></span></p></details></dd>
                     </div>
                 </dl>
                 <dl class="nfe-valores">
@@ -102,7 +107,7 @@
                     <div><dt>Desconto</dt><dd class="sh-mono">R$ <fmt:formatNumber value="${nota.valorDesconto}" pattern="#,##0.00" /></dd></div>
                     <div class="nfe-valores__total"><dt>Total da nota</dt><dd class="sh-mono">R$ <fmt:formatNumber value="${nota.valorTotal}" pattern="#,##0.00" /></dd></div>
                 </dl>
-                <p class="nfe-nota-rodape">A assinatura digital do arquivo e a situação da nota na SEFAZ não foram verificadas pelo StockHub.</p>
+                <p class="nfe-nota-rodape">A assinatura digital do arquivo e a situação da nota na Receita (SEFAZ) não foram verificadas pelo StockHub.</p>
             </div>
         </section>
 
@@ -129,7 +134,7 @@
                                     <span class="nfe-desc"><c:out value="${it.descricao}" /></span>
                                     <span class="nfe-desc__meta">
                                         <c:if test="${not empty it.codigoFornecedor}">Cód. <span class="sh-mono"><c:out value="${it.codigoFornecedor}" /></span></c:if>
-                                        <c:if test="${not empty it.cfop}"><c:if test="${not empty it.codigoFornecedor}"> &middot; </c:if>CFOP <span class="sh-mono"><c:out value="${it.cfop}" /><c:if test="${not empty it.cfopEntrada}"> &rarr; <c:out value="${it.cfopEntrada}" /></c:if></span></c:if>
+                                        <c:if test="${not empty it.cfop}"><c:if test="${not empty it.codigoFornecedor}"> &middot; </c:if><sh:cfop codigo="${it.cfop}" /></c:if>
                                     </span>
                                 </td>
                                 <td role="cell" class="sh-col-num sh-mono" data-label="Quantidade"><fmt:formatNumber value="${it.quantidade}" pattern="#,##0.####" /> <c:out value="${it.unidade}" /></td>

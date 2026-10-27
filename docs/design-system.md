@@ -1020,3 +1020,24 @@ Novos: `--sh-surface-3`, `--sh-font-mono`, `--sh-fs-*`, `--sh-track-*`, `--sh-lh
 ### 12.10 Verificação desta entrega
 
 Renderizado em mini-Tomcat avulso (portas altas) com Edge headless (Playwright): login e cadastro (com e sem erros) em computador e celular, claro e escuro; página de teste com todos os componentes e o kit; as demais telas (produtos, formulário, detalhe, categorias, movimentações, estoque baixo, unidades, valor do estoque, erros 404 e 500, início em três estados) em computador claro e celular escuro. **axe: 0 violações** em todas (a única que apareceu foi um campo sem rótulo na página de teste, não no sistema). Sem rolagem horizontal, sem erro de JS, sem recurso 404. Kit: no modo CSS, `--sh-progresso` medido em 0, 0,15, 0,5, 0,85 e 1 ao longo de uma cena de `300vh`, com as etapas e os fades corretos; o plano B foi exercitado desligando o `@supports` do CSS e a detecção em JS (Chrome simulando Firefox): revelar, cena, desenhar e progresso funcionam. Peek: abre por teclado (`j`, `k`, `Enter`), foco preso, Esc, foco devolvido, `script` e `onerror` removidos, erro sem região. **Não verificado:** Firefox e Safari de verdade, leitor de tela real, pré-carga contra o servidor real e desempenho em aparelho modesto.
+
+## 13. Glossário das telas de NF-e (linguagem simples)
+
+Nas telas de compra usamos nomes comuns; o termo fiscal fica só em dica (`title`) ou em "Detalhes fiscais" recolhido.
+
+| Termo na tela | Termo fiscal |
+|---|---|
+| Fornecedor | emitente |
+| Comprador | destinatário |
+| Número da nota | número da NF-e (série e modelo ficam em "Detalhes fiscais") |
+| Data da compra | data de emissão |
+| Código da nota | chave de acesso |
+| Total da nota | valor total da NF-e |
+| Código de barras | EAN/GTIN |
+| Classificação fiscal | NCM |
+| Tipo da operação | CFOP / natureza da operação |
+| Situação do item | status da importação do item |
+
+- CFOP vira texto ("Compra para revenda", "Devolução", "Remessa para conserto") pela tag `sh:cfop` (`WEB-INF/tags/cfop.tag`), o único lugar do mapeamento; o número aparece pequeno e no `title`. Código desconhecido sai como "Operação código NNNN".
+- Frete, desconto, seguro e outras despesas mantêm esses nomes. Seguro e outras despesas só aparecem quando a nota os trouxer.
+- Impostos e demais campos fiscais ficam em seção recolhida (`<details class="nfe-detalhes">`).
