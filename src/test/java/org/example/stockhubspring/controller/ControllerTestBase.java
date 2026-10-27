@@ -2,7 +2,9 @@ package org.example.stockhubspring.controller;
 
 import org.example.stockhubspring.config.SecurityConfig;
 import org.example.stockhubspring.config.UsuarioPrincipal;
+import org.example.stockhubspring.nfe.NfeLimitador;
 import org.example.stockhubspring.repository.UsuarioRepository;
+import org.example.stockhubspring.service.ImportacaoNfeService;
 import org.example.stockhubspring.service.CategoriaService;
 import org.example.stockhubspring.service.DashboardService;
 import org.example.stockhubspring.service.EstoqueService;
@@ -35,7 +37,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
  */
 @WebMvcTest
 @Import({ControllerTestBase.HabilitaSeguranca.class, SecurityConfig.class, UsuarioAtualService.class,
-        ErrosFormulario.class, UsuarioDetailsService.class, ExportacaoService.class})
+        ErrosFormulario.class, UsuarioDetailsService.class, ExportacaoService.class, NfeLimitador.class})
 abstract class ControllerTestBase {
 
     /** O slice @WebMvcTest não liga a segurança sozinho; habilita como a aplicação faz. */
@@ -61,6 +63,8 @@ abstract class ControllerTestBase {
     protected UsuarioService usuarioService;
     @MockitoBean
     protected UsuarioRepository usuarioRepository;
+    @MockitoBean
+    protected ImportacaoNfeService importacaoNfeService;
 
     @BeforeEach
     void montarMockMvc() {
