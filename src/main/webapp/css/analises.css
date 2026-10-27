@@ -1,0 +1,430 @@
+/*
+ * StockHub: análises de estoque (/analises). Carregado depois de tokens, layout, componentes e v3-rel.css.
+ * Só tokens --sh-*; as cores dos gráficos são tokens --an-* definidos aqui, nos mesmos três blocos de tema do
+ * tokens.css (claro, escuro por data-bs-theme e escuro do sistema sem atributo).
+ *
+ * Cores dos gráficos (validadas com o validador de paleta da skill dataviz, contra a superfície do tema):
+ *   duas séries (compras x saídas): azul e laranja, nos dois temas (pares adjacentes: CVD ΔE 24 a 27, visão normal 32 a 34);
+ *   classes A, B e C: uma só matiz azul, da mais escura para a mais clara no claro e o inverso no escuro
+ *   (rampa ordinal: ΔL >= 0,06, ponta clara >= 2:1 contra a superfície).
+ *   Alerta: o vermelho de status do sistema, sempre com ícone e texto (nunca só cor).
+ * Prefixo: an.
+ */
+
+:root,
+[data-bs-theme="light"] {
+  --an-s1: #2a78d6;
+  --an-s2: #eb6834;
+  --an-a: #184f95;
+  --an-b: #3987e5;
+  --an-c: #86b6ef;
+  --an-alerta: var(--sh-danger-solid);
+}
+
+[data-bs-theme="dark"] {
+  --an-s1: #3987e5;
+  --an-s2: #d95926;
+  --an-a: #9ec5f4;
+  --an-b: #5598e7;
+  --an-c: #2a78d6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-bs-theme]) {
+    --an-s1: #3987e5;
+    --an-s2: #d95926;
+    --an-a: #9ec5f4;
+    --an-b: #5598e7;
+    --an-c: #2a78d6;
+  }
+}
+
+/* ============================== Estrutura ============================== */
+.an-periodo {
+  margin-bottom: var(--sh-space-2);
+}
+
+.an-nota-periodo {
+  max-width: 62ch;
+  margin: 0 0 var(--sh-space-6);
+  color: var(--sh-text-subtle);
+  font-size: var(--sh-text-sm);
+}
+
+.an-secao {
+  margin: 0 0 var(--sh-space-6);
+  padding: var(--sh-space-6) var(--sh-space-5);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-lg);
+  background: var(--sh-surface);
+}
+
+@media (min-width: 992px) {
+  .an-secao {
+    padding: var(--sh-space-8);
+  }
+}
+
+.an-secao__cab {
+  margin-bottom: var(--sh-space-5);
+}
+
+.an-secao__titulo {
+  margin: 0;
+  font-size: var(--sh-fs-secao);
+  font-weight: 650;
+  letter-spacing: var(--sh-track-titulo);
+  line-height: var(--sh-lh-titulo);
+}
+
+.an-secao__desc {
+  max-width: 68ch;
+  margin: var(--sh-space-1) 0 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.an-sub {
+  margin: var(--sh-space-6) 0 var(--sh-space-3);
+  font-size: var(--sh-text-base);
+  font-weight: 600;
+  letter-spacing: var(--sh-track-corpo);
+}
+
+.an-duas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 var(--sh-space-8);
+}
+
+@media (min-width: 1200px) {
+  .an-duas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.an-vazio,
+.an-legenda {
+  max-width: 68ch;
+  margin: 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.an-legenda {
+  margin-top: var(--sh-space-2);
+  color: var(--sh-text-subtle);
+  font-size: var(--sh-text-sm);
+}
+
+.an-link {
+  color: var(--sh-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.an-link:hover {
+  color: var(--sh-accent-text);
+  text-decoration: underline;
+}
+
+/* ============================== Números grandes ============================== */
+.an-hero {
+  margin: 0 0 var(--sh-space-2);
+}
+
+.an-hero__valor {
+  margin: 0;
+  font-size: var(--sh-fs-numero);
+  font-weight: 650;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
+}
+
+.an-hero__nota {
+  margin: var(--sh-space-2) 0 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.an-aviso {
+  display: block;
+  margin-top: var(--sh-space-1);
+  color: var(--sh-text-subtle);
+  font-size: var(--sh-text-sm);
+}
+
+.an-numeros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sh-space-4) var(--sh-space-10);
+  margin: 0;
+}
+
+.an-numero {
+  min-width: 0;
+}
+
+.an-numero dt {
+  color: var(--sh-text-subtle);
+  font-size: var(--sh-text-sm);
+  font-weight: 500;
+}
+
+.an-numero dd {
+  margin: 2px 0 0;
+  font-size: var(--sh-text-2xl);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+
+.an-resumo-parados {
+  margin: 0 0 var(--sh-space-4);
+  font-size: var(--sh-text-base);
+}
+
+.an-situacao {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-space-2);
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 0 var(--sh-space-4);
+  padding: var(--sh-space-2) var(--sh-space-3);
+  border-radius: var(--sh-radius-sm);
+  font-size: var(--sh-text-md);
+  font-weight: 600;
+}
+
+.an-situacao--ok {
+  background: var(--sh-success-bg);
+  color: var(--sh-success-fg);
+}
+
+.an-situacao--alerta {
+  background: var(--sh-danger-bg);
+  color: var(--sh-danger-fg);
+}
+
+/* ============================== Gráficos (SVG) ============================== */
+.an-fig {
+  position: relative;
+  margin: 0;
+}
+
+.an-fig__area {
+  width: 100%;
+  min-height: 48px;
+}
+
+.an-fig__area svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.an-grade {
+  stroke: var(--sh-border);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.an-base {
+  stroke: var(--sh-border-strong);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.an-limite {
+  stroke: var(--an-alerta);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.an-t {
+  fill: var(--sh-text-muted);
+  font-family: var(--sh-font);
+  font-size: 12px;
+}
+
+.an-t--nome {
+  fill: var(--sh-text);
+  font-size: 13px;
+}
+
+.an-t--valor {
+  fill: var(--sh-text);
+  font-family: var(--sh-font-mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.an-t--alerta {
+  fill: var(--sh-danger-fg);
+}
+
+.an-m1 { fill: var(--an-s1); }
+.an-m2 { fill: var(--an-s2); }
+.an-mA { fill: var(--an-a); }
+.an-mB { fill: var(--an-b); }
+.an-mC { fill: var(--an-c); }
+.an-m-alerta { fill: var(--an-alerta); }
+
+.an-marca {
+  transition: opacity var(--sh-t-1) var(--sh-ease);
+}
+
+/* A marca sob o ponteiro (ou com foco) fica em destaque; as outras recuam um pouco */
+.an-fig.an-ativo .an-marca {
+  opacity: 0.45;
+}
+
+.an-fig.an-ativo .an-marca.an-sel {
+  opacity: 1;
+}
+
+.an-alvo {
+  fill: transparent;
+  cursor: default;
+}
+
+.an-alvo:focus-visible {
+  outline: 2px solid var(--sh-focus);
+  outline-offset: 1px;
+}
+
+/* ---------- Legenda (sempre que há mais de uma série) ---------- */
+.an-leg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sh-space-2) var(--sh-space-5);
+  margin: 0 0 var(--sh-space-3);
+  padding: 0;
+  list-style: none;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+.an-leg--abaixo {
+  margin: var(--sh-space-3) 0 0;
+}
+
+.an-leg li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sh-space-2);
+}
+
+.an-leg__cor {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.an-leg__cor--1 { background: var(--an-s1); }
+.an-leg__cor--2 { background: var(--an-s2); }
+.an-leg__cor--A { background: var(--an-a); }
+.an-leg__cor--B { background: var(--an-b); }
+.an-leg__cor--C { background: var(--an-c); }
+
+/* ---------- Dica ao passar o mouse ---------- */
+.an-dica {
+  position: absolute;
+  z-index: 3;
+  max-width: min(260px, 90%);
+  padding: var(--sh-space-2) var(--sh-space-3);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius);
+  background: var(--sh-surface);
+  box-shadow: var(--sh-shadow-pop, 0 6px 20px rgba(16, 24, 40, .12));
+  font-size: var(--sh-text-sm);
+  pointer-events: none;
+}
+
+.an-dica[hidden] {
+  display: none;
+}
+
+.an-dica__titulo {
+  margin: 0 0 2px;
+  color: var(--sh-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.an-dica__linha {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-space-2);
+  margin: 2px 0 0;
+}
+
+.an-dica__chave {
+  flex: none;
+  width: 12px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.an-dica__valor {
+  color: var(--sh-text);
+  font-family: var(--sh-font-mono);
+  font-weight: 650;
+}
+
+.an-dica__rotulo {
+  color: var(--sh-text-muted);
+}
+
+.an-dica__extra {
+  margin: 2px 0 0;
+  color: var(--sh-text-muted);
+}
+
+/* ============================== Tabelas (a alternativa em texto) ============================== */
+.an-tabela {
+  margin-top: var(--sh-space-4);
+}
+
+.an-tabela > summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--sh-alvo);
+  color: var(--sh-accent-text);
+  font-size: var(--sh-text-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.an-tabela > summary:focus-visible {
+  outline: 2px solid var(--sh-focus);
+  outline-offset: 2px;
+  border-radius: var(--sh-radius-xs);
+}
+
+.an-tabela[open] > summary {
+  margin-bottom: var(--sh-space-2);
+}
+
+.an-tabela__rolagem {
+  max-height: 360px;
+  overflow: auto;
+}
+
+.an-secao .sh-table th[scope="row"] {
+  font-weight: 500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .an-marca {
+    transition: none;
+  }
+}
+
+@media print {
+  .an-dica {
+    display: none;
+  }
+}

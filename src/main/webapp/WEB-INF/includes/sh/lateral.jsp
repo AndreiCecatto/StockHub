@@ -77,6 +77,12 @@
                         <i class="bi bi-cash-coin" aria-hidden="true"></i><span class="sh-nav__rotulo">Valor do estoque</span>
                     </a>
                 </li>
+                <li>
+                    <a class="sh-nav__link" href="${ctx}/analises" title="Análises" ${shAtivo == 'analises' ? 'aria-current="page"' : ''}>
+                        <c:if test="${shAtivo == 'analises'}"><span class="sh-nav__marcador" aria-hidden="true"></span></c:if>
+                        <i class="bi bi-graph-up" aria-hidden="true"></i><span class="sh-nav__rotulo">Análises</span>
+                    </a>
+                </li>
             </ul>
         </div>
     </nav>

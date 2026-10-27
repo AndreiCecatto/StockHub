@@ -36,6 +36,11 @@
                         <i class="bi bi-cash-coin" aria-hidden="true"></i> Valor do estoque
                     </a>
                 </li>
+                <li>
+                    <a class="sh-mais__link" href="${ctx}/analises" ${shAtivo == 'analises' ? 'aria-current="page"' : ''}>
+                        <i class="bi bi-graph-up" aria-hidden="true"></i> Análises
+                    </a>
+                </li>
             </ul>
         </nav>
         <p class="sh-mais__titulo" id="sh-mais-tema">Tema</p>

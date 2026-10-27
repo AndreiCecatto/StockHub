@@ -69,7 +69,8 @@
     { grupo: 'telas', icone: 'bi-receipt', nome: 'Compras (NF-e)', dica: 'nota fiscal xml importar fornecedor compra entrada', url: '/compras/nfe' },
     { grupo: 'telas', icone: 'bi-exclamation-triangle', nome: 'Estoque baixo', dica: 'alertas reposição acabando faltando', url: '/estoque-baixo' },
     { grupo: 'telas', icone: 'bi-stack', nome: 'Unidades', dica: 'quantidade relatório', url: '/unidades' },
-    { grupo: 'telas', icone: 'bi-cash-coin', nome: 'Valor do estoque', dica: 'dinheiro financeiro relatório', url: '/valor-estoque' }
+    { grupo: 'telas', icone: 'bi-cash-coin', nome: 'Valor do estoque', dica: 'dinheiro financeiro relatório', url: '/valor-estoque' },
+    { grupo: 'telas', icone: 'bi-graph-up', nome: 'Análises', dica: 'gráficos curva abc cobertura parados caixa compras saídas dinheiro parado relatório', url: '/analises' }
   ];
 
   var TITULOS = { produtos: 'Produtos', acoes: 'Ações', telas: 'Ir para', busca: 'Buscar' };
