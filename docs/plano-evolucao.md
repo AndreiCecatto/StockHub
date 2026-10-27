@@ -40,6 +40,7 @@ Modelo: `tipo_loja` (grande) + `subtipo` (ramo), guardados na conta (Flyway V6, 
 - Verificar `_csrf` do envio sem JavaScript em servidor real.
 
 ## Etapa 5. Base para vendas e OS
+  - **Feito (5a):** loja separada da pessoa (`membro_loja`, papéis, V9, AD-13, RN-61 a RN-66). Falta mostrar quem fez cada movimentação no histórico e trocar a senha pelo próprio membro.
 - Separar **Loja** de **Usuário** (vendedor, mecânico) com papéis e permissões.
 - Cada movimentação aponta para o documento de origem (compra, venda, OS, devolução, perda, inventário).
 - Reserva de estoque: em estoque, reservado e disponível; baixa ao fechar a OS.
