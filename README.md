@@ -107,7 +107,7 @@ O catálogo completo (RN-01 a RN-14) está em [docs/regras-negocio.md](docs/regr
 | Qualidade | JUnit 5, Mockito, Spring Security Test, 470 testes |
 | Build | Maven (wrapper incluso) |
 
-As bibliotecas do front ficam em `src/main/webapp/vendor/`, com versão e licença em [VERSOES.md](src/main/webapp/vendor/VERSOES.md).
+As bibliotecas do front ficam em `src/main/webapp/vendor/`, com versão e licença em [VERSOES.md](src/main/webapp/vendor/VERSOES.md). A rolagem da página inicial usa GSAP com ScrollTrigger.
 
 ## Arquitetura
 
@@ -222,7 +222,7 @@ São 470 testes: regras de serviço com Mockito, controllers com `@WebMvcTest` e
 
 ## Licença
 
-Distribuído sob a licença MIT. Veja o arquivo [LICENSE](LICENSE). As bibliotecas do front mantêm as próprias licenças, em `src/main/webapp/vendor/`.
+Distribuído sob a licença MIT. Veja o arquivo [LICENSE](LICENSE). As bibliotecas do front mantêm as próprias licenças, em `src/main/webapp/vendor/`. Em especial, o GSAP (animação da página inicial) **não** é MIT: usa a [licença Standard "no charge"](https://gsap.com/standard-license) da GreenSock, gratuita inclusive para uso comercial, mas com a restrição de não servir para criar ferramentas visuais de animação concorrentes.
 
 ## Autor
 

@@ -10,6 +10,8 @@ Legenda usada em todo o texto:
 - **Descartado:** alternativa considerada e rejeitada, com o motivo.
 
 
+> **Motor da apresentação (27/10/2026):** a página `/` agora é conduzida por GSAP + ScrollTrigger (`js/apresentacao-gsap.js`, bibliotecas em `vendor/gsap-3.15.0/`): escreve o `--sh-progresso` das cenas com um pequeno suavizamento e faz a revelação em lote. O visual é o mesmo (diferença medida menor que 0,4% dos pixels contra o kit de CSS). Sem GSAP ou com menos movimento, o kit de CSS continua valendo. As demais telas seguem no kit.
+>
 > **Atualização (v3):** a seção 12, "v3: central de operações", **substitui** a direção visual da v2 e da v1 (identidade, paleta, tipografia, componentes, movimento). As seções 1 a 11 ficam como histórico.
 >
 > **Atualização (v2, SUBSTITUÍDA pela v3):** a seção 11, "v2: com personalidade", substituía a identidade visual da v1; foi rejeitada ("muita cara de joguinho") e substituída pela seção 12.
