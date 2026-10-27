@@ -37,6 +37,13 @@ public class EquipamentoCliente {
     @Column(length = 60)
     private String identificador;
 
+    /** Só em oficina mecânica e moto (AD-18): guardada sem hífen e em maiúsculas. */
+    @Column(length = 7)
+    private String placa;
+
+    @Column(length = 80)
+    private String modelo;
+
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;
 
@@ -56,5 +63,9 @@ public class EquipamentoCliente {
     public void setDescricao(String descricao) { this.descricao = descricao; }
     public String getIdentificador() { return identificador; }
     public void setIdentificador(String identificador) { this.identificador = identificador; }
+    public String getPlaca() { return placa; }
+    public void setPlaca(String placa) { this.placa = placa; }
+    public String getModelo() { return modelo; }
+    public void setModelo(String modelo) { this.modelo = modelo; }
     public LocalDateTime getCriadoEm() { return criadoEm; }
 }

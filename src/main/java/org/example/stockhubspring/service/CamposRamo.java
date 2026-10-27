@@ -15,13 +15,21 @@ public final class CamposRamo {
 
     /** Campos opcionais do produto que dependem do ramo. */
     public enum Campo {
-        TAMANHO, COR, LOTE, VALIDADE, NUMERO_SERIE
+        TAMANHO, COR, LOTE, VALIDADE, NUMERO_SERIE,
+        /** Veículo do equipamento do cliente (AD-18), só MECANICA e MOTO. */
+        PLACA, MODELO
     }
 
     /** Campos que valem para uma loja, em forma amigável para a JSP ({@code camposRamo.validade}). */
-    public record Permitidos(boolean tamanho, boolean cor, boolean lote, boolean validade, boolean numeroSerie) {
+    public record Permitidos(boolean tamanho, boolean cor, boolean lote, boolean validade, boolean numeroSerie,
+                             boolean placa, boolean modelo) {
 
         public static final Permitidos NENHUM = new Permitidos(false, false, false, false, false);
+
+        /** Construtor dos campos de produto (sem veículo). */
+        public Permitidos(boolean tamanho, boolean cor, boolean lote, boolean validade, boolean numeroSerie) {
+            this(tamanho, cor, lote, validade, numeroSerie, false, false);
+        }
 
         public boolean permite(Campo campo) {
             return switch (campo) {
@@ -30,10 +38,22 @@ public final class CamposRamo {
                 case LOTE -> lote;
                 case VALIDADE -> validade;
                 case NUMERO_SERIE -> numeroSerie;
+                case PLACA -> placa;
+                case MODELO -> modelo;
             };
         }
 
-        /** Verdadeiro se a loja usa pelo menos um campo extra. */
+        /** Verdadeiro se a loja guarda o veículo (placa ou modelo) no equipamento do cliente. */
+        public boolean temVeiculo() {
+            return placa || modelo;
+        }
+
+        /** Getter JavaBean para a EL: {@code ${camposRamo.temVeiculo}}. */
+        public boolean isTemVeiculo() {
+            return temVeiculo();
+        }
+
+        /** Verdadeiro se a loja usa pelo menos um campo extra de PRODUTO (placa e modelo não contam). */
         public boolean temAlgum() {
             return tamanho || cor || lote || validade || numeroSerie;
         }
@@ -48,6 +68,8 @@ public final class CamposRamo {
     public static final int COR_MAX = 40;
     public static final int LOTE_MAX = 40;
     public static final int NUMERO_SERIE_MAX = 60;
+    public static final int PLACA_MAX = 7;
+    public static final int MODELO_MAX = 80;
 
     private static final Map<Subtipo, Set<Campo>> MAPA = new EnumMap<>(Subtipo.class);
 
@@ -56,6 +78,8 @@ public final class CamposRamo {
         MAPA.put(Subtipo.FARMACIA, EnumSet.of(Campo.LOTE, Campo.VALIDADE));
         MAPA.put(Subtipo.MERCADO, EnumSet.of(Campo.VALIDADE));
         MAPA.put(Subtipo.INFORMATICA, EnumSet.of(Campo.NUMERO_SERIE));
+        MAPA.put(Subtipo.MECANICA, EnumSet.of(Campo.PLACA, Campo.MODELO));
+        MAPA.put(Subtipo.MOTO, EnumSet.of(Campo.PLACA, Campo.MODELO));
     }
 
     private CamposRamo() {
@@ -70,6 +94,7 @@ public final class CamposRamo {
     public static Permitidos permitidos(Subtipo subtipo) {
         Set<Campo> c = campos(subtipo);
         return new Permitidos(c.contains(Campo.TAMANHO), c.contains(Campo.COR), c.contains(Campo.LOTE),
-                c.contains(Campo.VALIDADE), c.contains(Campo.NUMERO_SERIE));
+                c.contains(Campo.VALIDADE), c.contains(Campo.NUMERO_SERIE), c.contains(Campo.PLACA),
+                c.contains(Campo.MODELO));
     }
 }
