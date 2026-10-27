@@ -55,6 +55,7 @@
             <a class="btn btn-outline-secondary" href="<c:out value='${ctx}/produtos/${produto.id}/editar'/>">
                 <i class="bi bi-pencil" aria-hidden="true"></i> Editar
             </a>
+            <c:if test="${podeGerenciar}">
             <form class="m-0" method="post" action="<c:out value='${ctx}/produtos/${produto.id}/excluir'/>"
                 data-confirmar-exclusao data-tipo="o produto" data-nome="<c:out value='${produto.nome}'/>"
                 data-aviso="Sem movimentações além do estoque inicial, o produto é excluído de vez. Se já tem histórico, ele é inativado: some das listas e não aceita mais movimentação, e o histórico fica preservado.">
@@ -63,6 +64,7 @@
                     <i class="bi bi-trash3" aria-hidden="true"></i> Excluir
                 </button>
             </form>
+            </c:if>
         </sh:cabecalhoPagina>
 
         <div class="v3-det" data-peek data-peek-titulo="<c:out value='${produto.nome}'/>">

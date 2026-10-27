@@ -238,7 +238,7 @@
         </form>
 
         <%-- ===== Zona de perigo (só na edição): formulário próprio, confirmação em modal (RN-08) ===== --%>
-        <c:if test="${edicao}">
+        <c:if test="${edicao and podeGerenciar}">
             <section class="sh-prod-perigo" aria-labelledby="titulo-perigo">
                 <h2 class="sh-prod-perigo__titulo" id="titulo-perigo">Zona de perigo</h2>
                 <p class="sh-prod-perigo__texto">

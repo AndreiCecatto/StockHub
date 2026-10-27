@@ -85,6 +85,19 @@
                 </li>
             </ul>
         </div>
+        <c:if test="${podeGerenciar}">
+        <div class="sh-nav__grupo">
+            <p class="sh-nav__titulo" id="sh-nav-loja">Loja</p>
+            <ul class="sh-nav__lista" aria-labelledby="sh-nav-loja">
+                <li>
+                    <a class="sh-nav__link" href="${ctx}/membros" title="Equipe" ${shAtivo == 'membros' ? 'aria-current="page"' : ''}>
+                        <c:if test="${shAtivo == 'membros'}"><span class="sh-nav__marcador" aria-hidden="true"></span></c:if>
+                        <i class="bi bi-people" aria-hidden="true"></i><span class="sh-nav__rotulo">Equipe</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        </c:if>
     </nav>
     <div class="sh-lateral__rodape">
         <button type="button" class="sh-lateral__alternar" data-sh-alternar-lateral>

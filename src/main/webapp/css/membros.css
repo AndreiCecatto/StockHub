@@ -1,0 +1,40 @@
+/*
+ * StockHub: tela Equipe (/membros). Só tokens (--sh-*), sem style inline. Prefixo: mb.
+ */
+.mb-nome {
+  display: block;
+  font-weight: 600;
+  color: var(--sh-text);
+}
+
+.mb-voce {
+  font-weight: 400;
+  color: var(--sh-text-muted);
+}
+
+.mb-email {
+  display: block;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+  overflow-wrap: anywhere;
+}
+
+.mb-acoes {
+  text-align: right;
+}
+
+.mb-acoes form {
+  display: inline-block;
+}
+
+.mb-nota {
+  margin: 0;
+  padding: var(--sh-space-4) var(--sh-space-5);
+  border-top: 1px solid var(--sh-border);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.mb-acoes-form {
+  margin-top: var(--sh-space-5);
+}

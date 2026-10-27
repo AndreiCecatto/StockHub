@@ -153,7 +153,7 @@
                                                     <a class="btn btn-ghost btn-sm v3-icone" href="<c:out value='${ctx}/categorias/${categoria.id}/editar'/>" title="Editar">
                                                         <i class="bi bi-pencil" aria-hidden="true"></i><span class="v3-acao__txt">Editar</span><span class="visually-hidden"> <c:out value="${categoria.nome}" /></span>
                                                     </a>
-                                                    <c:if test="${categoria.totalProdutos <= 0}">
+                                                    <c:if test="${categoria.totalProdutos <= 0 and podeGerenciar}">
                                                         <form method="post" action="<c:out value='${ctx}/categorias/${categoria.id}/excluir'/>"
                                                             data-confirmar-exclusao data-tipo="a categoria" data-nome="<c:out value='${categoria.nome}'/>"
                                                             data-aviso="Só é possível excluir uma categoria que nenhum produto usa, ativo ou inativado. Se algum produto inativado ainda aponta para ela, o sistema recusa e explica, para preservar o histórico.">

@@ -41,6 +41,13 @@
                         <i class="bi bi-graph-up" aria-hidden="true"></i> Análises
                     </a>
                 </li>
+                <c:if test="${podeGerenciar}">
+                <li>
+                    <a class="sh-mais__link" href="${ctx}/membros" ${shAtivo == 'membros' ? 'aria-current="page"' : ''}>
+                        <i class="bi bi-people" aria-hidden="true"></i> Equipe
+                    </a>
+                </li>
+                </c:if>
             </ul>
         </nav>
         <p class="sh-mais__titulo" id="sh-mais-tema">Tema</p>
