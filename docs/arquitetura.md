@@ -130,3 +130,11 @@ Cada decisão tem o motivo e as alternativas descartadas. Quando uma decisão mu
 - **Inativo:** `ativo` em vez de excluir; `ClienteService.listar` (usado na escolha da OS) devolve só ativos e `OrdemServicoService.criar` recusa cliente inativo.
 - **Front:** `cliente-form.jsp`, `cliente-detalhe.jsp`, `clientes.jsp`, `css/clientes.css` (prefixo `cli-`, só tokens, reaproveita `.sh-seg`, `.form-control`, `.form-select`, `.btn`) e `js/clientes.js` (máscara de CPF/CNPJ, telefone e CEP, conferência dos dígitos do documento pela validação inline de `formularios.js`, filtros que se aplicam ao mudar). Sem JS tudo funciona, só sem máscara. O formulário não usa `data-sh-avisar-alteracoes` porque a máscara reescreve os valores depois da "fotografia" inicial e geraria aviso falso.
 - **Limites conhecidos:** sem busca de CEP (nada de chamada externa); sem importar/exportar clientes; sem vínculo com venda de balcão; a escolha do cliente na nova OS continua uma lista simples (até 500 ativos); a tela do cliente não edita equipamentos.
+
+## AD-17 — Campos de Produto por ramo da loja (fatia 1)
+
+- **Decisão:** os campos que dependem do ramo entraram como colunas **nullable** em `produto`: `tamanho`, `cor`, `lote`, `data_validade`, `numero_serie`. Sem EAV (tabela chave-valor) e sem coluna JSON: o conjunto é pequeno e conhecido, e coluna comum mantém tipo, `CHECK`, índice e consulta simples. A migration só acrescenta colunas; nenhuma linha é alterada.
+- **Mapa fechado no service:** a classe `CamposRamo` guarda o mapa subtipo da loja para campos permitidos (vestuário: tamanho, cor; farmácia: lote, validade; mercado e alimentos: validade; informática: numero_serie). O `ProdutoService` consulta o mapa ao gravar: campo fora do ramo é ignorado, nunca gravado nem recusado. O mapa é código, não tabela, para não virar configuração livre.
+- **Troca de subtipo:** nada é apagado; os valores de campos que deixaram de valer ficam no banco e só deixam de aparecer na tela. Voltar ao subtipo anterior os mostra de novo.
+- **Descartado:** EAV e JSON (perdem tipo e restrição, consulta mais difícil); uma tabela por ramo (duplica o produto); limpar os campos ao trocar o subtipo (perde dado sem volta).
+- **Limites conhecidos:** a validade é opcional nesta fatia (sem alerta de vencimento nem baixa por lote); o ramo de oficina fica para a fatia 2.
