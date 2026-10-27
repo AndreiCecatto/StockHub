@@ -3,12 +3,13 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="sh" tagdir="/WEB-INF/tags" %>
 <%--
-    Estoque baixo (novo design, lote 5): a lista de compras do dono. Rota: GET /estoque-baixo?pagina=N (100 por página).
+    Reposição v3 (estoque baixo): lista de compras priorizada. Rota: GET /estoque-baixo?pagina=N (100 por página).
     Dados do DashboardController: produtos (Produto com categoria.nome, quantidade, estoqueMinimo, nivelEstoque; já em ordem
     de menor saldo, então os sem estoque vêm primeiro), paginaAtual, totalPaginas, totalProdutosFiltro.
-    Exportar CSV reaproveita /produtos/exportar.csv: o filtro aceita UM nível por vez, então são dois links
-    (nivelEstoque=semEstoque e nivelEstoque=baixo), que juntos cobrem esta lista.
-    Impressão: css/impressao.css esconde menus e botões; aparece a coluna em branco "Comprar" (.sh-so-impressao).
+    "Comprar" sugere repor até o mínimo (mínimo - saldo). Os totais do resumo (sem estoque, abaixo do mínimo, unidades)
+    são da lista exibida (a página); só "Para repor" é o total geral. Nada é inventado.
+    Exportar CSV reaproveita /produtos/exportar.csv: o filtro aceita UM nível por vez, então são dois links.
+    Impressão: css/v3-rel.css monta a folha de compras (caixa de marcar, coluna "Comprar" em branco para anotar).
     Sem script nem style inline; todo dado sai por c:out.
 --%>
 <fmt:setLocale value="pt_BR" scope="request" />
@@ -24,13 +25,25 @@
     <c:param name="direcao" value="asc" />
 </c:url>
 
+<%-- Totais da lista exibida --%>
+<c:set var="qSem" value="0" />
+<c:set var="qBaixo" value="0" />
+<c:set var="somaFalta" value="0" />
+<c:forEach var="p" items="${produtos}">
+    <c:if test="${p.nivelEstoque == 'SEM_ESTOQUE'}"><c:set var="qSem" value="${qSem + 1}" /></c:if>
+    <c:if test="${p.nivelEstoque == 'BAIXO'}"><c:set var="qBaixo" value="${qBaixo + 1}" /></c:if>
+    <c:if test="${p.estoqueMinimo > p.quantidade}"><c:set var="somaFalta" value="${somaFalta + p.estoqueMinimo - p.quantidade}" /></c:if>
+</c:forEach>
+<c:set var="escopo" value="${totalPaginas > 1 ? 'nesta página' : 'na lista'}" />
+<jsp:useBean id="agoraData" class="java.util.Date" />
+
 <sh:layout titulo="Estoque baixo" ativo="estoqueBaixo">
     <jsp:attribute name="scripts">
-        <link rel="stylesheet" href="${ctx}/css/relatorios.css">
-        <script defer src="${ctx}/js/relatorios.js"></script>
+        <link rel="stylesheet" href="${ctx}/css/v3-rel.css">
+        <script defer src="${ctx}/js/v3-rel.js"></script>
     </jsp:attribute>
     <jsp:body>
-        <sh:cabecalhoPagina titulo="Estoque baixo" descricao="Produtos sem estoque ou no mínimo ou abaixo dele: a sua lista de compras.">
+        <sh:cabecalhoPagina titulo="Reposição" descricao="Produtos sem estoque ou no mínimo ou abaixo dele, do mais urgente ao menos urgente.">
             <button type="button" class="btn btn-primary" data-sh-imprimir hidden>
                 <i class="bi bi-printer" aria-hidden="true"></i> Imprimir lista
             </button>
@@ -45,80 +58,118 @@
             </div>
         </sh:cabecalhoPagina>
 
-        <p class="sh-imprimir-titulo">Lista de compras &middot; StockHub &middot; <c:out value="${totalProdutosFiltro}" /> produto(s)</p>
+        <nav class="v3r-abas sh-nao-imprimir" aria-label="Relatórios de estoque">
+            <a class="v3r-abas__item" href="${ctx}/estoque-baixo" aria-current="page">Reposição</a>
+            <a class="v3r-abas__item" href="${ctx}/unidades">Unidades</a>
+            <a class="v3r-abas__item" href="${ctx}/valor-estoque">Valor</a>
+        </nav>
+
+        <%-- Cabeçalho que só existe no papel --%>
+        <div class="v3r-folha-cab">
+            <p class="v3r-folha-cab__titulo">Lista de reposição</p>
+            <p class="v3r-folha-cab__meta">
+                <c:out value="${usuarioLogado.nome}" /> &middot; emitida em <fmt:formatDate value="${agoraData}" pattern="dd/MM/yyyy HH:mm" />
+                &middot; <c:out value="${totalProdutosFiltro}" /> produto(s) para repor
+            </p>
+        </div>
 
         <c:choose>
             <c:when test="${empty produtos and totalProdutosFiltro > 0}">
-                <div class="sh-card">
+                <div class="v3r-painel">
                     <sh:estadoVazio icone="journal-x" titulo="Esta página não tem produtos"
                         texto="A lista tem menos páginas do que a que você pediu."
                         acaoUrl="/estoque-baixo" acaoRotulo="Voltar ao início da lista" />
                 </div>
             </c:when>
             <c:when test="${empty produtos}">
-                <div class="sh-card">
-                    <sh:estadoVazio icone="check-circle" tom="sucesso" titulo="Nenhum produto abaixo do mínimo"
-                        texto="Tudo em dia: todos os produtos estão acima do estoque mínimo."
+                <div class="v3r-painel">
+                    <sh:estadoVazio tom="sucesso" titulo="Tudo em dia"
+                        texto="Nenhum produto está no mínimo ou abaixo dele."
                         acaoUrl="/produtos?tamanho=25" acaoRotulo="Ver produtos" />
                 </div>
             </c:when>
             <c:otherwise>
-                <p class="sh-rel__contagem sh-nao-imprimir">
-                    <strong><c:out value="${totalProdutosFiltro}" /></strong>
-                    <c:out value="${totalProdutosFiltro == 1 ? 'produto precisa' : 'produtos precisam'}" /> de reposição
-                </p>
-                <div class="sh-table-wrap">
-                    <table class="sh-table sh-table--cards" role="table">
-                        <caption class="visually-hidden">Produtos sem estoque ou com estoque baixo, <c:out value="${totalProdutosFiltro}" /> no total</caption>
+                <dl class="v3r-resumo sh-nao-imprimir">
+                    <div class="v3r-fig">
+                        <dt>Para repor</dt>
+                        <dd class="sh-mono" data-contar="${totalProdutosFiltro}"><fmt:formatNumber value="${totalProdutosFiltro}" pattern="#,##0" /></dd>
+                        <dd class="v3r-fig__nota"><c:out value="${totalProdutosFiltro == 1 ? 'produto' : 'produtos'}" /> no total</dd>
+                    </div>
+                    <div class="v3r-fig v3r-fig--sem">
+                        <dt>Sem estoque</dt>
+                        <dd class="sh-mono" data-contar="${qSem}"><fmt:formatNumber value="${qSem}" pattern="#,##0" /></dd>
+                        <dd class="v3r-fig__nota"><c:out value="${escopo}" /></dd>
+                    </div>
+                    <div class="v3r-fig v3r-fig--baixo">
+                        <dt>Abaixo do mínimo</dt>
+                        <dd class="sh-mono" data-contar="${qBaixo}"><fmt:formatNumber value="${qBaixo}" pattern="#,##0" /></dd>
+                        <dd class="v3r-fig__nota"><c:out value="${escopo}" /></dd>
+                    </div>
+                    <div class="v3r-fig">
+                        <dt>Unidades até o mínimo</dt>
+                        <dd class="sh-mono" data-contar="${somaFalta}"><fmt:formatNumber value="${somaFalta}" pattern="#,##0" /></dd>
+                        <dd class="v3r-fig__nota">soma do que falta <c:out value="${escopo}" /></dd>
+                    </div>
+                </dl>
+
+                <div class="sh-table-wrap v3r-tabela-wrap">
+                    <table class="sh-table sh-table--cards v3r-tabela" role="table">
+                        <caption class="visually-hidden">Produtos sem estoque ou com estoque baixo, por prioridade, <c:out value="${totalProdutosFiltro}" /> no total</caption>
                         <thead role="rowgroup">
                             <tr role="row">
+                                <th scope="col" role="columnheader" class="v3r-papel v3r-col-marca"><span class="visually-hidden">Comprado</span></th>
+                                <th scope="col" role="columnheader" class="v3r-tela v3r-col-rank">Prioridade</th>
                                 <th scope="col" role="columnheader">Produto</th>
-                                <th scope="col" role="columnheader">Categoria</th>
-                                <th scope="col" role="columnheader">Saldo / mínimo</th>
-                                <th scope="col" role="columnheader">Para o mínimo</th>
-                                <th scope="col" role="columnheader">Situação</th>
-                                <th scope="col" role="columnheader" class="sh-so-impressao">Comprar</th>
-                                <th scope="col" role="columnheader"><span class="visually-hidden">Ações</span></th>
+                                <th scope="col" role="columnheader" class="v3r-tela">Situação</th>
+                                <th scope="col" role="columnheader" class="sh-col-num">Saldo</th>
+                                <th scope="col" role="columnheader" class="sh-col-num">Mínimo</th>
+                                <th scope="col" role="columnheader" class="sh-col-num">Falta</th>
+                                <th scope="col" role="columnheader" class="v3r-col-comprar">Comprar</th>
+                                <th scope="col" role="columnheader" class="v3r-tela"><span class="visually-hidden">Ações</span></th>
                             </tr>
                         </thead>
                         <tbody role="rowgroup">
-                            <c:forEach var="produto" items="${produtos}">
+                            <c:forEach var="produto" items="${produtos}" varStatus="st">
                                 <c:set var="falta" value="${produto.estoqueMinimo - produto.quantidade}" />
                                 <tr role="row" class="${produto.nivelEstoque == 'SEM_ESTOQUE' ? 'sh-linha--sem' : 'sh-linha--baixo'}">
-                                    <td role="cell" class="sh-rel__celula-produto">
-                                        <a class="sh-rel__nome" href="<c:out value='${ctx}/produtos/${produto.id}'/>"><c:out value="${produto.nome}" /></a>
+                                    <td role="cell" class="v3r-papel v3r-col-marca"><span class="v3r-caixa" aria-hidden="true"></span></td>
+                                    <td role="cell" class="v3r-tela v3r-col-rank" data-label="Prioridade">
+                                        <span class="v3r-rank sh-mono"><c:out value="${(paginaAtual - 1) * 100 + st.count}" /></span>
                                     </td>
-                                    <td role="cell" data-label="Categoria"><c:out value="${produto.categoria.nome}" /></td>
-                                    <td role="cell" data-label="Saldo">
-                                        <div class="sh-saldo sh-rel__saldo">
-                                            <span class="sh-saldo__texto">
-                                                <strong><c:out value="${produto.quantidade}" /></strong> un.
-                                                <span class="sh-saldo__minimo">(mínimo <c:out value="${produto.estoqueMinimo}" />)</span>
-                                            </span>
-                                            <sh:medidorEstoque saldo="${produto.quantidade}" minimo="${produto.estoqueMinimo}" />
+                                    <td role="cell" class="v3r-celula-produto">
+                                        <a class="v3r-nome" href="<c:out value='${ctx}/produtos/${produto.id}'/>"><c:out value="${produto.nome}" /></a>
+                                        <span class="v3r-cat"><c:out value="${produto.categoria.nome}" /></span>
+                                    </td>
+                                    <td role="cell" class="v3r-tela" data-label="Situação"><sh:badgeEstoque nivel="${produto.nivelEstoque}" /></td>
+                                    <td role="cell" class="sh-col-num sh-mono" data-label="Saldo">
+                                        <div class="v3r-saldo">
+                                            <strong><c:out value="${produto.quantidade}" /></strong>
+                                            <span class="v3r-tela"><sh:medidorEstoque saldo="${produto.quantidade}" minimo="${produto.estoqueMinimo}" /></span>
                                         </div>
                                     </td>
-                                    <td role="cell" data-label="Para o mínimo">
-                                        <span>
-                                            <c:choose>
-                                                <c:when test="${falta > 0}">Faltam <strong><c:out value="${falta}" /></strong></c:when>
-                                                <c:when test="${produto.quantidade <= 0}">Sem saldo</c:when>
-                                                <c:otherwise>No mínimo</c:otherwise>
-                                            </c:choose>
+                                    <td role="cell" class="sh-col-num sh-mono" data-label="Mínimo"><c:out value="${produto.estoqueMinimo}" /></td>
+                                    <td role="cell" class="sh-col-num sh-mono" data-label="Falta">
+                                        <c:choose>
+                                            <c:when test="${falta > 0}"><c:out value="${falta}" /></c:when>
+                                            <c:otherwise><span aria-label="Nada falta para o mínimo">&mdash;</span></c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td role="cell" class="v3r-col-comprar" data-label="Comprar">
+                                        <%-- Na tela: sugestão (repor até o mínimo). No papel: espaço em branco para anotar, com a sugestão pequena --%>
+                                        <span class="v3r-comprar">
+                                            <span class="v3r-comprar__sugestao ${falta > 0 ? '' : 'v3r-comprar__sugestao--nenhuma'} sh-mono">
+                                                <c:choose>
+                                                    <c:when test="${falta > 0}"><span class="visually-hidden">Sugestão: </span>+<c:out value="${falta}" /></c:when>
+                                                    <c:otherwise>&mdash;</c:otherwise>
+                                                </c:choose>
+                                            </span>
                                         </span>
                                     </td>
-                                    <td role="cell" data-label="Situação"><sh:badgeEstoque nivel="${produto.nivelEstoque}" /></td>
-                                    <td role="cell" class="sh-so-impressao"></td>
-                                    <td role="cell" class="sh-rel__celula-acoes" data-label="">
-                                        <div class="sh-rel__acoes">
-                                            <a class="btn btn-primary btn-sm"
-                                                href="<c:out value='${ctx}/estoque?movProduto=${produto.id}&movTipo=ENTRADA'/>">
-                                                <i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> Repor<span class="visually-hidden"> <c:out value="${produto.nome}" /></span>
-                                            </a>
-                                            <a class="btn btn-ghost btn-sm" href="<c:out value='${ctx}/produtos/${produto.id}'/>">
-                                                <i class="bi bi-eye" aria-hidden="true"></i> Ver<span class="visually-hidden"> <c:out value="${produto.nome}" /></span>
-                                            </a>
-                                        </div>
+                                    <td role="cell" class="v3r-tela v3r-celula-acoes" data-label="">
+                                        <a class="btn btn-primary btn-sm"
+                                            href="<c:out value='${ctx}/estoque?movProduto=${produto.id}&movTipo=ENTRADA'/>">
+                                            <i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> Repor<span class="visually-hidden"> <c:out value="${produto.nome}" /></span>
+                                        </a>
                                     </td>
                                 </tr>
                             </c:forEach>

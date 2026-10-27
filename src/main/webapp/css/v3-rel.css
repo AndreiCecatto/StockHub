@@ -1,0 +1,507 @@
+/*
+ * StockHub v3: relatórios (reposição, unidades, valor). Carregado depois de tokens, layout, componentes e movimento.
+ * Identidade própria: abas de relatório, faixa de números em mono, barras proporcionais e folha de compras no papel.
+ * Só tokens (--sh-*). Sem style inline: larguras por .sh-seg-N (componentes.css).
+ * Prefixo: v3r.
+ */
+
+/* ============================== Abas entre relatórios ============================== */
+.v3r-abas {
+  display: inline-flex;
+  gap: 2px;
+  margin-bottom: var(--sh-space-5);
+  padding: 3px;
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius);
+  background: var(--sh-surface-2);
+}
+
+.v3r-abas__item {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--sh-alvo);
+  padding: 0 var(--sh-space-4);
+  border-radius: var(--sh-radius-sm);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color var(--sh-t-1) var(--sh-ease), background-color var(--sh-t-1) var(--sh-ease);
+}
+
+.v3r-abas__item:hover {
+  color: var(--sh-text);
+}
+
+.v3r-abas__item[aria-current="page"] {
+  background: var(--sh-surface);
+  color: var(--sh-text);
+  box-shadow: 0 0 0 1px var(--sh-border), var(--sh-shadow-1);
+}
+
+/* ============================== Faixa de números ============================== */
+.v3r-resumo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0 0 var(--sh-space-6);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-lg);
+  background: var(--sh-border);
+  overflow: hidden;
+}
+
+@media (min-width: 992px) {
+  .v3r-resumo {
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    grid-auto-flow: column;
+  }
+}
+
+.v3r-fig {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  margin: 0;
+  padding: var(--sh-space-4) var(--sh-space-5);
+  background: var(--sh-surface);
+  animation: sh-sobe var(--sh-t-3) var(--sh-ease-out) both;
+}
+
+.v3r-fig:nth-child(2) { animation-delay: 40ms; }
+.v3r-fig:nth-child(3) { animation-delay: 80ms; }
+.v3r-fig:nth-child(4) { animation-delay: 120ms; }
+
+.v3r-fig dt {
+  color: var(--sh-text-subtle);
+  font-size: var(--sh-fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--sh-track-rotulo);
+  text-transform: uppercase;
+}
+
+.v3r-fig dd {
+  margin: 0;
+}
+
+.v3r-fig > dd.sh-mono {
+  font-size: var(--sh-fs-numero);
+  font-weight: 650;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
+}
+
+.v3r-fig--destaque > dd.sh-mono {
+  color: var(--sh-accent-text);
+}
+
+.v3r-fig--sem > dd.sh-mono {
+  color: var(--sh-danger-fg);
+}
+
+.v3r-fig--baixo > dd.sh-mono {
+  color: var(--sh-warning-fg);
+}
+
+.v3r-fig__nota {
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+.v3r-truncar {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v3r-legenda {
+  margin: 0 0 var(--sh-space-3);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+.v3r-painel {
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-lg);
+  background: var(--sh-surface);
+}
+
+/* ============================== Tabelas dos relatórios ============================== */
+.v3r-tabela-wrap {
+  border-radius: var(--sh-radius-lg);
+}
+
+.v3r-tabela th {
+  background: var(--sh-surface-2);
+  font-size: var(--sh-fs-micro);
+  letter-spacing: var(--sh-track-rotulo);
+  text-transform: uppercase;
+}
+
+.v3r-tabela td.sh-mono,
+.v3r-tabela td.sh-col-num {
+  font-family: var(--sh-font-mono);
+  font-variant-numeric: tabular-nums slashed-zero;
+  letter-spacing: -0.01em;
+}
+
+.v3r-celula-produto {
+  min-width: 0;
+}
+
+.v3r-nome {
+  display: block;
+  color: var(--sh-text);
+  font-weight: 600;
+  letter-spacing: var(--sh-track-corpo);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.v3r-nome:hover {
+  color: var(--sh-accent-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.v3r-cat {
+  display: block;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+.v3r-un {
+  color: var(--sh-text-subtle);
+  font-family: var(--sh-font);
+  font-size: var(--sh-text-sm);
+}
+
+.v3r-col-rank {
+  width: 1%;
+}
+
+.v3r-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 24px;
+  padding: 0 6px;
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-xs);
+  background: var(--sh-surface-2);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+}
+
+.sh-linha--sem .v3r-rank {
+  color: var(--sh-danger-fg);
+  border-color: var(--sh-danger-border);
+  background: var(--sh-danger-bg);
+}
+
+.sh-linha--baixo .v3r-rank {
+  color: var(--sh-warning-fg);
+  border-color: var(--sh-warning-border);
+  background: var(--sh-warning-bg);
+}
+
+.v3r-saldo {
+  display: inline-grid;
+  justify-items: end;
+  gap: 6px;
+  min-width: 96px;
+}
+
+.v3r-saldo .sh-meter {
+  width: 96px;
+}
+
+.v3r-celula-acoes {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Comprar: na tela é a sugestão (repor até o mínimo) */
+.v3r-comprar__sugestao {
+  display: inline-block;
+  padding: 1px 8px;
+  border: 1px solid var(--sh-accent);
+  border-radius: var(--sh-radius-xs);
+  background: var(--sh-accent-soft);
+  color: var(--sh-accent-text);
+  font-weight: 600;
+}
+
+/* ---------- Barra proporcional ---------- */
+.v3r-col-barra {
+  width: 28%;
+  min-width: 140px;
+}
+
+.v3r-trilho {
+  display: block;
+  width: 100%;
+  height: 8px;
+  border-radius: var(--sh-radius-pill);
+  background: var(--sh-meter-track);
+  overflow: hidden;
+}
+
+.v3r-trilho__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--sh-accent);
+  transform-origin: left center;
+}
+
+/* Sem o kit de rolagem (navegador sem suporte): a barra cresce uma vez ao aparecer */
+@supports not (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    html:not(.sh-rolagem-js) .v3r-trilho__fill {
+      animation: sh-enche var(--sh-t-4) var(--sh-ease-out-forte) 120ms both;
+    }
+  }
+}
+
+/* Folha de impressão: só existe no papel; "tela" e "papel" alternam colunas */
+.v3r-papel {
+  display: none !important;
+}
+
+.v3r-folha-cab {
+  display: none;
+}
+
+@media (max-width: 767.98px) {
+  .v3r-resumo {
+    margin-bottom: var(--sh-space-4);
+  }
+
+  .v3r-col-barra {
+    width: auto;
+  }
+
+  .v3r-tabela td.v3r-col-barra {
+    display: block;
+  }
+
+  .v3r-tabela td.v3r-col-barra::before {
+    display: none;
+  }
+
+  .v3r-tabela td.v3r-col-barra .v3r-trilho {
+    margin-top: 2px;
+  }
+
+  .v3r-celula-acoes {
+    text-align: left;
+  }
+
+  .v3r-celula-acoes .btn {
+    width: 100%;
+  }
+
+  .v3r-tabela td.v3r-celula-produto {
+    justify-content: flex-start;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    text-align: left;
+  }
+
+  .v3r-saldo {
+    justify-items: end;
+  }
+}
+
+/* ============================== Impressão ============================== */
+@media print {
+  @page {
+    margin: 14mm 12mm;
+  }
+
+  .v3r-folha-cab {
+    display: block;
+    margin: 0 0 6mm;
+    padding-bottom: 3mm;
+    border-bottom: 1.5pt solid #000;
+  }
+
+  .v3r-folha-cab__titulo {
+    margin: 0;
+    font-size: 16pt;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .v3r-folha-cab__meta {
+    margin: 1mm 0 0;
+    color: #333;
+    font-size: 9pt;
+  }
+
+  .sh-page-header {
+    display: none;
+  }
+
+  .v3r-tela {
+    display: none !important;
+  }
+
+  .v3r-papel {
+    display: table-cell !important;
+  }
+
+  .v3r-resumo {
+    display: none;
+  }
+
+  .v3r-tabela-wrap {
+    border: 0;
+    border-radius: 0;
+  }
+
+  .v3r-tabela {
+    font-size: 10pt;
+  }
+
+  .v3r-tabela thead {
+    display: table-header-group; /* repete o cabeçalho em cada folha */
+  }
+
+  .v3r-tabela th {
+    padding: 2mm 2mm;
+    border-bottom: 1pt solid #000;
+    background: #fff !important;
+    color: #000;
+    font-size: 8pt;
+  }
+
+  .v3r-tabela td {
+    height: 11mm;
+    padding: 1.5mm 2mm;
+    border-bottom: 0.5pt solid #777;
+    vertical-align: middle;
+  }
+
+  .v3r-tabela tr {
+    break-inside: avoid;
+    animation: none !important;
+  }
+
+  .v3r-tabela tbody tr td:first-child {
+    box-shadow: none !important;
+  }
+
+  .v3r-col-marca {
+    width: 9mm;
+  }
+
+  .v3r-caixa {
+    display: block;
+    width: 5mm;
+    height: 5mm;
+    border: 1pt solid #000;
+    border-radius: 1mm;
+  }
+
+  .v3r-nome {
+    color: #000;
+  }
+
+  .v3r-cat {
+    color: #444;
+    font-size: 8pt;
+  }
+
+  .v3r-saldo {
+    min-width: 0;
+  }
+
+  /* Comprar: espaço em branco para anotar à mão, com a sugestão pequena no canto */
+  .v3r-col-comprar {
+    width: 30%;
+    border-left: 1pt solid #000;
+    background: #fff;
+  }
+
+  .v3r-comprar {
+    display: block;
+    position: relative;
+    height: 8mm;
+    border-bottom: 0.75pt solid #000;
+  }
+
+  .v3r-comprar__sugestao {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #555;
+    font-size: 7.5pt;
+    font-weight: 400;
+  }
+
+  .v3r-comprar__sugestao::before {
+    content: "sug. ";
+  }
+
+  .v3r-trilho,
+  .v3r-trilho__fill {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .v3r-trilho {
+    height: 2mm;
+    background: #ddd;
+  }
+
+  .v3r-trilho__fill {
+    background: #000;
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
+/* Valores em reais: um pouco menores para caber numa linha ao lado dos demais números */
+.v3r-fig > dd.v3r-moeda {
+  font-size: clamp(1.5rem, 1rem + 1.7vw, 2.375rem);
+  white-space: nowrap;
+}
+
+.v3r-saldo .sh-meter {
+  display: block;
+}
+
+.v3r-comprar__sugestao--nenhuma {
+  border-color: transparent;
+  background: none;
+  color: var(--sh-text-subtle);
+  font-weight: 400;
+}
+
+/* Celular: o rótulo do cartão fica na fonte normal e o último número ímpar ocupa a linha toda */
+@media (max-width: 767.98px) {
+  .v3r-tabela td::before {
+    font-family: var(--sh-font);
+    letter-spacing: 0;
+  }
+
+  .v3r-fig:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+}
+
+@media print {
+  .v3r-comprar__sugestao--nenhuma {
+    display: none;
+  }
+}

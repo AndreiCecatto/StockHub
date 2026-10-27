@@ -1,0 +1,100 @@
+/*
+ * StockHub v3: página de erro (404, 403, 400, 405, 500). Sóbria: sobretítulo, título grande, uma frase, ações.
+ * Um traço de "nível de estoque" que se desenha uma vez e termina num ponto. Só tokens.
+ */
+.v3-erro {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: var(--sh-space-4) var(--sh-gutter) var(--sh-space-8);
+}
+
+.v3-erro__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 960px;
+  margin-inline: auto;
+}
+
+.v3-erro__marca {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sh-space-3);
+  color: var(--sh-text);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.v3-erro__corpo {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  max-width: 560px;
+  margin-inline: auto;
+  padding: var(--sh-space-8) 0;
+  animation: sh-sobe var(--sh-t-3) var(--sh-ease-out) both;
+}
+
+.v3-erro__traco {
+  width: min(320px, 100%);
+  height: auto;
+  margin-bottom: var(--sh-space-6);
+  overflow: visible;
+}
+
+.v3-erro__grade {
+  fill: none;
+  stroke: var(--sh-border);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+
+.v3-erro__nivel {
+  fill: none;
+  stroke: var(--sh-accent-text);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.v3-erro__ponto {
+  fill: var(--sh-surface);
+  stroke: var(--sh-accent-text);
+  stroke-width: 2;
+}
+
+.v3-erro__titulo {
+  margin: var(--sh-space-2) 0 var(--sh-space-3);
+  font-size: var(--sh-fs-display);
+  font-weight: 700;
+  line-height: var(--sh-lh-display);
+  letter-spacing: var(--sh-track-display);
+  text-wrap: balance;
+}
+
+.v3-erro__texto {
+  max-width: 46ch;
+  margin: 0 0 var(--sh-space-6);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-fs-lead);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.v3-erro__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sh-space-2);
+}
+
+@media (max-width: 575.98px) {
+  .v3-erro__acoes .btn {
+    flex: 1 1 100%;
+  }
+}

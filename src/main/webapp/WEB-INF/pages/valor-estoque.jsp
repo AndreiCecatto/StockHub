@@ -1,13 +1,14 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="sh" tagdir="/WEB-INF/tags" %>
 <%--
-    Valor do estoque (novo design, lote 5). Rota: GET /valor-estoque?pagina=N (100 por página, ordem de nome).
+    Valor do estoque v3. Rota: GET /valor-estoque?pagina=N (100 por página, ordem de nome).
     Dados do DashboardController: resumo (valorTotalEstoque), produtos (categoria.nome, preco, quantidade, valorTotal),
     paginaAtual, totalPaginas, totalProdutosFiltro.
-    Participação no valor = produto.valorTotal / resumo.valorTotalEstoque, calculada aqui (divisão por zero protegida).
-    A largura da barra usa degraus de 5 % (.sh-w-N), sem style inline; o percentual também sai em texto.
+    Participação = produto.valorTotal / resumo.valorTotalEstoque (divisão por zero protegida). A barra é proporcional ao
+    MAIOR valor da página; a largura usa degraus de 1 % (.sh-seg-N), sem style inline.
     Exportar CSV: /produtos/exportar.csv sem filtro de nível (todos os produtos, em ordem de nome).
     Sem script nem style inline; todo dado sai por c:out.
 --%>
@@ -18,11 +19,25 @@
     <c:param name="ordenacao" value="nome" />
     <c:param name="direcao" value="asc" />
 </c:url>
+<%-- Valor para o contador animado: ponto decimal, sem milhar --%>
+<fmt:formatNumber var="valorBruto" value="${valorTotal}" pattern="0.00" groupingUsed="false" />
+<c:set var="valorBruto" value="${fn:replace(valorBruto, ',', '.')}" />
+
+<%-- Maior valor da página (referência da barra) --%>
+<c:set var="maior" value="0" />
+<c:set var="nomeMaior" value="" />
+<c:forEach var="p" items="${produtos}">
+    <c:if test="${p.valorTotal > maior}"><c:set var="maior" value="${p.valorTotal}" /><c:set var="nomeMaior" value="${p.nome}" /></c:if>
+</c:forEach>
+<fmt:formatNumber var="maiorBruto" value="${maior}" pattern="0.00" groupingUsed="false" />
+<c:set var="maiorBruto" value="${fn:replace(maiorBruto, ',', '.')}" />
+<c:set var="escopo" value="${totalPaginas > 1 ? 'desta página' : 'da lista'}" />
+<jsp:useBean id="agoraData" class="java.util.Date" />
 
 <sh:layout titulo="Valor do estoque" ativo="valorEstoque">
     <jsp:attribute name="scripts">
-        <link rel="stylesheet" href="${ctx}/css/relatorios.css">
-        <script defer src="${ctx}/js/relatorios.js"></script>
+        <link rel="stylesheet" href="${ctx}/css/v3-rel.css">
+        <script defer src="${ctx}/js/v3-rel.js"></script>
     </jsp:attribute>
     <jsp:body>
         <sh:cabecalhoPagina titulo="Valor do estoque" descricao="Quanto cada produto representa em dinheiro: preço vezes quantidade.">
@@ -34,91 +49,89 @@
             </a>
         </sh:cabecalhoPagina>
 
-        <nav class="sh-rel__alternar sh-nao-imprimir" aria-label="Relatórios de estoque">
-            <div class="btn-group">
-                <a class="btn btn-outline-secondary" href="${ctx}/unidades">Unidades</a>
-                <a class="btn btn-primary" href="${ctx}/valor-estoque" aria-current="page">Valor</a>
-            </div>
+        <nav class="v3r-abas sh-nao-imprimir" aria-label="Relatórios de estoque">
+            <a class="v3r-abas__item" href="${ctx}/estoque-baixo">Reposição</a>
+            <a class="v3r-abas__item" href="${ctx}/unidades">Unidades</a>
+            <a class="v3r-abas__item" href="${ctx}/valor-estoque" aria-current="page">Valor</a>
         </nav>
 
-        <div class="sh-rel__topo">
-            <div class="sh-metric">
-                <span class="sh-metric__topo">
-                    <span class="sh-metric__rotulo">Valor total</span>
-                    <span class="sh-metric__icone" aria-hidden="true"><i class="bi bi-cash-coin"></i></span>
-                </span>
-                <span class="sh-metric__valor">R$ <fmt:formatNumber value="${valorTotal}" pattern="#,##0.00" /></span>
-                <span class="sh-metric__apoio">preço vezes quantidade, em todos os produtos</span>
-            </div>
+        <div class="v3r-folha-cab">
+            <p class="v3r-folha-cab__titulo">Valor do estoque</p>
+            <p class="v3r-folha-cab__meta">
+                <c:out value="${usuarioLogado.nome}" /> &middot; emitido em <fmt:formatDate value="${agoraData}" pattern="dd/MM/yyyy HH:mm" />
+            </p>
         </div>
+
+        <dl class="v3r-resumo">
+            <div class="v3r-fig v3r-fig--destaque">
+                <dt>Valor total</dt>
+                <dd class="sh-mono v3r-moeda" data-contar="${valorBruto}" data-formato="moeda">R$ <fmt:formatNumber value="${valorTotal}" pattern="#,##0.00" /></dd>
+                <dd class="v3r-fig__nota">preço vezes quantidade, em todos os produtos</dd>
+            </div>
+            <div class="v3r-fig">
+                <dt>Produtos</dt>
+                <dd class="sh-mono" data-contar="${totalProdutosFiltro}"><fmt:formatNumber value="${totalProdutosFiltro}" pattern="#,##0" /></dd>
+                <dd class="v3r-fig__nota">listados em ordem de nome</dd>
+            </div>
+            <c:if test="${maior > 0}">
+                <div class="v3r-fig">
+                    <dt>Maior valor <c:out value="${escopo}" /></dt>
+                    <dd class="sh-mono v3r-moeda" data-contar="${maiorBruto}" data-formato="moeda">R$ <fmt:formatNumber value="${maior}" pattern="#,##0.00" /></dd>
+                    <dd class="v3r-fig__nota v3r-truncar"><c:out value="${nomeMaior}" /></dd>
+                </div>
+            </c:if>
+        </dl>
 
         <c:choose>
             <c:when test="${empty produtos and totalProdutosFiltro > 0}">
-                <div class="sh-card">
+                <div class="v3r-painel">
                     <sh:estadoVazio icone="journal-x" titulo="Esta página não tem produtos"
                         texto="A lista tem menos páginas do que a que você pediu."
                         acaoUrl="/valor-estoque" acaoRotulo="Voltar ao início da lista" />
                 </div>
             </c:when>
             <c:when test="${empty produtos}">
-                <div class="sh-card">
+                <div class="v3r-painel">
                     <sh:estadoVazio icone="box-seam" titulo="Nenhum produto cadastrado"
                         texto="Cadastre o primeiro produto para ver quanto o estoque vale."
                         acaoUrl="/produtos/novo" acaoRotulo="Cadastrar produto" />
                 </div>
             </c:when>
             <c:otherwise>
-                <p class="sh-rel__contagem">
-                    <c:out value="${totalProdutosFiltro}" /> <c:out value="${totalProdutosFiltro == 1 ? 'produto' : 'produtos'}" />, em ordem de nome
-                </p>
-                <div class="sh-table-wrap">
-                    <table class="sh-table sh-table--cards" role="table">
+                <p class="v3r-legenda sh-nao-imprimir">A barra compara cada produto com o de maior valor <c:out value="${escopo}" />; a participação é sobre o valor total da loja.</p>
+                <div class="sh-table-wrap v3r-tabela-wrap">
+                    <table class="sh-table sh-table--cards v3r-tabela" role="table">
                         <caption class="visually-hidden">Valor em estoque por produto, <c:out value="${totalProdutosFiltro}" /> no total</caption>
                         <thead role="rowgroup">
                             <tr role="row">
                                 <th scope="col" role="columnheader">Produto</th>
-                                <th scope="col" role="columnheader">Categoria</th>
                                 <th scope="col" role="columnheader" class="sh-col-num">Preço</th>
                                 <th scope="col" role="columnheader" class="sh-col-num">Quantidade</th>
-                                <th scope="col" role="columnheader" class="sh-col-num">Total</th>
-                                <th scope="col" role="columnheader">Participação no valor</th>
-                                <th scope="col" role="columnheader"><span class="visually-hidden">Ações</span></th>
+                                <th scope="col" role="columnheader" class="sh-col-num">Valor</th>
+                                <th scope="col" role="columnheader" class="v3r-col-barra">Proporção</th>
+                                <th scope="col" role="columnheader" class="sh-col-num">Participação</th>
                             </tr>
                         </thead>
                         <tbody role="rowgroup">
                             <c:forEach var="produto" items="${produtos}">
-                                <%-- Participação: protege a divisão por zero (estoque sem valor) --%>
-                                <c:set var="pct" value="0" />
-                                <c:if test="${valorTotal > 0}">
-                                    <c:set var="pct" value="${produto.valorTotal * 100 / valorTotal}" />
-                                </c:if>
-                                <c:if test="${pct > 100}"><c:set var="pct" value="100" /></c:if>
-                                <fmt:formatNumber var="passo" value="${pct / 5}" maxFractionDigits="0" groupingUsed="false" />
-                                <c:set var="degrau" value="${passo * 5}" />
-                                <c:if test="${pct > 0 and degrau == 0}"><c:set var="degrau" value="5" /></c:if>
+                                <c:set var="pm" value="0" />
+                                <c:if test="${maior > 0}"><c:set var="pm" value="${produto.valorTotal * 100 / maior}" /></c:if>
+                                <fmt:formatNumber var="largura" value="${pm}" maxFractionDigits="0" groupingUsed="false" />
+                                <c:if test="${produto.valorTotal > 0 and largura == 0}"><c:set var="largura" value="1" /></c:if>
+                                <c:set var="pt" value="0" />
+                                <c:if test="${valorTotal > 0}"><c:set var="pt" value="${produto.valorTotal * 100 / valorTotal}" /></c:if>
                                 <tr role="row">
-                                    <td role="cell" class="sh-rel__celula-produto">
-                                        <a class="sh-rel__nome" href="<c:out value='${ctx}/produtos/${produto.id}'/>"><c:out value="${produto.nome}" /></a>
+                                    <td role="cell" class="v3r-celula-produto">
+                                        <a class="v3r-nome" href="<c:out value='${ctx}/produtos/${produto.id}'/>"><c:out value="${produto.nome}" /></a>
+                                        <span class="v3r-cat"><c:out value="${produto.categoria.nome}" /></span>
                                     </td>
-                                    <td role="cell" data-label="Categoria"><c:out value="${produto.categoria.nome}" /></td>
-                                    <td role="cell" class="sh-col-num" data-label="Preço">R$ <fmt:formatNumber value="${produto.preco}" pattern="#,##0.00" /></td>
-                                    <td role="cell" class="sh-col-num" data-label="Quantidade"><c:out value="${produto.quantidade}" /> un.</td>
-                                    <td role="cell" class="sh-col-num" data-label="Total"><strong>R$ <fmt:formatNumber value="${produto.valorTotal}" pattern="#,##0.00" /></strong></td>
-                                    <td role="cell" data-label="Participação">
-                                        <div class="sh-rel__parte">
-                                            <span class="sh-meter sh-meter--normal" aria-hidden="true">
-                                                <span class="sh-meter__fill sh-w-<c:out value='${degrau}'/>"></span>
-                                            </span>
-                                            <span class="sh-rel__parte-pct"><fmt:formatNumber value="${pct}" pattern="#,##0.0" />%</span>
-                                        </div>
+                                    <td role="cell" class="sh-col-num sh-mono" data-label="Preço">R$ <fmt:formatNumber value="${produto.preco}" pattern="#,##0.00" /></td>
+                                    <td role="cell" class="sh-col-num sh-mono" data-label="Quantidade"><fmt:formatNumber value="${produto.quantidade}" pattern="#,##0" /> <span class="v3r-un">un.</span></td>
+                                    <td role="cell" class="sh-col-num sh-mono" data-label="Valor"><strong>R$ <fmt:formatNumber value="${produto.valorTotal}" pattern="#,##0.00" /></strong></td>
+                                    <td role="cell" class="v3r-col-barra" data-label="Proporção">
+                                        <span class="v3r-trilho sh-desenhar" aria-hidden="true"><span class="v3r-trilho__fill sh-barra sh-barra--h sh-seg-<c:out value='${largura}'/>"></span></span>
                                     </td>
-                                    <td role="cell" class="sh-rel__celula-acoes" data-label="">
-                                        <div class="sh-rel__acoes">
-                                            <a class="btn btn-ghost btn-sm" href="<c:out value='${ctx}/produtos/${produto.id}'/>">
-                                                <i class="bi bi-eye" aria-hidden="true"></i> Ver<span class="visually-hidden"> <c:out value="${produto.nome}" /></span>
-                                            </a>
-                                        </div>
-                                    </td>
+                                    <td role="cell" class="sh-col-num sh-mono" data-label="Participação"><fmt:formatNumber value="${pt}" pattern="#,##0.0" />%</td>
                                 </tr>
                             </c:forEach>
                         </tbody>
