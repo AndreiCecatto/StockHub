@@ -9,6 +9,9 @@ Legenda usada em todo o texto:
 - **[B]** exige backend novo (item numerado na seção 9).
 - **Descartado:** alternativa considerada e rejeitada, com o motivo.
 
+
+> **Atualização (v2):** a seção 11, "v2: com personalidade", substitui a identidade visual, a tipografia, os ícones e o movimento descritos abaixo. Esta parte fica como histórico da v1.
+
 ## 0. Resumo das decisões
 
 1. **Conceito "Balcão":** ferramenta de trabalho que se usa em pé, com uma mão, entre um cliente e outro. O que **falta** aparece antes do que sobra; cada tela serve a uma tarefa; todo registro mostra o **antes → depois** do saldo.
@@ -649,3 +652,145 @@ Nenhum deles muda regra de negócio nem modelo; todos mantêm o isolamento por l
 - **Motivos pré-definidos** só preenchem texto livre (v1). O motivo estruturado (enum com migration) continua sendo v2, como em `mercado-requisitos.md`.
 - **Exclusão sem desfazer:** por desenho do backend (exclusão definitiva ou inativação). O modal precisa ser claro; não há toast de "Desfazer".
 - **Não verificado em navegador:** esta fase é só documento. As razões de contraste são matemáticas; a validação visual real (axe, Lighthouse, NVDA) é parte de cada lote.
+
+---
+
+## 11. v2: com personalidade
+
+Escrita em 26/10/2026, depois do retorno de uso da v1: *"ficou com muita cara de que não foi uma pessoa que fez"*, *"ao invés de dar reload na página seria legal ter uma animação"* e *"quero todo um design interativo"*. A v1 (seções 1 a 10) continua aqui como histórico. Esta seção **substitui** os trechos marcados abaixo; o que não aparece na lista continua valendo (estados de estoque, acessibilidade, regras de segurança no front, pontos de quebra, mapa de telas).
+
+**O que a v2 substitui da v1**
+
+| v1 | v2 |
+|---|---|
+| 1.1 "Calma: sem decoração que não informe, sem cartões que levitam" | Decoração com função: identidade, orientação e prazer de uso. Continua sem gradiente e sem sombra gratuita |
+| 1.2 índigo `#4338CA`, neutros frios, preto azulado no escuro | Verde-musgo, papel creme, grafite quente (tabela abaixo). Os **nomes** `--sh-*` não mudaram |
+| 1.3 só Inter | Fraunces para títulos e números grandes, Inter na interface |
+| 1.5 ícones de biblioteca em todo botão | Ícones só onde ajudam a escanear (menu, estados de estoque, ações de lista). Botões de texto não têm ícone |
+| 0.3 / 2.6 busca global em `/`, "sem paleta de comandos na v1" | Paleta de comandos (Ctrl+K), e `/` passa a abrir a paleta |
+| 5 (movimento) "nada de animação gratuita" | Sistema de movimento com tokens, transição entre páginas, entrada escalonada (seção 11.5) |
+| 4.5 cartões de métrica iguais, em 4 caixas | Números grandes sem caixa, separados por pontilhado |
+
+### 11.1 Conceito: "caderneta de balcão"
+
+O StockHub é a caderneta de quem toca uma loja pequena, só que viva: ela avisa, conta, reage. Tudo na tela tem que parecer feito por uma pessoa que conhece balcão: papel, tinta, etiqueta de gôndola, caixa de papelão.
+
+- **Papel e tinta:** neutros quentes. Claro é papel creme com textura quase invisível; escuro é grafite quente (sem preto azulado).
+- **Capa:** a barra lateral é a capa verde-musgo da caderneta, com costura pontilhada, e o marcador de página (terracota) mostra onde você está.
+- **Etiqueta de gôndola:** os selos de estado (Normal, Baixo, Sem estoque) têm forma de etiqueta de preço, com furinho.
+- **Assimetria controlada:** cantos em "folha" (o de baixo à esquerda é mais seco: `--sh-radius-folha`), o cartão da saúde começa 28 px abaixo da lista, mancha irregular atrás do mascote, sublinhado à mão.
+- **Voz:** frases curtas, de gente. "Nada acabando por aqui.", "Boa tarde, Mercearia Teste", "Ai, ai... falta coisa.", datas relativas ("há 2 h").
+
+**Alternativas descartadas:** (a) "painel de controle" frio com gráficos densos: é o visual que o usuário apontou como genérico. (b) Neo-brutalismo (bordas grossas, sombras duras, cores berrantes): tem personalidade, mas cansa em uso diário, pesa em tabelas e briga com os estados vermelho/âmbar. (c) Ilustração por toda parte: o mascote só aparece onde ele diz algo (saudação, vazio, erro, entrada).
+
+### 11.2 Paleta (valores no `css/tokens.css`)
+
+Marca: **verde-musgo** `#3E5A2F` (botão, link, foco no claro). **Terracota** `#A34622` (claro) / `#E58B63` (escuro) é só **decoração e destaque** (rabisco, marcador de página, bochecha do mascote, inicial do usuário). **Nunca** indica estado de estoque: estoque continua verde (normal), âmbar (baixo), vermelho (sem estoque), sempre com ícone + palavra + cor.
+
+Risco assumido: o verde-musgo da marca é parente do verde de "Normal". Mitigação: o musgo é amarelado e escuro (botões, links), o verde de estado é azulado e só aparece dentro de selo, medidor e anel, sempre com ícone e texto.
+
+| Papel (claro) | Valor | Grafite (escuro) | Valor |
+|---|---|---|---|
+| fundo | `#F3EDDF` | fundo | `#1A1612` |
+| superfície | `#FBF8F0` | superfície | `#241F19` |
+| superfície 2 | `#EAE2D0` | superfície 2 | `#2E2820` |
+| texto | `#261F16` | texto | `#F0E8D8` |
+| acento (botão) | `#3E5A2F` | acento (botão) | `#4F7040` |
+| acento como texto | `#3E5A2F` | acento como texto | `#A9C98F` |
+| barra lateral | `#26301C` | barra lateral | `#120F0B` |
+
+**Contrastes calculados (WCAG 2.x, fórmula de luminância relativa; mínimo 4,5:1 para texto e 3:1 para elementos gráficos):**
+
+| Par | Claro | Escuro |
+|---|---|---|
+| Texto sobre fundo | 13,9:1 | 14,8:1 |
+| Texto sobre superfície | 15,3:1 | 13,4:1 |
+| Texto secundário sobre superfície | 8,3:1 | 8,5:1 |
+| Texto discreto sobre superfície 2 | 5,2:1 | 5,4:1 |
+| Botão primário (texto branco) | 7,8:1 | 5,6:1 |
+| Link / acento como texto sobre superfície | 7,3:1 | 8,9:1 |
+| Terracota como texto sobre superfície | 5,7:1 | 6,4:1 |
+| Borda de campo (elemento gráfico, mín. 3) | 4,0:1 | 4,4:1 |
+| Barra lateral: texto / texto discreto | 10,0 / 6,1:1 | 11,2 / 6,5:1 |
+| Selo Normal | 5,6:1 | 8,3:1 |
+| Selo Baixo | 6,9:1 | 8,5:1 |
+| Selo Sem estoque | 5,6:1 | 8,3:1 |
+| Selo Saída (azul) | 6,0:1 | 8,0:1 |
+| Botão de perigo (texto branco) | 5,9:1 | 5,2:1 |
+| Medidor normal / baixo / sem sobre o trilho (mín. 3) | 3,1 / 3,4 / 3,6:1 | 5,2 / 5,6 / 3,7:1 |
+
+O script que gera os três blocos de cor do `tokens.css` a partir de uma só tabela e calcula todos os pares foi usado na verificação; o claro "baixo" do medidor foi escurecido de `#B25E09` para `#A25406` porque o par com o trilho dava 2,8:1. Foram conferidos também com o axe (sem violações) nas telas renderizadas.
+
+### 11.3 Tipografia
+
+**Fraunces** (variável, eixos de peso e `SOFT`, subset latino, 62 KB, OFL; registro e integridade SHA-512 em `vendor/VERSOES.md`) para títulos de página e de seção, saudação e números grandes. Inter continua na interface, em tabelas e formulários, com números tabulares.
+
+Por quê: serifa suave e levemente "cheia", com `SOFT` em 100 as pontas ficam arredondadas, como letra de etiqueta de balcão; contrasta bem com Inter e funciona em 48 px e em 18 px. **Descartadas:** Bricolage Grotesque (boa, mas é sans e parece com muita coisa recente; a serifa dá o ar de caderneta), Instrument Serif (elegante demais, só tem peso regular, ruim em números grandes).
+
+Escala nova: `--sh-text-hero` (saudação), `--sh-text-numero` (números do início). A classe `.sh-display` aplica a fonte de display.
+
+### 11.4 Mascote e ilustrações
+
+A **caixinha** é um SVG inline desenhado à mão, sem biblioteca (`WEB-INF/tags/mascote.tag`): caixa de papelão aberta, abas que mudam de posição, etiqueta colada, rosto simples. Traço levemente irregular de propósito (curvas Bézier com pequenos desvios, `stroke-linejoin: round`).
+
+| Estado | Quando | Expressão |
+|---|---|---|
+| contente | tudo acima do mínimo; login; vazio positivo | abas para o alto, sorriso, acena e solta confete ao clicar |
+| atenta | só há estoque baixo (nada acabou) | abas de orelha, sobrancelha levantada, olha para cima |
+| preocupada | há produto sem estoque; erro de login; gráfico com falha | abas caídas, sobrancelhas aflitas, gota de suor |
+| dormindo | loja nova sem produto; "nada aqui" | olhos fechados, "zzz" subindo |
+
+Troca de estado sem recarregar: `data-estado` no `<svg>`. Vida: respira, pisca, gota escorre; pupilas seguem o cursor (`data-sh-olhar`); no login, fecha os olhos na senha e espia quando ela está visível. Tudo isso é CSS/JS pequeno (`css/identidade.css`, `js/humano.js`, `js/entrar.js`) e desliga com `prefers-reduced-motion`.
+
+Ilustrações de estado vazio (`WEB-INF/tags/estadoVazio.tag`, atributo `ilustracao`): `caixa` (mascote dormindo), `lupa` (mascote atenta com lupa, "nada encontrado"), `etiquetas` (etiquetas balançando num barbante), `ok` (mascote contente com visto riscado). O 404 usa o mesmo tag do mascote (`<sh:mascote estado="preocupada">`); a migração da tela de erro fica para o lote seguinte.
+
+Outros detalhes de artesanato: sublinhado de rabisco (`.sh-rabisco`, máscara SVG que "desenha" ao entrar), textura de papel por SVG de ruído de 180 px em data URI (cerca de 600 bytes, sem imagem), pauta de caderno na capa do login, costura pontilhada na lateral, link com sublinhado ondulado terracota.
+
+### 11.5 Movimento e navegação
+
+**Tokens** (`tokens.css`): durações `--sh-dur-instante` 90 ms, `-fast` 140, `--sh-dur` 220, `-slow` 360, `-lenta` 640; easings `--sh-ease-out`, `--sh-ease-in`, `--sh-ease`, `--sh-ease-mola` (leve overshoot); `--sh-stagger` 45 ms. Só `transform`, `opacity` e traço de SVG se animam (60 fps, sem layout shift). Todo movimento some com `prefers-reduced-motion`.
+
+**Transição entre páginas, sem sensação de recarga.** `@view-transition { navigation: auto }` (View Transitions entre documentos) em `css/layout.css`:
+
+- peças fixas com nome (`lateral`, `topo`, `inferior`): a foto nova aparece na hora por cima da antiga, **sem piscar**;
+- `conteudo` (o `<main>`): fade e deslize curto; **direção**: entrando num nível mais fundo (lista para detalhe) vem da direita, subindo de nível ou botão voltar vem da esquerda, entre telas do menu só fade. A direção sai de `js/navegacao-init.js` (script síncrono no `<head>`, tipos de transição `para-frente`, `para-tras`, `mesmo-nivel`);
+- o marcador de página do menu tem nome (`marcador`) e **desliza** de um item ao outro;
+- `<link rel="expect" blocking="render">` segura a primeira pintura até o `<main>` existir.
+
+**Suporte e plano B.** Chrome e Edge 126+ e Safari recente fazem a transição; Firefox ainda não. O `<html>` ganha `data-sh-vt` quando há suporte. Sem ele, entra o plano B: o conteúdo faz fade ao sair (130 ms, `js/navegacao.js`, nunca em Ctrl/Cmd+clique, nova aba, download ou hash) e sobe ao entrar (`.sh-main`). Com `prefers-reduced-motion`, nada anima.
+
+**Pré-carga.** `js/navegacao.js` faz `<link rel="prefetch">` ao passar o mouse (65 ms de intenção), tocar ou focar links internos GET. Nunca: `/logout`, `/login`, `/cadastro`, `/excluir`, `/api`, `.csv`, `exportar`, `?acao=`, `data-sh-sem-prefetch`, outra origem, "economia de dados"; no máximo 8 por visita.
+
+**Limites, com honestidade.** A próxima página **continua sendo carregada do servidor**: o ganho é de continuidade visual, não de velocidade. A pré-carga só reduz a espera se o servidor deixar a resposta ser guardada; o Spring Security manda `Cache-Control: no-store` em páginas autenticadas por padrão, o que a anula (pedido ao `dev-backend`, seção 9 abaixo). Uma página muito alta pode mostrar um corte na foto antiga. Efeitos de entrada que rodam durante a transição são curtos de propósito para não somar movimento.
+
+**Entrada e feedback.** `.sh-escalona` (filhos entram em sequência com atraso de 45 ms, até 8), linhas de tabela entram em sequência, contadores animados (`data-contar`, reexecutáveis por `SH.animarNumeros(raiz)`), barras que preenchem (`.sh-enche`, medidor, anel, gráfico), botão primário que afunda ao apertar, botão secundário com marca-texto passando no hover, toasts em forma de bilhete com o visto "estalando", esqueletos de carregamento (`.sh-esqueleto`).
+
+### 11.6 Paleta de comandos
+
+`Ctrl+K` / `Cmd+K` em qualquer tela, o botão da barra superior (parece um campo de busca) e a tecla `/`. `<dialog>` modal nativo (camada superior, fundo inerte, Esc), foco preso entre o campo e "Esc", foco devolvido a quem abriu. ARIA: campo `role="combobox"` com `aria-controls`, `aria-expanded`, `aria-activedescendant`; lista `role="listbox"` com grupos (`role="group"` rotulado); resultado anunciado em região `aria-live="polite"`.
+
+Conteúdo: **Ações** (Registrar entrada, Registrar saída, Novo produto, Nova categoria, Alternar tema, Atalhos de teclado), **Ir para** (as sete telas) e **Produtos** via `GET /api/busca?q=termo&limite=8` (contrato: `[{id, nome, categoria, saldo, minimo, nivel, url}]`). Busca sem acento, com destaque do trecho. Debounce de 180 ms, cancelamento da busca anterior, cache por termo, tempo máximo de 6 s. **Degrada:** se o endpoint não existir, der erro ou responder algo que não seja JSON, a paleta mostra um aviso discreto no lugar dos produtos e mantém ações, telas e a saída "Ver “termo” na lista de produtos" (`/produtos?busca=`). Dados entram só por `textContent`; `url` só é aceita se for caminho da própria aplicação.
+
+### 11.7 Início (dashboard)
+
+Ordem: saudação com mascote, "o que fazer hoje", saúde do estoque, gráfico de 14 dias, números, recentes.
+
+- **Saudação por horário** ("Bom dia/Boa tarde/Boa noite", feita no navegador por `js/humano.js`; o servidor escreve "Olá" como plano B) e data de hoje por extenso. O mascote reage ao estado do estoque (tabela 11.4) e ao clique.
+- **O que fazer hoje:** os itens a repor, do mais urgente ao menos, cada um com **reposição rápida**: campo de quantidade (sugestão = leva o saldo a 2x o mínimo) e botão Repor, que faz o mesmo `POST /estoque/movimentar` (ENTRADA) da tela de movimentações, com token CSRF e observação "Reposição rápida pelo início". Sem nada a repor: mascote contente, texto "Nada para repor." e uma **celebração discreta** (confete de papel, uma vez por aba, só com movimento permitido).
+- **Saúde do estoque:** anel SVG (três fatias com vão) com centro que muda ao passar o mouse ou focar uma linha da legenda; cada linha é link para a lista filtrada (`nivelEstoque=ok|baixo|semEstoque`). O anel é decorativo (`aria-hidden`); a informação está em texto.
+- **Gráfico de 14 dias** (`js/inicio.js`, SVG sem biblioteca, dados de `GET /api/dashboard/movimentos?dias=14`): entradas sobem da linha do meio e saídas descem (a posição diz o tipo, a cor reforça); ajustes viram um ponto na linha. Estados: esqueleto, erro com "Tentar de novo" (mascote preocupada), vazio (mascote dormindo e botão para registrar entrada), pronto. Tooltip por mouse, toque e teclado (um tab stop, setas, Home, End, Esc), `aria-label` completo em cada dia ("segunda, 26 de outubro: 12 entradas, 5 saídas, 0 ajustes"), resumo em texto e **tabela equivalente** em `<details>`. Redesenha ao mudar a largura, sem repetir a animação.
+- **Números** sem caixa, em Fraunces, separados por pontilhado; cada número é link. **Chegou por último:** lista simples.
+
+### 11.8 Arquivos da v2
+
+CSS: `tokens.css` (reescrito), `layout.css` (reescrito), `identidade.css` (novo: botões, selos, cartões, mascote, rabisco, esqueleto, toast, vazio, escalonamento), `paleta.css`, `inicio.css`, `entrar.css` (novos). JS: `navegacao-init.js`, `navegacao.js`, `paleta.js`, `humano.js`, `inicio.js`, `entrar.js` (novos); `numeros.js` e `atalhos.js` (ajustados). Tags: `mascote.tag` (novo), `layout.tag`, `estadoVazio.tag`. Includes: `head.jsp`, `lateral.jsp`, `inferior.jsp`, `paleta.jsp` (novo), `modal-atalhos.jsp`. Páginas: `dashboard.jsp`, `login.jsp`. Fonte: `vendor/fraunces/`.
+
+### 11.9 Pedidos ao `dev-backend` (v2)
+
+1. `GET /api/busca` e `GET /api/dashboard/movimentos` com o contrato acima, autenticados e filtrados pela loja do usuário. **Confirmar o significado de `entradas` e `saidas`:** a tela as chama só de "entradas" e "saídas" (sem "unidades"); se forem somas de quantidade, dá para trocar o texto por "unidades".
+2. Cabeçalho de cache nas páginas GET autenticadas (por exemplo `Cache-Control: private, max-age=10`) para a pré-carga ter efeito; hoje o padrão do Spring Security (`no-store`) a anula.
+3. Data de cadastro (`criadoEm`) em `Produto` para "Chegou por último" mostrar "há 2 h" (`<time data-relativo datetime="...">` já é suportado por `js/humano.js`).
+
+### 11.10 Verificação desta entrega
+
+Renderizado em mini-Tomcat avulso (porta alta) com Edge headless: início em computador e celular, claro e escuro; login e cadastro; paleta aberta com busca; tooltip do gráfico; estados vazio, erro e esqueleto. axe sem violações em todas essas telas. Telas da v1 (produtos, detalhe, formulário, categorias) renderizadas com a nova fundação, sem erro de JS e sem violações no axe. Transição entre documentos confirmada (`pagereveal` com `viewTransition` e tipos `mesmo-nivel` e `para-tras`); com `prefers-reduced-motion` ela desliga. **Não verificado:** Firefox e Safari (plano B só revisado no código), leitor de tela de verdade, e a pré-carga contra o servidor real.
