@@ -570,4 +570,69 @@ class NfeParserTest {
             recusa(NfeXml.nota().item(NfeXml.item().frete("1.234")).bytes(), "vFrete");
         }
     }
+
+    @Nested
+    @DisplayName("pagamento e parcelas (RN-57)")
+    class Cobranca {
+
+        @Test
+        @DisplayName("lê as formas de pagamento com nome em linguagem simples")
+        void pagamentos() {
+            NotaNfe nota = ler(NfeXml.nota().item(NfeXml.item())
+                    .pagamento("15", "30.00", null).pagamento("17", "20.00", null)
+                    .pagamento("99", "5.00", "Permuta").pagamento("99", "1.00", null));
+
+            assertThat(nota.pagamentos()).extracting(NotaNfe.Pagamento::descricao)
+                    .containsExactly("Boleto", "Pix", "Permuta", "Outra forma de pagamento");
+            assertThat(nota.pagamentos().get(0).forma()).isEqualTo("15");
+            assertThat(nota.pagamentos().get(0).valor()).isEqualByComparingTo("30.00");
+        }
+
+        @Test
+        @DisplayName("lê as parcelas, com vencimento opcional")
+        void parcelas() {
+            NotaNfe nota = ler(NfeXml.nota().item(NfeXml.item())
+                    .parcela("2026-04-10", "25.00").parcela("2026-05-10", "25.00").parcela(null, "0.50"));
+
+            assertThat(nota.parcelas()).hasSize(3);
+            assertThat(nota.parcelas().get(1).numero()).isEqualTo(2);
+            assertThat(nota.parcelas().get(1).vencimento()).isEqualTo(java.time.LocalDate.of(2026, 5, 10));
+            assertThat(nota.parcelas().get(2).vencimento()).isNull();
+            assertThat(nota.parcelas().get(2).valor()).isEqualByComparingTo("0.50");
+        }
+
+        @Test
+        @DisplayName("nota sem cobr e sem pag tem listas vazias")
+        void ausentes() {
+            NotaNfe nota = ler(NfeXml.notaComUmItem());
+
+            assertThat(nota.pagamentos()).isEmpty();
+            assertThat(nota.parcelas()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("vencimento inválido, valor inválido e código de pagamento inválido são recusados")
+        void invalidos() {
+            recusa(NfeXml.nota().item(NfeXml.item()).parcela("31/12/2026", "10.00").bytes(), "vencimento");
+            recusa(NfeXml.nota().item(NfeXml.item()).parcela("2026-02-30", "10.00").bytes(), "vencimento");
+            recusa(NfeXml.nota().item(NfeXml.item()).pagamento("15", "-5.00", null).bytes(), "vPag");
+            recusa(NfeXml.nota().item(NfeXml.item()).pagamento("1", "5.00", null).bytes(),
+                    NfeParser.MENSAGEM_INVALIDA);
+        }
+
+        @Test
+        @DisplayName("mais de 120 parcelas ou 100 formas de pagamento é recusado")
+        void limites() {
+            NfeXml parcelas = NfeXml.nota().item(NfeXml.item());
+            for (int i = 0; i < 121; i++) {
+                parcelas.parcela("2026-04-10", "1.00");
+            }
+            recusa(parcelas.bytes(), NfeParser.MENSAGEM_INVALIDA);
+            NfeXml pagamentos = NfeXml.nota().item(NfeXml.item());
+            for (int i = 0; i < 101; i++) {
+                pagamentos.pagamento("01", "1.00", null);
+            }
+            recusa(pagamentos.bytes(), NfeParser.MENSAGEM_INVALIDA);
+        }
+    }
 }

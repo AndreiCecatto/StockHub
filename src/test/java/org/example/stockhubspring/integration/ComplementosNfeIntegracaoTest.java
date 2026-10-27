@@ -102,5 +102,47 @@ class ComplementosNfeIntegracaoTest extends IntegracaoBase {
         assertThat(detalhe.nota().getValorSeguro()).isNull();
         assertThat(detalhe.itens().get(0).getRateio()).isEqualByComparingTo("0");
         assertThat(detalhe.itens().get(0).getCustoUnitario()).isNull();
+        assertThat(detalhe.pagamentos()).isEmpty();
+        assertThat(detalhe.parcelas()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("RN-57: guarda como foi pago e as parcelas e devolve no detalhe, em ordem")
+    void guardaPagamentoEParcelas() {
+        NfeXml nota = NfeXml.nota()
+                .item(NfeXml.item().quantidade("10.0000").unitario("5.0000000000"))
+                .pagamento("15", "30.00", null).pagamento("17", "20.00", null)
+                .parcela("2026-04-10", "25.00").parcela("2026-05-10", "25.00");
+        NotaFiscal salva = importar(nota, "Produto A");
+
+        DetalheNota detalhe = service.detalhe(salva.getId(), loja.getCodigo());
+
+        assertThat(detalhe.pagamentos()).extracting("descricao").containsExactly("Boleto", "Pix");
+        assertThat(detalhe.pagamentos().get(0).getValor()).isEqualByComparingTo("30.00");
+        assertThat(detalhe.parcelas()).hasSize(2);
+        assertThat(detalhe.parcelas().get(0).getVencimento()).isEqualTo(java.time.LocalDate.of(2026, 4, 10));
+        assertThat(detalhe.parcelas().get(1).getNumero()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("RN-57: a revisão avisa quando a soma das parcelas difere do total da nota")
+    void avisaParcelasDivergentes() {
+        UUID token = service.enviar(NfeXml.nota().item(NfeXml.item()).parcela("2026-04-10", "10.00").bytes(), loja);
+
+        assertThat(service.revisar(token, loja).avisos()).anyMatch(a -> a.contains("soma das parcelas"));
+
+        UUID certo = service.enviar(NfeXml.nota().numero(77).item(NfeXml.item()).parcela("2026-04-10", "50.00").bytes(), loja);
+
+        assertThat(service.revisar(certo, loja).avisos()).noneMatch(a -> a.contains("soma das parcelas"));
+    }
+
+    @Test
+    @DisplayName("RN-57: outra loja não vê pagamentos nem parcelas de uma nota que não é dela")
+    void isolamentoEntreLojas() {
+        NotaFiscal salva = importar(NfeXml.nota().item(NfeXml.item()).pagamento("15", "50.00", null), "Produto A");
+        Usuario outra = novoUsuario();
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.detalhe(salva.getId(), outra.getCodigo()))
+                .isInstanceOf(org.example.stockhubspring.exception.RecursoNaoEncontradoException.class);
     }
 }

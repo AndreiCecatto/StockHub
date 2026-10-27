@@ -542,6 +542,23 @@ class NfeControllerTest extends ControllerTestBase {
         }
 
         @Test
+        @DisplayName("detalhe publica como foi pago e as parcelas para a tela")
+        void detalheComCobranca() throws Exception {
+            NotaFiscal nota = notaSalva(13);
+            org.example.stockhubspring.model.NotaFiscalPagamento pagamento = new org.example.stockhubspring.model.NotaFiscalPagamento();
+            pagamento.setDescricao("Boleto");
+            org.example.stockhubspring.model.NotaFiscalParcela parcela = new org.example.stockhubspring.model.NotaFiscalParcela();
+            parcela.setNumero(1);
+            when(importacaoNfeService.detalhe(13, 47)).thenReturn(
+                    new DetalheNota(nota, List.of(), List.of(pagamento), List.of(parcela)));
+
+            mvc.perform(get(BASE + "/13").with(logadoComo(47)))
+                    .andExpect(status().isOk())
+                    .andExpect(model().attribute("pagamentos", List.of(pagamento)))
+                    .andExpect(model().attribute("parcelas", List.of(parcela)));
+        }
+
+        @Test
         @DisplayName("nota de outra loja responde 404")
         void detalheAlheio() throws Exception {
             when(importacaoNfeService.detalhe(12, 47)).thenThrow(new RecursoNaoEncontradoException("Nota não encontrada."));

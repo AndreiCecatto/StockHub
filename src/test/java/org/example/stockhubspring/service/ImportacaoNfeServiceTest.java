@@ -59,7 +59,7 @@ class ImportacaoNfeServiceTest {
         estoqueService = mock(EstoqueService.class);
         produtoRepository = mock(ProdutoRepository.class);
         usuarioRepository = mock(UsuarioRepository.class);
-        service = new ImportacaoNfeService(importacaoRepository, notaRepository, mock(NotaFiscalItemRepository.class),
+        service = new ImportacaoNfeService(importacaoRepository, notaRepository, mock(NotaFiscalItemRepository.class), mock(org.example.stockhubspring.repository.NotaFiscalPagamentoRepository.class), mock(org.example.stockhubspring.repository.NotaFiscalParcelaRepository.class),
                 parceiroRepository, produtoRepository, mock(CategoriaRepository.class),
                 usuarioRepository, estoqueService);
         when(usuarioRepository.getReferenceById(anyInt())).thenReturn(loja);
@@ -206,7 +206,7 @@ class ImportacaoNfeServiceTest {
         ImportacaoNfe importacao = pendenteCom(NfeXml.nota()
                 .item(NfeXml.item().codigo("A")).item(NfeXml.item().codigo("B")).item(NfeXml.item().codigo("C")));
         ProdutoRepository produtos = org.mockito.Mockito.mock(ProdutoRepository.class);
-        service = new ImportacaoNfeService(importacaoRepository, notaRepository, mock(NotaFiscalItemRepository.class),
+        service = new ImportacaoNfeService(importacaoRepository, notaRepository, mock(NotaFiscalItemRepository.class), mock(org.example.stockhubspring.repository.NotaFiscalPagamentoRepository.class), mock(org.example.stockhubspring.repository.NotaFiscalParcelaRepository.class),
                 parceiroRepository, produtos, mock(CategoriaRepository.class), usuarioRepository, estoqueService);
         Produto p9 = Fabrica.produto(9, "Nove", 0, 0, loja);
         Produto p2 = Fabrica.produto(2, "Dois", 0, 0, loja);

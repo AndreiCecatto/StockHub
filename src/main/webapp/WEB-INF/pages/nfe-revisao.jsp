@@ -163,6 +163,7 @@
                     <div><dt>Desconto</dt><dd class="sh-mono">R$ <fmt:formatNumber value="${nota.valorDesconto}" pattern="#,##0.00" /></dd></div>
                     <div class="nfe-valores__total"><dt>Total da nota</dt><dd class="sh-mono">R$ <fmt:formatNumber value="${nota.valorTotal}" pattern="#,##0.00" /></dd></div>
                 </dl>
+                <sh:cobrancaNfe pagamentos="${nota.pagamentos}" parcelas="${nota.parcelas}" />
             </div>
         </section>
 

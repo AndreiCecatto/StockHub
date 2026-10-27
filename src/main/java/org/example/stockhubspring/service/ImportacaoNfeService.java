@@ -27,6 +27,10 @@ import org.example.stockhubspring.nfe.NotaNfe;
 import org.example.stockhubspring.repository.CategoriaRepository;
 import org.example.stockhubspring.repository.ImportacaoNfeRepository;
 import org.example.stockhubspring.repository.NotaFiscalItemRepository;
+import org.example.stockhubspring.repository.NotaFiscalPagamentoRepository;
+import org.example.stockhubspring.repository.NotaFiscalParcelaRepository;
+import org.example.stockhubspring.model.NotaFiscalPagamento;
+import org.example.stockhubspring.model.NotaFiscalParcela;
 import org.example.stockhubspring.repository.NotaFiscalItemRepository.VinculoDoCodigo;
 import org.example.stockhubspring.repository.NotaFiscalRepository;
 import org.example.stockhubspring.repository.ParceiroRepository;
@@ -105,7 +109,11 @@ public class ImportacaoNfeService {
     private static final BigDecimal PRECO_MAXIMO = new BigDecimal("9999999.99");
 
     /** Nota importada com os itens (produto e movimentação já carregados). */
-    public record DetalheNota(NotaFiscal nota, List<NotaFiscalItem> itens) {
+    public record DetalheNota(NotaFiscal nota, List<NotaFiscalItem> itens, List<NotaFiscalPagamento> pagamentos,
+                              List<NotaFiscalParcela> parcelas) {
+        public DetalheNota(NotaFiscal nota, List<NotaFiscalItem> itens) {
+            this(nota, itens, List.of(), List.of());
+        }
     }
 
     private record Sugestao(Produto produto, MotivoSugestao motivo) {
@@ -121,6 +129,8 @@ public class ImportacaoNfeService {
     private final ImportacaoNfeRepository importacaoRepository;
     private final NotaFiscalRepository notaRepository;
     private final NotaFiscalItemRepository itemRepository;
+    private final NotaFiscalPagamentoRepository pagamentoRepository;
+    private final NotaFiscalParcelaRepository parcelaRepository;
     private final ParceiroRepository parceiroRepository;
     private final ProdutoRepository produtoRepository;
     private final CategoriaRepository categoriaRepository;
@@ -131,6 +141,8 @@ public class ImportacaoNfeService {
     public ImportacaoNfeService(ImportacaoNfeRepository importacaoRepository,
                                 NotaFiscalRepository notaRepository,
                                 NotaFiscalItemRepository itemRepository,
+                                NotaFiscalPagamentoRepository pagamentoRepository,
+                                NotaFiscalParcelaRepository parcelaRepository,
                                 ParceiroRepository parceiroRepository,
                                 ProdutoRepository produtoRepository,
                                 CategoriaRepository categoriaRepository,
@@ -139,6 +151,8 @@ public class ImportacaoNfeService {
         this.importacaoRepository = importacaoRepository;
         this.notaRepository = notaRepository;
         this.itemRepository = itemRepository;
+        this.pagamentoRepository = pagamentoRepository;
+        this.parcelaRepository = parcelaRepository;
         this.parceiroRepository = parceiroRepository;
         this.produtoRepository = produtoRepository;
         this.categoriaRepository = categoriaRepository;
@@ -174,7 +188,9 @@ public class ImportacaoNfeService {
         NotaFiscal nota = notaRepository.findByIdAndUsuarioCodigo(id, usuarioCodigo)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Nota não encontrada."));
         return new DetalheNota(nota,
-                itemRepository.findByNotaFiscalIdAndNotaFiscalUsuarioCodigoOrderByNumeroItemAsc(id, usuarioCodigo));
+                itemRepository.findByNotaFiscalIdAndNotaFiscalUsuarioCodigoOrderByNumeroItemAsc(id, usuarioCodigo),
+                pagamentoRepository.findByNotaFiscalIdOrderByOrdemAsc(nota.getId()),
+                parcelaRepository.findByNotaFiscalIdOrderByNumeroAsc(nota.getId()));
     }
 
     // -------------------------------------------------------------------------------------------
@@ -283,6 +299,14 @@ public class ImportacaoNfeService {
         if (nota.emitidaEm() != null && nota.emitidaEm().isBefore(agora().minusMonths(12))) {
             avisos.add("A nota foi emitida em " + nota.emitidaEm().format(FORMATO_DATA).substring(0, 10)
                     + ", há mais de 12 meses. Confira se não é uma nota antiga que já foi lançada.");
+        }
+        if (!nota.parcelas().isEmpty() && nota.valorTotal() != null) {
+            BigDecimal somaParcelas = nota.parcelas().stream().map(NotaNfe.Parcela::valor)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            if (somaParcelas.compareTo(nota.valorTotal()) != 0) {
+                avisos.add("A soma das parcelas (R$ " + formatarValor(somaParcelas) + ") é diferente do total da nota (R$ "
+                        + formatarValor(nota.valorTotal()) + "). Confira com o fornecedor.");
+            }
         }
         BigDecimal despesas = nota.itens().stream().map(ItemNfe::rateio).reduce(BigDecimal.ZERO, BigDecimal::add);
         if (despesas.signum() > 0) {
@@ -405,6 +429,7 @@ public class ImportacaoNfeService {
         Usuario dono = usuarioRepository.getReferenceById(loja);
         Parceiro fornecedor = obterFornecedor(nota.emitente(), dono);
         NotaFiscal notaFiscal = gravarNota(nota, dono, fornecedor);
+        gravarCobranca(nota, notaFiscal);
 
         String observacao = limitar("NF-e " + nota.numero() + " de " + fornecedor.getNome(),
                 EstoqueService.OBSERVACAO_MAXIMA);
@@ -619,6 +644,28 @@ public class ImportacaoNfeService {
                 throw new RegraNegocioException("Esta nota já foi importada nesta loja.");
             }
             throw new RegraNegocioException(Restricoes.MENSAGEM_GENERICA);
+        }
+    }
+
+    /** Forma de pagamento e parcelas da nota, só para consulta (base para contas a pagar). */
+    private void gravarCobranca(NotaNfe nota, NotaFiscal notaFiscal) {
+        int ordem = 1;
+        for (NotaNfe.Pagamento pagamento : nota.pagamentos()) {
+            NotaFiscalPagamento registro = new NotaFiscalPagamento();
+            registro.setNotaFiscal(notaFiscal);
+            registro.setOrdem(ordem++);
+            registro.setForma(pagamento.forma());
+            registro.setDescricao(pagamento.descricao());
+            registro.setValor(pagamento.valor());
+            pagamentoRepository.save(registro);
+        }
+        for (NotaNfe.Parcela parcela : nota.parcelas()) {
+            NotaFiscalParcela registro = new NotaFiscalParcela();
+            registro.setNotaFiscal(notaFiscal);
+            registro.setNumero(parcela.numero());
+            registro.setVencimento(parcela.vencimento());
+            registro.setValor(parcela.valor());
+            parcelaRepository.save(registro);
         }
     }
 

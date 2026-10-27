@@ -109,6 +109,7 @@
                     <div><dt>Desconto</dt><dd class="sh-mono">R$ <fmt:formatNumber value="${nota.valorDesconto}" pattern="#,##0.00" /></dd></div>
                     <div class="nfe-valores__total"><dt>Total da nota</dt><dd class="sh-mono">R$ <fmt:formatNumber value="${nota.valorTotal}" pattern="#,##0.00" /></dd></div>
                 </dl>
+                <sh:cobrancaNfe pagamentos="${pagamentos}" parcelas="${parcelas}" />
                 <p class="nfe-nota-rodape">A assinatura digital do arquivo e a situação da nota na Receita (SEFAZ) não foram verificadas pelo StockHub.</p>
             </div>
         </section>

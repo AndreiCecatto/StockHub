@@ -215,6 +215,8 @@ public class NfeController {
         List<NotaFiscalItem> itens = detalhe.itens();
         model.addAttribute("nota", detalhe.nota());
         model.addAttribute("itens", itens);
+        model.addAttribute("pagamentos", detalhe.pagamentos());
+        model.addAttribute("parcelas", detalhe.parcelas());
         model.addAttribute("itensImportados", contar(itens, SituacaoItemNfe.IMPORTADO));
         model.addAttribute("itensIgnorados", contar(itens, SituacaoItemNfe.IGNORADO));
         model.addAttribute("itensFracionados", contar(itens, SituacaoItemNfe.FRACIONADO));

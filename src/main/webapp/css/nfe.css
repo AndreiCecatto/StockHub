@@ -767,3 +767,37 @@ html:not(.nfe-js) .nfe-painel[hidden] {
   color: var(--sh-text-muted, inherit);
   font-size: 0.75rem;
 }
+
+/* Como foi pago e parcelas (somente leitura) */
+.nfe-cobranca {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.nfe-cobranca__titulo {
+    margin: 0 0 .5rem;
+    font-size: .8125rem;
+    font-weight: 600;
+    letter-spacing: .02em;
+    color: var(--sh-text-muted);
+}
+
+.nfe-cobranca__lista {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.nfe-cobranca__lista li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .5rem 0;
+    border-bottom: 1px solid var(--sh-border);
+}
+
+.nfe-cobranca__lista li:last-child {
+    border-bottom: 0;
+}

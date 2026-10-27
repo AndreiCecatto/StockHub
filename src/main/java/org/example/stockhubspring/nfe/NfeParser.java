@@ -303,7 +303,63 @@ public final class NfeParser {
 
         return new NotaNfe(chave, modelo, serie, numero, naturezaOperacao, emitidaEm, emitente, destinatario,
                 valorProdutos, valorFrete, valorSeguro, valorOutras, valorDesconto, valorTotal, assinatura,
-                protocolo != null, itens);
+                protocolo != null, itens, pagamentos(inf), parcelas(inf));
+    }
+
+    /** Máximo de formas de pagamento (detPag) e de parcelas (dup) do layout 4.00. */
+    private static final int MAXIMO_PAGAMENTOS = 100;
+    private static final int MAXIMO_PARCELAS = 120;
+
+    /** Formas de pagamento da nota (pag/detPag); ausente é lista vazia. Código ou valor inválido recusa a nota. */
+    private static List<NotaNfe.Pagamento> pagamentos(Element inf) {
+        List<NotaNfe.Pagamento> lista = new ArrayList<>();
+        Element pag = filho(inf, "pag");
+        if (pag == null) {
+            return lista;
+        }
+        for (Node no = pag.getFirstChild(); no != null; no = no.getNextSibling()) {
+            if (no instanceof Element det && "detPag".equals(det.getLocalName())) {
+                if (lista.size() >= MAXIMO_PAGAMENTOS) {
+                    throw invalida();
+                }
+                String codigo = textoObrigatorio(det, "tPag", 10);
+                if (!Documentos.soDigitosComTamanho(codigo, 2)) {
+                    throw invalida();
+                }
+                String descricao = FormaPagamento.rotulo(codigo, texto(det, "xPag", 60));
+                BigDecimal valor = dinheiro(textoObrigatorio(det, "vPag", 60), "vPag");
+                lista.add(new NotaNfe.Pagamento(codigo, descricao, valor));
+            }
+        }
+        return lista;
+    }
+
+    /** Parcelas da nota (cobr/dup); ausente é lista vazia. O vencimento é opcional, mas se vier precisa ser uma data. */
+    private static List<NotaNfe.Parcela> parcelas(Element inf) {
+        List<NotaNfe.Parcela> lista = new ArrayList<>();
+        Element cobr = filho(inf, "cobr");
+        if (cobr == null) {
+            return lista;
+        }
+        for (Node no = cobr.getFirstChild(); no != null; no = no.getNextSibling()) {
+            if (no instanceof Element dup && "dup".equals(dup.getLocalName())) {
+                if (lista.size() >= MAXIMO_PARCELAS) {
+                    throw invalida();
+                }
+                String textoVencimento = texto(dup, "dVenc", 20);
+                java.time.LocalDate vencimento = null;
+                if (textoVencimento != null) {
+                    try {
+                        vencimento = java.time.LocalDate.parse(textoVencimento);
+                    } catch (DateTimeException e) {
+                        throw new RegraNegocioException("A data de vencimento de uma parcela é inválida.");
+                    }
+                }
+                BigDecimal valor = dinheiro(textoObrigatorio(dup, "vDup", 60), "vDup");
+                lista.add(new NotaNfe.Parcela(lista.size() + 1, vencimento, valor));
+            }
+        }
+        return lista;
     }
 
     /** Só NF-e modelo 55, finalidade normal (1) e saída do emitente (tpNF=1 = compra para a loja). */
