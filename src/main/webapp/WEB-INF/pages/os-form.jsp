@@ -77,9 +77,19 @@
                                     </c:otherwise>
                                 </c:choose>
                                 <div class="col-12 col-md-4">
-                                    <label class="form-label" for="identificador">Placa ou série <span class="text-muted">(opcional)</span></label>
-                                    <input id="identificador" class="form-control" type="text" name="identificador" maxlength="60"
-                                        autocomplete="off" value="<c:out value='${identificadorDigitado}'/>">
+                                    <c:choose>
+                                        <c:when test="${camposRamo.temVeiculo}">
+                                            <label class="form-label" for="identificador">Chassi ou nº de série <span class="text-muted">(opcional)</span></label>
+                                            <input id="identificador" class="form-control" type="text" name="identificador" maxlength="60"
+                                                autocomplete="off" aria-describedby="identificador-dica" value="<c:out value='${identificadorDigitado}'/>">
+                                            <div class="form-text" id="identificador-dica">Chassi do veículo ou número de série de uma peça.</div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <label class="form-label" for="identificador">Placa ou série <span class="text-muted">(opcional)</span></label>
+                                            <input id="identificador" class="form-control" type="text" name="identificador" maxlength="60"
+                                                autocomplete="off" value="<c:out value='${identificadorDigitado}'/>">
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label" for="defeito">Defeito relatado</label>
