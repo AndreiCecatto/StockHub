@@ -158,6 +158,8 @@
                 <dl class="nfe-valores">
                     <div><dt>Produtos</dt><dd class="sh-mono">R$ <fmt:formatNumber value="${nota.valorProdutos}" pattern="#,##0.00" /></dd></div>
                     <div><dt>Frete</dt><dd class="sh-mono">R$ <fmt:formatNumber value="${nota.valorFrete}" pattern="#,##0.00" /></dd></div>
+                    <c:if test="${nota.valorSeguro != null and nota.valorSeguro > 0}"><div><dt>Seguro</dt><dd class="sh-mono">R$ <fmt:formatNumber value="${nota.valorSeguro}" pattern="#,##0.00" /></dd></div></c:if>
+                    <c:if test="${nota.valorOutras != null and nota.valorOutras > 0}"><div><dt>Outras despesas</dt><dd class="sh-mono">R$ <fmt:formatNumber value="${nota.valorOutras}" pattern="#,##0.00" /></dd></div></c:if>
                     <div><dt>Desconto</dt><dd class="sh-mono">R$ <fmt:formatNumber value="${nota.valorDesconto}" pattern="#,##0.00" /></dd></div>
                     <div class="nfe-valores__total"><dt>Total da nota</dt><dd class="sh-mono">R$ <fmt:formatNumber value="${nota.valorTotal}" pattern="#,##0.00" /></dd></div>
                 </dl>

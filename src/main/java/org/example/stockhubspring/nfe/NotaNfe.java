@@ -11,7 +11,8 @@ import java.util.List;
  */
 public record NotaNfe(String chaveAcesso, int modelo, int serie, long numero, String naturezaOperacao,
                       LocalDateTime emitidaEm, Pessoa emitente, Pessoa destinatario,
-                      BigDecimal valorProdutos, BigDecimal valorFrete, BigDecimal valorDesconto,
+                      BigDecimal valorProdutos, BigDecimal valorFrete, BigDecimal valorSeguro,
+                      BigDecimal valorOutras, BigDecimal valorDesconto,
                       BigDecimal valorTotal, boolean assinaturaPresente, boolean protocoloPresente,
                       List<ItemNfe> itens) {
 
@@ -26,5 +27,15 @@ public record NotaNfe(String chaveAcesso, int modelo, int serie, long numero, St
 
     public NotaNfe {
         itens = List.copyOf(itens);
+    }
+
+    /** Forma antiga (sem seguro nem outras despesas), mantida para quem não precisa deles. */
+    public NotaNfe(String chaveAcesso, int modelo, int serie, long numero, String naturezaOperacao,
+                   LocalDateTime emitidaEm, Pessoa emitente, Pessoa destinatario, BigDecimal valorProdutos,
+                   BigDecimal valorFrete, BigDecimal valorDesconto, BigDecimal valorTotal,
+                   boolean assinaturaPresente, boolean protocoloPresente, List<ItemNfe> itens) {
+        this(chaveAcesso, modelo, serie, numero, naturezaOperacao, emitidaEm, emitente, destinatario,
+                valorProdutos, valorFrete, null, null, valorDesconto, valorTotal, assinaturaPresente,
+                protocoloPresente, itens);
     }
 }

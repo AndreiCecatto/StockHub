@@ -519,4 +519,55 @@ class NfeParserTest {
             assertThat(ler(NfeXml.notaComUmItem().emissao(ontem)).itens()).hasSize(1);
         }
     }
+
+    @Nested
+    @DisplayName("frete, seguro, outras despesas e desconto (RN-53)")
+    class Complementos {
+
+        @Test
+        @DisplayName("lê vFrete, vSeg, vOutro e vDesc da nota")
+        void totaisDaNota() {
+            NotaNfe nota = ler(NfeXml.nota().frete("10.00").seguro("2.50").outras("1.25")
+                    .item(NfeXml.item().desconto("3.00")));
+
+            assertThat(nota.valorFrete()).isEqualByComparingTo("10.00");
+            assertThat(nota.valorSeguro()).isEqualByComparingTo("2.50");
+            assertThat(nota.valorOutras()).isEqualByComparingTo("1.25");
+            assertThat(nota.valorDesconto()).isEqualByComparingTo("3.00");
+        }
+
+        @Test
+        @DisplayName("sem as tags, seguro e outras despesas ficam nulos (nota antiga continua válida)")
+        void ausentes() {
+            NotaNfe nota = ler(NfeXml.notaComUmItem());
+
+            assertThat(nota.valorSeguro()).isNull();
+            assertThat(nota.valorOutras()).isNull();
+            ItemNfe item = nota.itens().get(0);
+            assertThat(item.frete()).isNull();
+            assertThat(item.seguro()).isNull();
+            assertThat(item.outras()).isNull();
+        }
+
+        @Test
+        @DisplayName("lê frete, seguro, outras despesas e desconto do item")
+        void itens() {
+            ItemNfe item = ler(NfeXml.nota().item(NfeXml.item().frete("1.10").seguro("0.20").outras("0.30")
+                    .desconto("0.50"))).itens().get(0);
+
+            assertThat(item.frete()).isEqualByComparingTo("1.10");
+            assertThat(item.seguro()).isEqualByComparingTo("0.20");
+            assertThat(item.outras()).isEqualByComparingTo("0.30");
+            assertThat(item.desconto()).isEqualByComparingTo("0.50");
+        }
+
+        @Test
+        @DisplayName("valor negativo ou com formato inválido é recusado")
+        void invalidos() {
+            recusa(NfeXml.nota().seguro("-1.00").item(NfeXml.item()).bytes(), "vSeg");
+            recusa(NfeXml.nota().outras("1.00").item(NfeXml.item()).xml().replace("<vOutro>1.00<", "<vOutro>abc<")
+                    .getBytes(StandardCharsets.UTF_8), "vOutro");
+            recusa(NfeXml.nota().item(NfeXml.item().frete("1.234")).bytes(), "vFrete");
+        }
+    }
 }

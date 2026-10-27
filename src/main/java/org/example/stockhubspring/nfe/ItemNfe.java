@@ -14,7 +14,16 @@ import java.util.Set;
  */
 public record ItemNfe(int numero, String codigoFornecedor, String ean, String descricao, String ncm,
                       String cfop, String cfopEntrada, String unidade, BigDecimal quantidade,
-                      BigDecimal valorUnitario, BigDecimal valorBruto, BigDecimal desconto) {
+                      BigDecimal valorUnitario, BigDecimal valorBruto, BigDecimal desconto,
+                      BigDecimal frete, BigDecimal seguro, BigDecimal outras) {
+
+    /** Forma antiga (sem frete, seguro e outras despesas do item). */
+    public ItemNfe(int numero, String codigoFornecedor, String ean, String descricao, String ncm,
+                   String cfop, String cfopEntrada, String unidade, BigDecimal quantidade,
+                   BigDecimal valorUnitario, BigDecimal valorBruto, BigDecimal desconto) {
+        this(numero, codigoFornecedor, ean, descricao, ncm, cfop, cfopEntrada, unidade, quantidade,
+                valorUnitario, valorBruto, desconto, null, null, null);
+    }
 
     /** Maior custo unitário que cabe na coluna produto.custo (NUMERIC(14,4)). */
     public static final BigDecimal CUSTO_MAXIMO = new BigDecimal("9999999999.9999");

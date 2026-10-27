@@ -33,6 +33,9 @@ public final class NfeXml {
         String unitario = "5.0000000000";
         String bruto;
         String desconto;
+        String frete;
+        String seguro;
+        String outras;
 
         public Item codigo(String v) {
             codigo = v;
@@ -79,6 +82,21 @@ public final class NfeXml {
             return this;
         }
 
+        public Item frete(String v) {
+            frete = v;
+            return this;
+        }
+
+        public Item seguro(String v) {
+            seguro = v;
+            return this;
+        }
+
+        public Item outras(String v) {
+            outras = v;
+            return this;
+        }
+
         public Item desconto(String v) {
             desconto = v;
             return this;
@@ -111,6 +129,11 @@ public final class NfeXml {
     private String idChave;
     private String chaveProtocolo;
     private String prefixoXml = "";
+    private String freteNota;
+    private String seguroNota;
+    private String outrasNota;
+    private final List<String[]> pagamentos = new ArrayList<>();
+    private final List<String[]> parcelas = new ArrayList<>();
     private final List<Item> itens = new ArrayList<>();
 
     public static NfeXml nota() {
@@ -185,6 +208,34 @@ public final class NfeXml {
     /** Código numérico (cNF) da chave: muda a chave sem mudar emitente, modelo, série e número. */
     public NfeXml codigoNumerico(int codigo) {
         cNf = codigo;
+        return this;
+    }
+
+    /** Frete, seguro e outras despesas no total da nota (ICMSTot). */
+    public NfeXml frete(String v) {
+        freteNota = v;
+        return this;
+    }
+
+    public NfeXml seguro(String v) {
+        seguroNota = v;
+        return this;
+    }
+
+    public NfeXml outras(String v) {
+        outrasNota = v;
+        return this;
+    }
+
+    /** Forma de pagamento (pag/detPag): código tPag, valor e, opcionalmente, a descrição (xPag). */
+    public NfeXml pagamento(String tPag, String valor, String xPag) {
+        pagamentos.add(new String[]{tPag, valor, xPag});
+        return this;
+    }
+
+    /** Parcela (cobr/dup) com vencimento aaaa-mm-dd (pode ser nulo). */
+    public NfeXml parcela(String vencimento, String valor) {
+        parcelas.add(new String[]{vencimento, valor});
         return this;
     }
 
@@ -288,6 +339,7 @@ public final class NfeXml {
         }
         BigDecimal totalProdutos = BigDecimal.ZERO;
         BigDecimal totalDesconto = BigDecimal.ZERO;
+        BigDecimal somaDespesas = BigDecimal.ZERO;
         int n = 1;
         for (Item i : itens) {
             x.append("<det nItem=\"").append(n++).append("\"><prod><cProd>").append(esc(i.codigo))
@@ -297,15 +349,66 @@ public final class NfeXml {
                     .append(i.quantidade).append("</qCom><vUnCom>").append(i.unitario).append("</vUnCom><vProd>")
                     .append(i.valorBruto()).append("</vProd>");
             totalProdutos = totalProdutos.add(new BigDecimal(i.valorBruto()));
+            if (i.frete != null) {
+                x.append("<vFrete>").append(i.frete).append("</vFrete>");
+                somaDespesas = somaDespesas.add(new BigDecimal(i.frete));
+            }
+            if (i.seguro != null) {
+                x.append("<vSeg>").append(i.seguro).append("</vSeg>");
+                somaDespesas = somaDespesas.add(new BigDecimal(i.seguro));
+            }
             if (i.desconto != null) {
                 x.append("<vDesc>").append(i.desconto).append("</vDesc>");
                 totalDesconto = totalDesconto.add(new BigDecimal(i.desconto));
             }
+            if (i.outras != null) {
+                x.append("<vOutro>").append(i.outras).append("</vOutro>");
+                somaDespesas = somaDespesas.add(new BigDecimal(i.outras));
+            }
             x.append("</prod></det>");
         }
-        x.append("<total><ICMSTot><vProd>").append(totalProdutos.toPlainString()).append("</vProd><vFrete>0.00</vFrete><vDesc>")
-                .append(totalDesconto.setScale(2, RoundingMode.HALF_UP).toPlainString()).append("</vDesc><vNF>")
-                .append(totalProdutos.subtract(totalDesconto).toPlainString()).append("</vNF></ICMSTot></total>");
+        BigDecimal vNf = totalProdutos.subtract(totalDesconto);
+        x.append("<total><ICMSTot><vProd>").append(totalProdutos.toPlainString()).append("</vProd><vFrete>")
+                .append(freteNota != null ? freteNota : "0.00").append("</vFrete>");
+        if (seguroNota != null) {
+            x.append("<vSeg>").append(seguroNota).append("</vSeg>");
+        }
+        x.append("<vDesc>").append(totalDesconto.setScale(2, RoundingMode.HALF_UP).toPlainString()).append("</vDesc>");
+        if (outrasNota != null) {
+            x.append("<vOutro>").append(outrasNota).append("</vOutro>");
+        }
+        for (String v : new String[]{freteNota, seguroNota, outrasNota}) {
+            if (v != null) {
+                vNf = vNf.add(new BigDecimal(v));
+            }
+        }
+        if (freteNota == null && seguroNota == null && outrasNota == null) {
+            vNf = vNf.add(somaDespesas);
+        }
+        x.append("<vNF>").append(vNf.toPlainString()).append("</vNF></ICMSTot></total>");
+        if (!parcelas.isEmpty()) {
+            x.append("<cobr><fat><nFat>1</nFat></fat>");
+            int p = 1;
+            for (String[] parcela : parcelas) {
+                x.append("<dup><nDup>").append(String.format("%03d", p++)).append("</nDup>");
+                if (parcela[0] != null) {
+                    x.append("<dVenc>").append(parcela[0]).append("</dVenc>");
+                }
+                x.append("<vDup>").append(parcela[1]).append("</vDup></dup>");
+            }
+            x.append("</cobr>");
+        }
+        if (!pagamentos.isEmpty()) {
+            x.append("<pag>");
+            for (String[] pg : pagamentos) {
+                x.append("<detPag><tPag>").append(pg[0]).append("</tPag>");
+                if (pg[2] != null) {
+                    x.append("<xPag>").append(esc(pg[2])).append("</xPag>");
+                }
+                x.append("<vPag>").append(pg[1]).append("</vPag></detPag>");
+            }
+            x.append("</pag>");
+        }
         x.append("</infNFe>");
         if (assinatura) {
             x.append("<Signature xmlns=\"http://www.w3.org/2000/09/xmldsig#\"><SignedInfo/></Signature>");

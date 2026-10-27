@@ -290,6 +290,8 @@ public final class NfeParser {
         }
         BigDecimal valorProdutos = totais == null ? null : dinheiro(texto(totais, "vProd", 60), "vProd");
         BigDecimal valorFrete = totais == null ? null : dinheiro(texto(totais, "vFrete", 60), "vFrete");
+        BigDecimal valorSeguro = totais == null ? null : dinheiro(texto(totais, "vSeg", 60), "vSeg");
+        BigDecimal valorOutras = totais == null ? null : dinheiro(texto(totais, "vOutro", 60), "vOutro");
         BigDecimal valorDesconto = totais == null ? null : dinheiro(texto(totais, "vDesc", 60), "vDesc");
         BigDecimal valorTotal = totais == null ? null : dinheiro(texto(totais, "vNF", 60), "vNF");
 
@@ -297,7 +299,8 @@ public final class NfeParser {
         boolean assinatura = filho(nfe, "Signature") != null;
 
         return new NotaNfe(chave, modelo, serie, numero, naturezaOperacao, emitidaEm, emitente, destinatario,
-                valorProdutos, valorFrete, valorDesconto, valorTotal, assinatura, protocolo != null, itens);
+                valorProdutos, valorFrete, valorSeguro, valorOutras, valorDesconto, valorTotal, assinatura,
+                protocolo != null, itens);
     }
 
     /** Só NF-e modelo 55, finalidade normal (1) e saída do emitente (tpNF=1 = compra para a loja). */
@@ -371,7 +374,9 @@ public final class NfeParser {
         String textoDesconto = texto(prod, "vDesc", 60);
         BigDecimal desconto = textoDesconto == null ? null : numero(NUM_DINHEIRO, textoDesconto, "vDesc");
         return new ItemNfe(sequencia, codigo, ean, descricao, ncm, cfop, cfopDeEntrada(cfop), unidade,
-                quantidade, unitario, bruto, desconto);
+                quantidade, unitario, bruto, desconto,
+                dinheiro(texto(prod, "vFrete", 60), "vFrete"), dinheiro(texto(prod, "vSeg", 60), "vSeg"),
+                dinheiro(texto(prod, "vOutro", 60), "vOutro"));
     }
 
     /** 5xxx para 1xxx, 6xxx para 2xxx, 7xxx para 3xxx, mantendo os 3 últimos dígitos; outro início fica sem derivação. */

@@ -59,6 +59,12 @@ public class NotaFiscal {
     @Column(name = "valor_frete", precision = 14, scale = 2)
     private BigDecimal valorFrete;
 
+    @Column(name = "valor_seguro", precision = 14, scale = 2)
+    private BigDecimal valorSeguro;
+
+    @Column(name = "valor_outras", precision = 14, scale = 2)
+    private BigDecimal valorOutras;
+
     @Column(name = "valor_desconto", precision = 14, scale = 2)
     private BigDecimal valorDesconto;
 
@@ -182,5 +188,21 @@ public class NotaFiscal {
 
     public void setImportadaEm(LocalDateTime importadaEm) {
         this.importadaEm = importadaEm;
+    }
+
+    public BigDecimal getValorSeguro() {
+        return valorSeguro;
+    }
+
+    public void setValorSeguro(BigDecimal valorSeguro) {
+        this.valorSeguro = valorSeguro;
+    }
+
+    public BigDecimal getValorOutras() {
+        return valorOutras;
+    }
+
+    public void setValorOutras(BigDecimal valorOutras) {
+        this.valorOutras = valorOutras;
     }
 }

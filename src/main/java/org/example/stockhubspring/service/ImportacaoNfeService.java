@@ -591,6 +591,8 @@ public class ImportacaoNfeService {
         notaFiscal.setCnpjDestinatario(nota.destinatario() == null ? null : nota.destinatario().documento());
         notaFiscal.setValorProdutos(nota.valorProdutos());
         notaFiscal.setValorFrete(nota.valorFrete());
+        notaFiscal.setValorSeguro(nota.valorSeguro());
+        notaFiscal.setValorOutras(nota.valorOutras());
         notaFiscal.setValorDesconto(nota.valorDesconto());
         notaFiscal.setValorTotal(nota.valorTotal());
         notaFiscal.setImportadaEm(agora());
@@ -619,6 +621,11 @@ public class ImportacaoNfeService {
         registro.setQuantidade(item.quantidade());
         registro.setValorUnitario(item.valorUnitario());
         registro.setValorTotal(item.valorBruto());
+        registro.setValorDesconto(item.desconto());
+        registro.setValorFrete(item.frete());
+        registro.setValorSeguro(item.seguro());
+        registro.setValorOutras(item.outras());
+        registro.setCustoUnitario(item.custoUnitario());
         return registro;
     }
 

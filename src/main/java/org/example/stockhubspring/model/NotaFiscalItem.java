@@ -73,6 +73,21 @@ public class NotaFiscalItem {
     @JoinColumn(name = "movimentacao_id")
     private MovimentacaoEstoque movimentacao;
 
+    @Column(name = "valor_desconto", precision = 14, scale = 2)
+    private BigDecimal valorDesconto;
+
+    @Column(name = "valor_frete", precision = 14, scale = 2)
+    private BigDecimal valorFrete;
+
+    @Column(name = "valor_seguro", precision = 14, scale = 2)
+    private BigDecimal valorSeguro;
+
+    @Column(name = "valor_outras", precision = 14, scale = 2)
+    private BigDecimal valorOutras;
+
+    @Column(name = "custo_unitario", precision = 14, scale = 4)
+    private BigDecimal custoUnitario;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private SituacaoItemNfe situacao;
@@ -199,5 +214,45 @@ public class NotaFiscalItem {
 
     public void setSituacao(SituacaoItemNfe situacao) {
         this.situacao = situacao;
+    }
+
+    public BigDecimal getValorDesconto() {
+        return valorDesconto;
+    }
+
+    public void setValorDesconto(BigDecimal valorDesconto) {
+        this.valorDesconto = valorDesconto;
+    }
+
+    public BigDecimal getValorFrete() {
+        return valorFrete;
+    }
+
+    public void setValorFrete(BigDecimal valorFrete) {
+        this.valorFrete = valorFrete;
+    }
+
+    public BigDecimal getValorSeguro() {
+        return valorSeguro;
+    }
+
+    public void setValorSeguro(BigDecimal valorSeguro) {
+        this.valorSeguro = valorSeguro;
+    }
+
+    public BigDecimal getValorOutras() {
+        return valorOutras;
+    }
+
+    public void setValorOutras(BigDecimal valorOutras) {
+        this.valorOutras = valorOutras;
+    }
+
+    public BigDecimal getCustoUnitario() {
+        return custoUnitario;
+    }
+
+    public void setCustoUnitario(BigDecimal custoUnitario) {
+        this.custoUnitario = custoUnitario;
     }
 }
