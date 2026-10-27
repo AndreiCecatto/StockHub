@@ -21,7 +21,7 @@
 <c:set var="eMinimo" value="${errosCampos['estoqueMinimo']}" />
 <c:set var="temErrosCampos" value="${not empty eNome or not empty eDescricao or not empty eCategoria or not empty ePreco or not empty eQuantidade or not empty eMinimo}" />
 
-<sh:layout titulo="${edicao ? 'Editar produto' : 'Novo produto'}" ativo="produtos" largura="form" formulario="true"
+<sh:layout titulo="${edicao ? 'Editar produto' : 'Novo produto'}" ativo="produtos" formulario="true"
     voltarUrl="/produtos" voltarRotulo="Produtos">
     <jsp:attribute name="migalhas">
         <li class="breadcrumb-item"><a href="${ctx}/dashboard">Início</a></li>
@@ -32,12 +32,13 @@
         <li class="breadcrumb-item active" aria-current="page"><c:out value="${edicao ? 'Editar' : 'Novo produto'}" /></li>
     </jsp:attribute>
     <jsp:attribute name="scripts">
+        <script src="${ctx}/js/v3-prod-init.js"></script>
         <link rel="stylesheet" href="${ctx}/css/lote-produtos.css">
         <script defer src="${ctx}/js/produtos.js"></script>
     </jsp:attribute>
     <jsp:body>
         <sh:cabecalhoPagina titulo="${edicao ? 'Editar produto' : 'Novo produto'}"
-            descricao="${edicao ? 'Corrija nome, categoria, preço e estoque mínimo. O saldo muda por movimentação.' : 'Informe os dados do item e o estoque com que ele começa.'}" />
+            descricao="${edicao ? 'Altere nome, categoria, preço e estoque mínimo. O saldo só muda por movimentação.' : 'Informe os dados do item e o saldo com que ele começa.'}" />
 
         <c:if test="${empty categorias}">
             <div class="sh-alert sh-alert--warning" role="status">
@@ -67,6 +68,8 @@
                 </ul>
             </div>
 
+            <div class="v3-form-grade">
+            <div class="v3-form-grade__campos">
             <%-- ===== Informações ===== --%>
             <section class="sh-card sh-secao" aria-labelledby="titulo-informacoes">
                 <div class="sh-card__cab">
@@ -198,6 +201,33 @@
                     </div>
                 </div>
             </section>
+
+            </div>
+
+            <%-- ===== Prévia ao vivo: situação do estoque com os valores digitados ===== --%>
+            <c:set var="pSaldo" value="${empty produto.quantidade ? 0 : produto.quantidade}" />
+            <c:set var="pMin" value="${empty produto.estoqueMinimo ? 0 : produto.estoqueMinimo}" />
+            <c:set var="pNivel" value="${pSaldo <= 0 ? 'SEM_ESTOQUE' : (pSaldo <= pMin ? 'BAIXO' : 'NORMAL')}" />
+            <aside class="v3-previa v3-so-js" data-v3-previa-produto data-v3-nivel="<c:out value='${pNivel}'/>" aria-labelledby="titulo-previa">
+                <h2 class="sh-eyebrow" id="titulo-previa">Prévia da situação</h2>
+                <p class="v3-previa__linha">
+                    <span class="v3-previa__num v3-mono" data-v3-prev-saldo><c:out value="${pSaldo}" /></span>
+                    <span class="v3-previa__un">un.</span>
+                    <span data-v3-prev-selo><sh:badgeEstoque nivel="${pNivel}" /></span>
+                </p>
+                <span class="sh-meter sh-meter--${pNivel == 'NORMAL' ? 'normal' : (pNivel == 'BAIXO' ? 'baixo' : 'sem')}" data-v3-prev-medidor ${pMin > 0 ? '' : 'hidden'} aria-hidden="true">
+                    <span class="sh-meter__fill sh-w-0" data-v3-prev-enche></span>
+                    <span class="sh-meter__minimo"></span>
+                </span>
+                <p class="v3-previa__texto" data-v3-prev-texto aria-live="polite"></p>
+                <dl class="v3-dl v3-previa__dl">
+                    <div class="v3-dl__item">
+                        <dt>Valor em estoque</dt>
+                        <dd class="v3-mono" data-v3-prev-valor>&mdash;</dd>
+                    </div>
+                </dl>
+            </aside>
+            </div>
 
             <div class="sh-form-actions">
                 <a class="btn btn-outline-secondary" href="${ctx}/produtos">Cancelar</a>

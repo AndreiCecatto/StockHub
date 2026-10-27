@@ -1,35 +1,39 @@
 /*
- * StockHub: JavaScript do lote 3 (produtos e categorias). Vanilla, sem build.
- * Carregado só por produtos.jsp, categorias.jsp e produto-form.jsp (fragmento "scripts" do layout.tag).
+ * StockHub v3: JavaScript de produtos e categorias (lista, formulários). Vanilla, sem build.
+ * Carregado por produtos.jsp, categorias.jsp, produto-form.jsp e categoria-form.jsp (fragmento "scripts" do layout.tag).
+ * O ajuste rápido de saldo fica em js/v3-prod-ajuste.js (só a lista de produtos).
  *
- * 1) Busca ao digitar (seção 4.8 de docs/design-system.md)
- *    form[data-busca-viva]       formulário GET de filtros; sem JS ele envia normalmente (Enter e botão Buscar)
- *    [data-regiao-viva]          trecho da página que é trocado pelo mesmo trecho da resposta do servidor
- *    [data-busca-esqueleto]      esqueleto mostrado só se a resposta demorar
- *    [data-busca-erro]           alerta "Não foi possível atualizar a lista" (com [data-busca-tentar])
- *    [data-contagem]             texto "N produtos" dentro da região, anunciado para leitores de tela
- *    Depois de 300 ms sem digitar (ou ao mudar um select ou chip) faz fetch GET na mesma URL e com os mesmos
- *    parâmetros do formulário, troca só a região, atualiza o endereço com history.replaceState e anuncia o total.
- *    O HTML trocado vem do próprio servidor (já escapado pelas JSPs); aqui nada é montado com dado do usuário
- *    e não se usa innerHTML: os nós são importados com DOMParser e importNode.
- *
- * 2) Máscara leve do preço: input[data-prod-preco] (type=number) ganha duas casas decimais ao sair do campo.
+ * 1) Busca ao digitar: form[data-busca-viva] troca só [data-regiao-viva] (o contêiner é permanente, só os filhos mudam).
+ *    Enter envia pela mesma rota (sem recarregar a página). Feedback: indicador "Atualizando" no campo, fio de progresso,
+ *    região esmaecida, esqueleto se demorar, alerta com "Tentar de novo" se falhar.
+ *    Depois de trocar, dispara "sh:lista-trocada" na região (o ajuste rápido e a seleção se religam).
+ * 2) Lista de produtos: clique na linha abre o painel peek (o link do nome), seleção de linhas com barra de lote
+ *    (única ação: exportar o CSV dos filtros) e densidade compacta/confortável (preferência salva).
+ * 3) Máscara leve do preço; prévia ao vivo do formulário de produto (selo, medidor, valor em estoque) e de categoria.
+ * O HTML trocado vem do próprio servidor (já escapado pelas JSPs); nada aqui é montado com dado do usuário e não se usa innerHTML.
  */
 (function () {
   'use strict';
 
   var SH = (window.SH = window.SH || {});
-
-  /* ======================== 1) Busca ao digitar ======================== */
   var ATRASO_DIGITACAO = 300;
   var ATRASO_ESQUELETO = 350;
+  var ATRASO_INDICADOR = 150;
 
+  function reduz() {
+    return SH.reduzMovimento ? SH.reduzMovimento() : false;
+  }
+
+  /* ======================== 1) Busca ao digitar ======================== */
   function iniciarBuscaViva(form, regiao) {
     var esqueleto = document.querySelector('[data-busca-esqueleto]');
     var erro = document.querySelector('[data-busca-erro]');
     var tentar = document.querySelector('[data-busca-tentar]');
+    var indicador = document.querySelector('[data-busca-indicador]');
+    var progresso = document.querySelector('[data-busca-progresso]');
     var temporizador = null;
     var temporizadorEsqueleto = null;
+    var temporizadorIndicador = null;
     var controle = null;
     var sequencia = 0;
 
@@ -48,10 +52,19 @@
     function comecouCarregar() {
       regiao.classList.add('is-carregando');
       regiao.setAttribute('aria-busy', 'true');
+      if (progresso) {
+        progresso.classList.add('is-ativo');
+      }
       if (erro) {
         erro.hidden = true;
       }
       window.clearTimeout(temporizadorEsqueleto);
+      window.clearTimeout(temporizadorIndicador);
+      temporizadorIndicador = window.setTimeout(function () {
+        if (indicador) {
+          indicador.hidden = false;
+        }
+      }, ATRASO_INDICADOR);
       temporizadorEsqueleto = window.setTimeout(function () {
         if (esqueleto) {
           esqueleto.hidden = false;
@@ -61,8 +74,15 @@
 
     function terminouCarregar() {
       window.clearTimeout(temporizadorEsqueleto);
+      window.clearTimeout(temporizadorIndicador);
       regiao.classList.remove('is-carregando');
       regiao.removeAttribute('aria-busy');
+      if (progresso) {
+        progresso.classList.remove('is-ativo');
+      }
+      if (indicador) {
+        indicador.hidden = true;
+      }
       if (esqueleto) {
         esqueleto.hidden = true;
       }
@@ -77,10 +97,10 @@
       });
     }
 
-    function carregar() {
+    function carregar(forcar) {
       window.clearTimeout(temporizador);
       var url = urlDoFormulario();
-      if (url === ultimaUrl && !regiao.classList.contains('is-falhou')) {
+      if (forcar !== true && url === ultimaUrl && !regiao.classList.contains('is-falhou')) {
         return; // nada mudou desde a última lista mostrada
       }
       var minha = ++sequencia;
@@ -97,8 +117,12 @@
           signal: controle ? controle.signal : undefined
         })
         .then(function (resposta) {
-          // Sessão expirada: o servidor manda para o login. Deixa o formulário seguir o caminho normal.
-          if (!resposta.ok || (resposta.redirected && /\/login(\?|$)/.test(resposta.url))) {
+          // Sessão expirada: o servidor manda para o login. Deixa o navegador seguir o caminho normal.
+          if (resposta.redirected && /\/login(\?|$)/.test(resposta.url)) {
+            window.location.href = resposta.url;
+            throw new Error('sessão expirada');
+          }
+          if (!resposta.ok) {
             throw new Error('resposta inválida');
           }
           return resposta.text();
@@ -118,11 +142,13 @@
           if (window.history && window.history.replaceState) {
             window.history.replaceState(null, '', url);
           }
+          terminouCarregar();
+          aplicarDensidade();
+          regiao.dispatchEvent(new window.CustomEvent('sh:lista-trocada', { bubbles: true }));
           var contagem = regiao.querySelector('[data-contagem]');
           if (contagem && SH.anunciar) {
             SH.anunciar('Lista atualizada: ' + contagem.textContent.replace(/\s+/g, ' ').trim() + '.');
           }
-          terminouCarregar();
         })
         .catch(function (falha) {
           if ((falha && falha.name === 'AbortError') || minha !== sequencia) {
@@ -160,19 +186,248 @@
         agendar();
       }
     });
-    // Enter e botão Buscar: envio normal do formulário (a página inteira). Cancela o que estiver pendente.
-    form.addEventListener('submit', function () {
-      window.clearTimeout(temporizador);
-      sequencia++;
-      if (controle && controle.abort) {
-        controle.abort();
-      }
+    // Enter e botão Buscar: busca na hora, sem recarregar a página
+    form.addEventListener('submit', function (evento) {
+      evento.preventDefault();
+      carregar(true);
     });
     if (tentar) {
-      tentar.addEventListener('click', carregar);
+      tentar.addEventListener('click', function () {
+        carregar(true);
+      });
     }
   }
 
+  /* ======================== 2) Lista de produtos ======================== */
+  var raiz = document.documentElement;
+
+  function aplicarDensidade() {
+    var d = raiz.getAttribute('data-v3-densidade') === 'compacta' ? 'compacta' : 'confortavel';
+    var botoes = document.querySelectorAll('button[data-v3-densidade]');
+    Array.prototype.forEach.call(botoes, function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-v3-densidade') === d ? 'true' : 'false');
+    });
+  }
+
+  function iniciarLista(regiao) {
+    aplicarDensidade();
+
+    // Densidade (preferência salva)
+    regiao.addEventListener('click', function (evento) {
+      var botao = evento.target.closest ? evento.target.closest('button[data-v3-densidade]') : null;
+      if (!botao) {
+        return;
+      }
+      var d = botao.getAttribute('data-v3-densidade');
+      raiz.setAttribute('data-v3-densidade', d);
+      if (SH.armazenar) {
+        SH.armazenar.gravar('sh-prod-densidade', d);
+      }
+      aplicarDensidade();
+    });
+
+    // Clique na linha (fora de controles) abre o painel pelo link do nome
+    regiao.addEventListener('click', function (evento) {
+      if (evento.defaultPrevented || evento.button !== 0 || evento.metaKey || evento.ctrlKey || evento.shiftKey || evento.altKey) {
+        return;
+      }
+      var alvo = evento.target;
+      if (!alvo.closest || alvo.closest('a, button, input, select, textarea, label, form, [data-v3-aj]')) {
+        return;
+      }
+      var linha = alvo.closest('tr[data-v3-linha]');
+      var link = linha ? linha.querySelector('[data-sh-peek]') : null;
+      if (link) {
+        link.click();
+      }
+    });
+
+    // Seleção e barra de lote
+    function selecionadas() {
+      return regiao.querySelectorAll('[data-v3-sel]:checked');
+    }
+
+    function atualizarLote() {
+      var lote = regiao.querySelector('[data-v3-lote]');
+      var todos = regiao.querySelector('[data-v3-sel-todos]');
+      var caixas = regiao.querySelectorAll('[data-v3-sel]');
+      var n = selecionadas().length;
+      Array.prototype.forEach.call(caixas, function (c) {
+        var linha = c.closest('tr');
+        if (linha) {
+          linha.classList.toggle('is-selecionada', c.checked);
+        }
+      });
+      if (todos) {
+        todos.checked = n > 0 && n === caixas.length;
+        todos.indeterminate = n > 0 && n < caixas.length;
+      }
+      if (!lote) {
+        return;
+      }
+      var antes = lote.hidden;
+      lote.hidden = n === 0;
+      var num = lote.querySelector('[data-v3-lote-n]');
+      var rot = lote.querySelector('[data-v3-lote-rotulo]');
+      if (num) {
+        num.textContent = String(n);
+      }
+      if (rot) {
+        rot.textContent = n === 1 ? 'selecionado' : 'selecionados';
+      }
+      if (antes !== lote.hidden && SH.anunciar) {
+        SH.anunciar(n === 0 ? 'Seleção limpa.' : n + (n === 1 ? ' produto selecionado.' : ' produtos selecionados.'));
+      }
+    }
+
+    regiao.addEventListener('change', function (evento) {
+      var alvo = evento.target;
+      if (!alvo || !alvo.matches) {
+        return;
+      }
+      if (alvo.matches('[data-v3-sel-todos]')) {
+        Array.prototype.forEach.call(regiao.querySelectorAll('[data-v3-sel]'), function (c) {
+          c.checked = alvo.checked;
+        });
+        atualizarLote();
+      } else if (alvo.matches('[data-v3-sel]')) {
+        atualizarLote();
+      }
+    });
+
+    regiao.addEventListener('click', function (evento) {
+      var limpar = evento.target.closest ? evento.target.closest('[data-v3-lote-limpar]') : null;
+      if (limpar) {
+        Array.prototype.forEach.call(regiao.querySelectorAll('[data-v3-sel], [data-v3-sel-todos]'), function (c) {
+          c.checked = false;
+        });
+        atualizarLote();
+      }
+    });
+  }
+
+  /* ======================== 3) Formulários ======================== */
+  function numero(campo) {
+    if (!campo) {
+      return 0;
+    }
+    var n = parseInt(String(campo.value).replace(/\D/g, ''), 10);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function nivelDe(saldo, minimo) {
+    return saldo <= 0 ? 'SEM_ESTOQUE' : saldo <= minimo ? 'BAIXO' : 'NORMAL';
+  }
+
+  var NIVEIS = {
+    NORMAL: { classe: 'sh-badge--normal', icone: 'bi-check-circle-fill', texto: 'Normal', tom: 'normal' },
+    BAIXO: { classe: 'sh-badge--baixo', icone: 'bi-exclamation-triangle-fill', texto: 'Baixo', tom: 'baixo' },
+    SEM_ESTOQUE: { classe: 'sh-badge--sem', icone: 'bi-x-octagon-fill', texto: 'Sem estoque', tom: 'sem' }
+  };
+
+  function iniciarPreviaProduto(previa) {
+    var saldoEl = document.getElementById('quantidade');
+    var minEl = document.getElementById('estoqueMinimo');
+    var precoEl = document.getElementById('preco');
+    var selo = previa.querySelector('[data-v3-prev-selo]');
+    var medidor = previa.querySelector('[data-v3-prev-medidor]');
+    var enche = previa.querySelector('[data-v3-prev-enche]');
+    var texto = previa.querySelector('[data-v3-prev-texto]');
+    var valor = previa.querySelector('[data-v3-prev-valor]');
+    var saldoNum = previa.querySelector('[data-v3-prev-saldo]');
+    var fmt = window.Intl ? new window.Intl.NumberFormat('pt-BR') : { format: String };
+    var moeda = window.Intl ? new window.Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }) : { format: String };
+    var nivelAnterior = previa.getAttribute('data-v3-nivel');
+    var fala = null;
+
+    function degrau(saldo, minimo) {
+      var pct = Math.max(0, Math.min(100, (saldo * 50) / minimo));
+      var passo = Math.round(pct / 5) * 5;
+      return saldo > 0 && passo === 0 ? 5 : passo;
+    }
+
+    function atualizar() {
+      var saldo = numero(saldoEl);
+      var minimo = numero(minEl);
+      var nivel = nivelDe(saldo, minimo);
+      var cfg = NIVEIS[nivel];
+      if (selo && nivel !== nivelAnterior) {
+        selo.textContent = '';
+        var b = document.createElement('span');
+        b.className = 'sh-badge ' + cfg.classe + ' v3-troca';
+        var i = document.createElement('i');
+        i.className = 'bi ' + cfg.icone;
+        i.setAttribute('aria-hidden', 'true');
+        b.appendChild(i);
+        b.appendChild(document.createTextNode(cfg.texto));
+        selo.appendChild(b);
+        nivelAnterior = nivel;
+      }
+      if (medidor) {
+        medidor.hidden = minimo <= 0;
+        medidor.className = 'sh-meter sh-meter--' + cfg.tom;
+        if (enche && minimo > 0) {
+          enche.className = 'sh-meter__fill sh-w-' + degrau(saldo, minimo);
+        }
+      }
+      if (saldoNum) {
+        saldoNum.textContent = fmt.format(saldo);
+      }
+      var frase;
+      if (nivel === 'SEM_ESTOQUE') {
+        frase = 'Com saldo 0, o produto fica Sem estoque.';
+      } else if (minimo <= 0) {
+        frase = 'Sem estoque mínimo definido, o produto não passa para Baixo.';
+      } else if (nivel === 'BAIXO') {
+        frase = 'Com saldo ' + fmt.format(saldo) + ' e mínimo ' + fmt.format(minimo) + ', o produto aparece como Baixo. Acima de ' + fmt.format(minimo) + ' un. ele fica Normal.';
+      } else {
+        frase = 'Com saldo ' + fmt.format(saldo) + ' e mínimo ' + fmt.format(minimo) + ', o produto fica Normal.';
+      }
+      if (texto) {
+        texto.textContent = frase;
+      }
+      if (valor && precoEl) {
+        var preco = parseFloat(precoEl.value);
+        valor.textContent = isNaN(preco) ? '—' : moeda.format(preco * saldo);
+      }
+    }
+
+    [saldoEl, minEl, precoEl].forEach(function (c) {
+      if (c) {
+        c.addEventListener('input', atualizar);
+      }
+    });
+    atualizar();
+    fala = null;
+    return fala;
+  }
+
+  function iniciarPreviaCategoria(previa) {
+    var nomeEl = document.getElementById('nome');
+    var descEl = document.getElementById('descricao');
+    var nomeSaida = previa.querySelector('[data-v3-cat-nome]');
+    var descSaida = previa.querySelector('[data-v3-cat-desc]');
+    function atualizar() {
+      var nome = nomeEl ? nomeEl.value.trim() : '';
+      var desc = descEl ? descEl.value.trim() : '';
+      if (nomeSaida) {
+        nomeSaida.textContent = nome || 'Nome da categoria';
+        nomeSaida.classList.toggle('is-vazio', !nome);
+      }
+      if (descSaida) {
+        descSaida.textContent = desc || 'Sem descrição';
+        descSaida.classList.toggle('is-vazio', !desc);
+      }
+    }
+    [nomeEl, descEl].forEach(function (c) {
+      if (c) {
+        c.addEventListener('input', atualizar);
+      }
+    });
+    atualizar();
+  }
+
+  /* ======================== Início ======================== */
   var formulario = document.querySelector('form[data-busca-viva]');
   var regiaoViva = document.querySelector('[data-regiao-viva]');
   if (
@@ -186,8 +441,10 @@
   ) {
     iniciarBuscaViva(formulario, regiaoViva);
   }
+  if (regiaoViva && document.querySelector('[data-v3-lista-produtos]')) {
+    iniciarLista(regiaoViva);
+  }
 
-  /* ======================== 2) Máscara leve do preço ======================== */
   var precos = document.querySelectorAll('input[data-prod-preco]');
   Array.prototype.forEach.call(precos, function (campo) {
     campo.addEventListener('blur', function () {
@@ -198,4 +455,13 @@
       }
     });
   });
+
+  var previaProduto = document.querySelector('[data-v3-previa-produto]');
+  if (previaProduto) {
+    iniciarPreviaProduto(previaProduto);
+  }
+  var previaCategoria = document.querySelector('[data-v3-previa-categoria]');
+  if (previaCategoria) {
+    iniciarPreviaCategoria(previaCategoria);
+  }
 })();
