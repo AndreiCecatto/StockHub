@@ -78,7 +78,7 @@
   font-size: var(--sh-fs-micro);
   font-weight: 600;
   letter-spacing: var(--sh-track-rotulo);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .v3r-fig dd {
@@ -137,7 +137,7 @@
   background: var(--sh-surface-2);
   font-size: var(--sh-fs-micro);
   letter-spacing: var(--sh-track-rotulo);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .v3r-tabela td.sh-mono,

@@ -155,7 +155,7 @@
   font-size: var(--sh-text-sm);
   font-weight: 600;
   letter-spacing: var(--sh-track-rotulo);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .sh-auth__frase {

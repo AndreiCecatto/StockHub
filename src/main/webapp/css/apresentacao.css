@@ -787,8 +787,8 @@
   border-radius: var(--sh-radius-xs);
   font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .ap-mov--recusa .ap-mov__qtd {
@@ -1022,7 +1022,7 @@
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: var(--sh-track-rotulo);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .ap-op {

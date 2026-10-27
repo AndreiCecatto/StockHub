@@ -125,7 +125,7 @@
   font-size: var(--sh-fs-micro);
   font-weight: 600;
   letter-spacing: var(--sh-track-rotulo);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .v3e-recibo__hora {
@@ -529,7 +529,7 @@
   font-size: var(--sh-fs-micro);
   font-weight: 600;
   letter-spacing: var(--sh-track-rotulo);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .v3e-previa__numeros {
@@ -809,7 +809,7 @@
   font-size: var(--sh-fs-micro);
   font-weight: 600;
   letter-spacing: var(--sh-track-rotulo);
-  text-transform: uppercase;
+  text-transform: none;
   color: var(--sh-text-subtle);
 }
 
@@ -835,7 +835,7 @@
     font-size: var(--sh-fs-micro);
     font-weight: 600;
     letter-spacing: var(--sh-track-rotulo);
-    text-transform: uppercase;
+    text-transform: none;
   }
 
   .v3e-colunas[hidden] {

@@ -352,7 +352,7 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
   font-size: var(--sh-fs-micro);
   font-weight: 600;
   letter-spacing: var(--sh-track-rotulo);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .sh-nav__lista {
@@ -788,7 +788,7 @@ kbd.sh-tecla,
   font-size: var(--sh-fs-micro);
   font-weight: 600;
   letter-spacing: var(--sh-track-rotulo);
-  text-transform: uppercase;
+  text-transform: none;
   color: var(--sh-text-subtle);
 }
 
@@ -985,7 +985,7 @@ kbd.sh-tecla,
   font-size: var(--sh-fs-micro);
   font-weight: 600;
   letter-spacing: var(--sh-track-rotulo);
-  text-transform: uppercase;
+  text-transform: none;
   color: var(--sh-text-subtle);
 }
 

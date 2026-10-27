@@ -139,7 +139,7 @@ dialog.sh-paleta[open]::backdrop {
   font-size: var(--sh-fs-micro);
   font-weight: 600;
   letter-spacing: var(--sh-track-rotulo);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .sh-paleta__opcao {
