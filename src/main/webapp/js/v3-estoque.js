@@ -170,8 +170,8 @@
   }
 
   /* ---------- Livro-razão ---------- */
-  function hojeIso() {
-    var d = new Date();
+  function hojeIso(d) {
+    d = d || new Date();
     return d.getFullYear() + '-' + dois(d.getMonth() + 1) + '-' + dois(d.getDate());
   }
 
@@ -199,7 +199,7 @@
     li.setAttribute('data-v3e-id', String(r.movimentacaoId));
 
     var hora = el('time', 'v3e-hora sh-mono');
-    hora.setAttribute('datetime', hojeIso() + 'T' + dois(agora.getHours()) + ':' + dois(agora.getMinutes()));
+    hora.setAttribute('datetime', hojeIso(agora) + 'T' + dois(agora.getHours()) + ':' + dois(agora.getMinutes()));
     hora.appendChild(oculto('às '));
     hora.appendChild(document.createTextNode(dois(agora.getHours()) + ':' + dois(agora.getMinutes())));
 
@@ -212,6 +212,8 @@
     var prod = el('div', 'v3e-prod');
     var nome = el('a', 'v3e-prod__nome', r.nome);
     nome.href = (SH.contexto || '') + '/produtos/' + encodeURIComponent(r.produtoId);
+    nome.setAttribute('data-sh-peek', '');
+    nome.setAttribute('data-sh-peek-titulo', r.nome);
     prod.appendChild(nome);
     if (observacao) {
       prod.appendChild(el('p', 'v3e-obs', observacao));
@@ -361,8 +363,15 @@
 
   /* ---------- Sucesso ---------- */
   function sucesso(r, observacao) {
-    var agora = new Date();
-    var iso = hojeIso();
+    // hora gravada pelo servidor (sem fuso, horário de Brasília); sem ela, cai para a do navegador
+    var agora = r.criadoEm ? new Date(r.criadoEm) : new Date();
+    if (isNaN(agora.getTime())) {
+      agora = new Date();
+    }
+    var iso = hojeIso(agora);
+    if (r.observacao !== undefined && r.observacao !== null) {
+      observacao = r.observacao;
+    }
     F.atualizarProduto(r.produtoId, r.saldoNovo);
 
     var naPrimeira = (razao.getAttribute('data-v3e-pagina') || '1') === '1';

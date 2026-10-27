@@ -221,6 +221,8 @@ class ApiJsonIntegracaoTest extends IntegracaoBase {
         assertThat(resposta.saldoNovo()).isEqualTo(4);
         assertThat(resposta.nivel()).isEqualTo(NivelEstoque.BAIXO);
         assertThat(resposta.mensagem()).contains("passou de 10 para 4");
+        assertThat(resposta.observacao()).isEqualTo("Venda");
+        assertThat(resposta.criadoEm()).isNotNull().isEqualTo(resposta.criadoEm().withNano(0));
         limparSessao();
         assertThat(saldoNoBanco(p.getId())).isEqualTo(4);
 
