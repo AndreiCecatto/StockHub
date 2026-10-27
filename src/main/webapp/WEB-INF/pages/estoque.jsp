@@ -291,12 +291,20 @@
                             do mais recente ao mais antigo.
                         </p>
                     </div>
-                    <c:if test="${totalMovimentacoes > 0}">
-                        <a class="btn btn-outline-secondary btn-sm"
-                            href="<c:out value='${ctx}/estoque/exportar.csv?pagina=1${parametrosFiltros}'/>">
-                            <i class="bi bi-download" aria-hidden="true"></i> Exportar CSV
-                        </a>
-                    </c:if>
+                    <div class="v3e-razao-card__acoes">
+                        <%-- Esconde/mostra o painel de lançamento (o JS liga o botão; sem JS ele fica oculto e o painel sempre visível) --%>
+                        <button type="button" class="btn btn-outline-secondary btn-sm v3e-alternar" hidden
+                            data-v3e-alternar aria-controls="registrar" aria-expanded="true">
+                            <i class="bi bi-layout-sidebar-inset" aria-hidden="true"></i>
+                            <span data-v3e-alternar-rotulo>Esconder lançamento</span>
+                        </button>
+                        <c:if test="${totalMovimentacoes > 0}">
+                            <a class="btn btn-outline-secondary btn-sm"
+                                href="<c:out value='${ctx}/estoque/exportar.csv?pagina=1${parametrosFiltros}'/>">
+                                <i class="bi bi-download" aria-hidden="true"></i> Exportar CSV
+                            </a>
+                        </c:if>
+                    </div>
                 </header>
 
                 <%-- Filtros (GET, funcionam sem JavaScript): produto, tipo, de, ate --%>
@@ -390,7 +398,7 @@
                 <%-- Linhas agrupadas por dia. criadoEm é LocalDateTime (não é java.util.Date, então fmt:formatDate não serve):
                      toString() = "aaaa-MM-ddTHH:mm[:ss[.n]]", sempre com ao menos 16 caracteres, então fn:substring monta
                      dd/MM e HH:mm de forma segura. --%>
-                <div class="v3e-grupos" data-v3e-grupos data-sh-lista-teclado>
+                <div class="v3e-grupos" data-v3e-grupos data-sh-lista-teclado role="region" aria-labelledby="titulo-historico" tabindex="0">
                     <c:set var="diaAnterior" value="" />
                     <c:forEach var="mov" items="${movimentacoes}" varStatus="st">
                         <c:set var="dt" value="${mov.criadoEm}" />

@@ -13,6 +13,100 @@
  * A validação em português e o bloqueio de envio duplo são do js/formularios.js (este arquivo roda DEPOIS dele).
  * Tudo entra por createElement e textContent (nunca HTML montado com dado).
  */
+/*
+ * Layout do histórico (desktop): altura útil da janela para a grade, de modo que só o livro-razão role; e botão que
+ * esconde o painel de lançamento (escolha lembrada em localStorage; com o painel escondido a página rola normalmente).
+ */
+(function () {
+  'use strict';
+  var pagina = document.querySelector('.v3e');
+  var painel = document.getElementById('registrar');
+  var botao = document.querySelector('[data-v3e-alternar]');
+  if (!pagina || !painel) {
+    return;
+  }
+  var largo = window.matchMedia('(min-width: 1100px)');
+  var CHAVE = 'sh.estoque.console.escondido';
+
+  function ajustarAltura() {
+    var main = pagina.closest('.sh-main');
+    if (!largo.matches || !main || pagina.classList.contains('v3e--recolhido')) {
+      pagina.style.removeProperty('--v3e-altura');
+      return;
+    }
+    var topo = pagina.getBoundingClientRect().top + window.scrollY;
+    var resto = parseFloat(getComputedStyle(main).paddingBottom) || 0;
+    var irmao = main.nextElementSibling;
+    while (irmao) {
+      resto += irmao.offsetHeight;
+      irmao = irmao.nextElementSibling;
+    }
+    var h = Math.max(420, Math.floor(window.innerHeight - topo - resto));
+    pagina.style.setProperty('--v3e-altura', h + 'px');
+  }
+
+  function definir(escondido, guardar) {
+    pagina.classList.toggle('v3e--recolhido', escondido);
+    painel.hidden = escondido;
+    if (botao) {
+      botao.setAttribute('aria-expanded', escondido ? 'false' : 'true');
+      botao.querySelector('[data-v3e-alternar-rotulo]').textContent = escondido ? 'Registrar movimentação' : 'Esconder lançamento';
+    }
+    if (guardar) {
+      try { window.localStorage.setItem(CHAVE, escondido ? '1' : '0'); } catch (e) { /* sem armazenamento: só não lembra */ }
+    }
+    ajustarAltura();
+  }
+
+  // Reabre o painel e, se foi por um atalho, leva o foco ao seletor de produto (o elemento não era focável escondido)
+  function mostrar() {
+    if (painel.hidden) {
+      definir(false, false);
+      window.setTimeout(function () {
+        var campo = painel.querySelector('.sh-combo__input') || document.getElementById('produtoId');
+        if (campo && (document.activeElement === document.body || document.activeElement === botao)) {
+          campo.focus();
+        }
+      }, 0);
+    }
+  }
+
+  var inicial = false;
+  try { inicial = window.localStorage.getItem(CHAVE) === '1'; } catch (e) { inicial = false; }
+  // Vindo para lançar (âncora, atalho ou "Repor"/"Movimentar" de outra tela): o painel abre
+  if (window.location.hash === '#registrar' || /[?&]mov(Produto|Tipo)=/.test(window.location.search)) {
+    inicial = false;
+  }
+  if (botao) {
+    botao.hidden = false;
+    botao.addEventListener('click', function () {
+      definir(!painel.hidden, true);
+      if (painel.hidden) { botao.focus(); }
+    });
+    definir(inicial, false);
+  } else {
+    ajustarAltura();
+  }
+
+  // Quem leva ao formulário reabre o painel antes (captura: roda antes dos tratadores de foco)
+  window.addEventListener('hashchange', function () {
+    if (window.location.hash === '#registrar') { mostrar(); }
+  }, true);
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href$="#registrar"]');
+    if (a) { mostrar(); }
+  }, true);
+  document.addEventListener('keydown', function (e) {
+    if ((e.key === 'm' || e.key === 'M') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      var t = e.target;
+      if (!(t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)))) { mostrar(); }
+    }
+  }, true);
+  window.addEventListener('resize', ajustarAltura);
+  largo.addEventListener('change', ajustarAltura);
+  window.addEventListener('load', ajustarAltura);
+})();
+
 (function () {
   'use strict';
 
@@ -305,6 +399,8 @@
 
   /** Insere com FLIP: o que já estava na lista desliza para baixo (transform), a linha nova entra por fade. */
   function inserirNoTopo(li, iso, agora) {
+    // Com a caixa de rolagem própria do histórico, a linha nova só aparece se a lista estiver no topo
+    grupos.scrollTop = 0;
     var antes = [];
     var itens = Array.prototype.slice.call(grupos.querySelectorAll('.v3e-linha, .v3e-dia__titulo'));
     itens.forEach(function (e) {
