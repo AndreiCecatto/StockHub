@@ -3,12 +3,16 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="sh" tagdir="/WEB-INF/tags" %>
 <%--
-    Início (dashboard) no novo design, lote 2. Rotas "/" e "/dashboard".
-    Dados do DashboardController: resumo (totalProdutos, totalCategorias, produtosEstoqueBaixo que INCLUI o sem estoque,
-    produtosSemEstoque, quantidadeTotalItens, valorTotalEstoque), produtosRecentes (6) e produtosEstoqueBaixo (6 de
-    menor saldo; cada Produto traz categoria.nome e nivelEstoque).
-    Ordem: o que precisa de ação primeiro (reposição), depois a saúde do estoque, os totais e os recentes.
-    Sem script nem style inline: larguras por classes (.sh-seg-N) e números animados por js/numeros.js (data-contar).
+    Início (dashboard) v2 "caderneta de balcão". Rotas "/" e "/dashboard".
+    Dados do DashboardController (inalterados): resumo (totalProdutos, totalCategorias, produtosEstoqueBaixo que INCLUI o
+    sem estoque, produtosSemEstoque, quantidadeTotalItens, valorTotalEstoque), produtosRecentes (6) e produtosEstoqueBaixo
+    (6 de menor saldo; cada Produto traz categoria.nome e nivelEstoque).
+    Ordem: saudação com o mascote (reage ao estado do estoque), "o que fazer hoje" (reposição com ação rápida), saúde do
+    estoque (anel interativo), gráfico de 14 dias, os números da loja e o que chegou por último.
+    Dados vindos por fetch (js/inicio.js): GET /api/dashboard/movimentos?dias=14 -> [{dia, entradas, saidas, ajustes}].
+    Se o endpoint não existir ou falhar, o gráfico mostra um estado de erro e o resto da tela segue normal.
+    Saudação por horário e data de hoje são feitas no navegador (js/humano.js); o texto do servidor é o plano B.
+    Sem script nem style inline: larguras por classes (.sh-w-N) e números animados por js/numeros.js (data-contar).
 --%>
 <fmt:setLocale value="pt_BR" scope="request" />
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
@@ -19,6 +23,9 @@
 <c:set var="nBaixo" value="${resumo.produtosEstoqueBaixo - resumo.produtosSemEstoque}" />
 <c:set var="nNormal" value="${resumo.totalProdutos - resumo.produtosEstoqueBaixo}" />
 <c:set var="nReposicao" value="${resumo.produtosEstoqueBaixo}" />
+<c:set var="pNormal" value="0" />
+<c:set var="pBaixo" value="0" />
+<c:set var="pSem" value="0" />
 <c:if test="${nTotal > 0}">
     <%-- Percentuais inteiros que fecham em 100: Sem e Baixo arredondados, Normal é o que sobra --%>
     <fmt:formatNumber var="pSem" value="${nSem * 100 / nTotal}" maxFractionDigits="0" groupingUsed="false" />
@@ -26,25 +33,75 @@
     <c:set var="pNormal" value="${100 - pSem - pBaixo}" />
     <c:if test="${pNormal < 0}"><c:set var="pNormal" value="0" /></c:if>
 </c:if>
+<%-- Anel: cada fatia é um traço de (p - 1) com um vão de 1, para as fatias não grudarem --%>
+<c:set var="aNormal" value="${pNormal > 2 ? pNormal - 1 : pNormal}" />
+<c:set var="aBaixo" value="${pBaixo > 2 ? pBaixo - 1 : pBaixo}" />
+<c:set var="aSem" value="${pSem > 2 ? pSem - 1 : pSem}" />
+
+<%-- Estado do mascote: dormindo (loja nova), contente (tudo em dia), atenta (só baixo), preocupada (há ruptura) --%>
+<c:set var="estadoMascote" value="${nTotal == 0 ? 'dormindo' : (nReposicao == 0 ? 'contente' : (nSem > 0 ? 'preocupada' : 'atenta'))}" />
 
 <sh:layout titulo="Início" ativo="dashboard">
+    <jsp:attribute name="scripts">
+        <link rel="stylesheet" href="${ctx}/css/inicio.css">
+        <script defer src="${ctx}/js/inicio.js"></script>
+    </jsp:attribute>
     <jsp:body>
-        <sh:cabecalhoPagina titulo="Início" descricao="O que precisa de atenção hoje no estoque da sua loja.">
-            <a class="btn btn-primary" href="${ctx}/estoque">
-                <i class="bi bi-arrow-left-right" aria-hidden="true"></i> Registrar movimentação
-            </a>
-            <a class="btn btn-outline-secondary" href="${ctx}/produtos/novo">
-                <i class="bi bi-plus-lg" aria-hidden="true"></i> Novo produto
-            </a>
-        </sh:cabecalhoPagina>
+        <%-- ===== Saudação ===== --%>
+        <section class="sh-hero" aria-labelledby="titulo-saudacao">
+            <div class="sh-hero__texto">
+                <p class="sh-hero__data" data-sh-data-hoje></p>
+                <h1 class="sh-hero__titulo" id="titulo-saudacao"><span data-sh-saudacao>Olá</span>,
+                    <span class="sh-rabisco"><c:out value="${usuarioLogado.nome}" /></span></h1>
+                <p class="sh-hero__frase">
+                    <c:choose>
+                        <c:when test="${nTotal == 0}">A caderneta está em branco. Vamos abrir a primeira página?</c:when>
+                        <c:when test="${nReposicao == 0}"><strong>Nada acabando por aqui.</strong> Pode tocar o balcão em paz.</c:when>
+                        <c:when test="${nSem > 0 and nBaixo > 0}">
+                            <strong><c:out value="${nSem}" /> <c:out value="${nSem == 1 ? 'produto acabou' : 'produtos acabaram'}" /></strong>
+                            e <c:out value="${nBaixo}" /> <c:out value="${nBaixo == 1 ? 'está' : 'estão'}" /> no fim da prateleira.
+                        </c:when>
+                        <c:when test="${nSem > 0}">
+                            <strong><c:out value="${nSem}" /> <c:out value="${nSem == 1 ? 'produto acabou' : 'produtos acabaram'}" />.</strong>
+                            Vale repor hoje.
+                        </c:when>
+                        <c:otherwise>
+                            <strong><c:out value="${nBaixo}" /> <c:out value="${nBaixo == 1 ? 'produto está' : 'produtos estão'}" /> no fim.</strong>
+                            Dá para repor com calma.
+                        </c:otherwise>
+                    </c:choose>
+                </p>
+                <div class="sh-hero__acoes">
+                    <a class="btn btn-primary" href="${ctx}/estoque?movTipo=ENTRADA">Registrar entrada</a>
+                    <a class="btn btn-outline-secondary" href="${ctx}/estoque?movTipo=SAIDA">Registrar saída</a>
+                    <a class="sh-hero__link" href="${ctx}/produtos/novo">Novo produto</a>
+                </div>
+            </div>
+            <div class="sh-hero__mascote">
+                <button type="button" class="sh-mascote-btn" data-sh-mascote-btn data-sh-olhar
+                    aria-label="Fazer um carinho na caixinha">
+                    <sh:mascote estado="${estadoMascote}" tamanho="g" />
+                </button>
+                <p class="sh-hero__fala" data-sh-fala aria-hidden="true">
+                    <c:choose>
+                        <c:when test="${nTotal == 0}">Zzz... acorda quando tiver produto.</c:when>
+                        <c:when test="${nReposicao == 0}">Conferi tudo hoje!</c:when>
+                        <c:when test="${nSem > 0}">Ai, ai... falta coisa.</c:when>
+                        <c:otherwise>De olho no estoque.</c:otherwise>
+                    </c:choose>
+                </p>
+                <span class="sh-festa" data-sh-festa aria-hidden="true"
+                    ${nTotal > 0 and nReposicao == 0 ? 'data-sh-festa-auto' : ''}></span>
+            </div>
+        </section>
 
         <c:choose>
             <%-- ===== Loja nova: primeiros passos ===== --%>
             <c:when test="${nTotal == 0}">
                 <section class="sh-secao" aria-labelledby="titulo-passos">
-                    <h2 class="sh-card__titulo" id="titulo-passos">Primeiros passos</h2>
-                    <p class="sh-card__desc mb-3">Em três etapas a sua loja está pronta para usar.</p>
-                    <ol class="sh-passos">
+                    <h2 class="sh-titulo-secao" id="titulo-passos">Primeiros passos</h2>
+                    <p class="sh-subtitulo-secao">Em três etapas a sua loja está pronta para usar.</p>
+                    <ol class="sh-passos sh-escalona">
                         <li class="sh-passo ${resumo.totalCategorias > 0 ? 'is-feito' : ''}">
                             <span class="sh-passo__numero" aria-hidden="true">1</span>
                             <h3 class="sh-passo__titulo">Criar uma categoria</h3>
@@ -76,179 +133,258 @@
             </c:when>
 
             <c:otherwise>
-                <%-- ===== Precisam de reposição (destaque) ===== --%>
-                <section class="sh-reposicao ${nReposicao == 0 ? 'sh-reposicao--ok' : (nSem > 0 ? 'sh-reposicao--critico' : 'sh-reposicao--alerta')}"
-                    aria-labelledby="titulo-reposicao">
-                    <div class="sh-reposicao__cab">
-                        <div class="sh-reposicao__resumo">
-                            <span class="sh-reposicao__icone" aria-hidden="true">
-                                <i class="bi ${nReposicao == 0 ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}"></i>
-                            </span>
-                            <div>
-                                <h2 class="sh-reposicao__titulo" id="titulo-reposicao">Precisam de reposição</h2>
-                                <c:choose>
-                                    <c:when test="${nReposicao == 0}">
-                                        <p class="sh-reposicao__sub"><strong>Tudo em dia.</strong> Nenhum produto está no estoque mínimo ou abaixo dele.</p>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <p class="sh-reposicao__sub">
-                                            <span class="sh-reposicao__numero" data-contar="<c:out value='${nReposicao}'/>" data-formato="inteiro"><c:out value="${nReposicao}" /></span>
-                                            <c:out value="${nReposicao == 1 ? 'produto no mínimo ou abaixo' : 'produtos no mínimo ou abaixo'}" />
-                                            <c:if test="${nSem > 0}">
-                                                &middot; <strong><c:out value="${nSem}" /> sem estoque</strong>
-                                            </c:if>
-                                        </p>
-                                    </c:otherwise>
-                                </c:choose>
-                            </div>
-                        </div>
-                        <c:if test="${nReposicao > 0}">
-                            <a class="btn btn-outline-secondary" href="${ctx}/estoque-baixo">
-                                Ver todos <i class="bi bi-arrow-right" aria-hidden="true"></i>
-                            </a>
-                        </c:if>
-                    </div>
-                    <c:if test="${nReposicao > 0}">
-                        <ul class="sh-lista">
-                            <c:forEach var="produto" items="${produtosEstoqueBaixo}">
-                                <li class="sh-lista__item sh-lista__item--repor">
-                                    <div class="sh-lista__info">
-                                        <a class="sh-lista__nome" href="<c:out value='${ctx}/produtos/${produto.id}'/>"><c:out value="${produto.nome}" /></a>
-                                        <span class="sh-lista__sub"><c:out value="${produto.categoria.nome}" /></span>
+                <div class="sh-inicio__grade">
+                    <%-- ===== O que fazer hoje ===== --%>
+                    <section class="sh-hoje" aria-labelledby="titulo-hoje">
+                        <h2 class="sh-titulo-secao" id="titulo-hoje">O que fazer hoje</h2>
+                        <c:choose>
+                            <c:when test="${nReposicao == 0}">
+                                <div class="sh-hoje__ok">
+                                    <sh:mascote estado="contente" tamanho="m" />
+                                    <div>
+                                        <p class="sh-hoje__ok-titulo">Nada para repor.</p>
+                                        <p class="sh-hoje__ok-texto">Todos os <c:out value="${nTotal}" /> produtos estão acima do mínimo. Aproveite para conferir a prateleira ou cadastrar algo novo.</p>
+                                        <a class="btn btn-outline-secondary btn-sm" href="${ctx}/produtos/novo">Novo produto</a>
                                     </div>
-                                    <div class="sh-lista__saldo sh-saldo">
-                                        <span class="sh-saldo__texto">
-                                            <strong><c:out value="${produto.quantidade}" /></strong> un.
-                                            <span class="sh-saldo__minimo">(mínimo <c:out value="${produto.estoqueMinimo}" />)</span>
-                                        </span>
-                                        <sh:medidorEstoque saldo="${produto.quantidade}" minimo="${produto.estoqueMinimo}" />
-                                    </div>
-                                    <div class="sh-lista__situacao">
-                                        <sh:badgeEstoque nivel="${produto.nivelEstoque}" />
-                                    </div>
-                                    <div class="sh-lista__acao">
-                                        <a class="btn btn-primary btn-sm"
-                                            href="<c:out value='${ctx}/estoque?movProduto=${produto.id}&movTipo=ENTRADA'/>"
-                                            aria-label="Repor <c:out value='${produto.nome}'/>">
-                                            <i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> Repor
-                                        </a>
-                                    </div>
-                                </li>
-                            </c:forEach>
-                        </ul>
-                        <c:if test="${nReposicao > 6}">
-                            <div class="sh-card__corpo border-top">
-                                <a href="${ctx}/estoque-baixo">Ver os outros <c:out value="${nReposicao - 6}" /> produtos na lista completa</a>
-                            </div>
-                        </c:if>
-                    </c:if>
-                </section>
+                                </div>
+                            </c:when>
+                            <c:otherwise>
+                                <p class="sh-subtitulo-secao">
+                                    <span class="sh-subtitulo-secao__numero" data-contar="<c:out value='${nReposicao}'/>" data-formato="inteiro"><c:out value="${nReposicao}" /></span>
+                                    <c:out value="${nReposicao == 1 ? 'produto no mínimo ou abaixo' : 'produtos no mínimo ou abaixo'}" />,
+                                    do mais urgente para o menos.
+                                </p>
+                                <ul class="sh-tarefas">
+                                    <c:forEach var="produto" items="${produtosEstoqueBaixo}">
+                                        <%-- Sugestão de quantidade: leva o saldo a 2x o mínimo (o medidor fica cheio); sem mínimo, 10 --%>
+                                        <c:set var="sugestao" value="${produto.estoqueMinimo > 0 ? produto.estoqueMinimo * 2 - produto.quantidade : 10}" />
+                                        <c:if test="${sugestao < 1}"><c:set var="sugestao" value="1" /></c:if>
+                                        <li class="sh-tarefa sh-tarefa--${produto.nivelEstoque == 'SEM_ESTOQUE' ? 'sem' : 'baixo'}">
+                                            <div class="sh-tarefa__info">
+                                                <a class="sh-tarefa__nome" href="<c:out value='${ctx}/produtos/${produto.id}'/>"><c:out value="${produto.nome}" /></a>
+                                                <span class="sh-tarefa__sub">
+                                                    <c:out value="${produto.categoria.nome}" /> &middot;
+                                                    <strong><c:out value="${produto.quantidade}" /></strong> un. (mínimo <c:out value="${produto.estoqueMinimo}" />)
+                                                </span>
+                                            </div>
+                                            <div class="sh-tarefa__estado">
+                                                <sh:badgeEstoque nivel="${produto.nivelEstoque}" />
+                                                <sh:medidorEstoque saldo="${produto.quantidade}" minimo="${produto.estoqueMinimo}" />
+                                            </div>
+                                            <%-- Reposição rápida: o mesmo POST da tela de movimentações (entrada), com a quantidade sugerida --%>
+                                            <form class="sh-repor" method="post" action="${ctx}/estoque/movimentar" data-sh-bloquear data-sh-enviando="Repondo…">
+                                                <input type="hidden" name="<c:out value='${_csrf.parameterName}'/>" value="<c:out value='${_csrf.token}'/>" />
+                                                <input type="hidden" name="produtoId" value="<c:out value='${produto.id}'/>">
+                                                <input type="hidden" name="tipo" value="ENTRADA">
+                                                <input type="hidden" name="observacao" value="Reposição rápida pelo início">
+                                                <label class="visually-hidden" for="repor-<c:out value='${produto.id}'/>">Quantidade a repor de <c:out value="${produto.nome}" /></label>
+                                                <input class="form-control sh-repor__qtd sh-num" id="repor-<c:out value='${produto.id}'/>" type="number" name="quantidade"
+                                                    min="1" max="1000000" step="1" inputmode="numeric" required value="<c:out value='${sugestao}'/>">
+                                                <button type="submit" class="btn btn-primary btn-sm">Repor</button>
+                                            </form>
+                                        </li>
+                                    </c:forEach>
+                                </ul>
+                                <c:if test="${nReposicao > 6}">
+                                    <p class="sh-hoje__mais">
+                                        <a href="${ctx}/estoque-baixo">Ver os outros <c:out value="${nReposicao - 6}" /> na lista completa</a>
+                                    </p>
+                                </c:if>
+                            </c:otherwise>
+                        </c:choose>
+                    </section>
 
-                <%-- ===== Saúde do estoque: Normal / Baixo / Sem estoque ===== --%>
-                <section class="sh-card sh-secao" aria-labelledby="titulo-saude">
-                    <div class="sh-card__cab">
-                        <div>
-                            <h2 class="sh-card__titulo" id="titulo-saude">Saúde do estoque</h2>
-                            <p class="sh-card__desc">Como os <c:out value="${nTotal}" /> produtos estão em relação ao mínimo.</p>
+                    <%-- ===== Saúde do estoque (anel interativo) ===== --%>
+                    <section class="sh-saude-bloco sh-card" aria-labelledby="titulo-saude">
+                        <h2 class="sh-titulo-secao" id="titulo-saude">Saúde do estoque</h2>
+                        <p class="sh-subtitulo-secao">Passe o mouse ou foque numa linha para destacar a fatia.</p>
+                        <div class="sh-anel" data-sh-anel>
+                            <div class="sh-anel__desenho">
+                                <%-- O anel é decorativo; a informação está na lista ao lado, em texto --%>
+                                <svg class="sh-anel__svg" viewBox="0 0 42 42" aria-hidden="true" focusable="false">
+                                    <circle class="sh-anel__trilho" cx="21" cy="21" r="15.9155"/>
+                                    <c:if test="${nNormal > 0}">
+                                        <circle class="sh-anel__fatia sh-anel__fatia--normal" data-sh-fatia="normal" cx="21" cy="21" r="15.9155"
+                                            stroke-dasharray="<c:out value='${aNormal}'/> <c:out value='${100 - aNormal}'/>" stroke-dashoffset="25"/>
+                                    </c:if>
+                                    <c:if test="${nBaixo > 0}">
+                                        <circle class="sh-anel__fatia sh-anel__fatia--baixo" data-sh-fatia="baixo" cx="21" cy="21" r="15.9155"
+                                            stroke-dasharray="<c:out value='${aBaixo}'/> <c:out value='${100 - aBaixo}'/>" stroke-dashoffset="<c:out value='${25 - pNormal}'/>"/>
+                                    </c:if>
+                                    <c:if test="${nSem > 0}">
+                                        <circle class="sh-anel__fatia sh-anel__fatia--sem" data-sh-fatia="sem" cx="21" cy="21" r="15.9155"
+                                            stroke-dasharray="<c:out value='${aSem}'/> <c:out value='${100 - aSem}'/>" stroke-dashoffset="<c:out value='${25 - pNormal - pBaixo}'/>"/>
+                                    </c:if>
+                                </svg>
+                                <div class="sh-anel__centro" aria-hidden="true">
+                                    <span class="sh-anel__centro-bloco sh-anel__centro-bloco--geral">
+                                        <span class="sh-anel__valor"><c:out value="${pNormal}" />%</span>
+                                        <span class="sh-anel__rotulo">em dia</span>
+                                    </span>
+                                    <span class="sh-anel__centro-bloco sh-anel__centro-bloco--normal">
+                                        <span class="sh-anel__valor"><c:out value="${nNormal}" /></span>
+                                        <span class="sh-anel__rotulo">normais</span>
+                                    </span>
+                                    <span class="sh-anel__centro-bloco sh-anel__centro-bloco--baixo">
+                                        <span class="sh-anel__valor"><c:out value="${nBaixo}" /></span>
+                                        <span class="sh-anel__rotulo">no fim</span>
+                                    </span>
+                                    <span class="sh-anel__centro-bloco sh-anel__centro-bloco--sem">
+                                        <span class="sh-anel__valor"><c:out value="${nSem}" /></span>
+                                        <span class="sh-anel__rotulo">sem estoque</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <ul class="sh-anel__legenda">
+                                <li>
+                                    <a class="sh-anel__item sh-tom--normal" data-sh-fatia-item="normal"
+                                        href="${ctx}/produtos?nivelEstoque=ok&amp;tamanho=25">
+                                        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                                        <span class="sh-anel__nome">Normal</span>
+                                        <strong class="sh-num"><c:out value="${nNormal}" /></strong>
+                                        <span class="sh-anel__pct">(<c:out value="${pNormal}" />%)</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="sh-anel__item sh-tom--baixo" data-sh-fatia-item="baixo"
+                                        href="${ctx}/produtos?nivelEstoque=baixo&amp;tamanho=25">
+                                        <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                                        <span class="sh-anel__nome">Baixo</span>
+                                        <strong class="sh-num"><c:out value="${nBaixo}" /></strong>
+                                        <span class="sh-anel__pct">(<c:out value="${pBaixo}" />%)</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="sh-anel__item sh-tom--sem" data-sh-fatia-item="sem"
+                                        href="${ctx}/produtos?nivelEstoque=semEstoque&amp;tamanho=25">
+                                        <i class="bi bi-x-octagon-fill" aria-hidden="true"></i>
+                                        <span class="sh-anel__nome">Sem estoque</span>
+                                        <strong class="sh-num"><c:out value="${nSem}" /></strong>
+                                        <span class="sh-anel__pct">(<c:out value="${pSem}" />%)</span>
+                                    </a>
+                                </li>
+                            </ul>
                         </div>
-                    </div>
-                    <div class="sh-card__corpo">
-                        <%-- A barra é decorativa; a informação está na legenda em texto --%>
-                        <div class="sh-saude" aria-hidden="true">
-                            <c:if test="${nNormal > 0}"><span class="sh-saude__seg sh-saude__seg--normal sh-seg-<c:out value='${pNormal}'/>"></span></c:if>
-                            <c:if test="${nBaixo > 0}"><span class="sh-saude__seg sh-saude__seg--baixo sh-seg-<c:out value='${pBaixo}'/>"></span></c:if>
-                            <c:if test="${nSem > 0}"><span class="sh-saude__seg sh-saude__seg--sem sh-seg-<c:out value='${pSem}'/>"></span></c:if>
-                        </div>
-                        <ul class="sh-saude__legenda">
-                            <li class="sh-tom--normal">
-                                <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
-                                <span>Normal</span> <strong><c:out value="${nNormal}" /></strong>
-                                <span class="sh-saude__pct">(<c:out value="${pNormal}" />%)</span>
-                            </li>
-                            <li class="sh-tom--baixo">
-                                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
-                                <span>Baixo</span> <strong><c:out value="${nBaixo}" /></strong>
-                                <span class="sh-saude__pct">(<c:out value="${pBaixo}" />%)</span>
-                            </li>
-                            <li class="sh-tom--sem">
-                                <i class="bi bi-x-octagon-fill" aria-hidden="true"></i>
-                                <span>Sem estoque</span> <strong><c:out value="${nSem}" /></strong>
-                                <span class="sh-saude__pct">(<c:out value="${pSem}" />%)</span>
-                            </li>
-                        </ul>
-                    </div>
-                </section>
+                    </section>
+                </div>
             </c:otherwise>
         </c:choose>
 
-        <%-- ===== Totais (cada cartão é um link para a lista) ===== --%>
-        <section aria-labelledby="titulo-totais">
-            <h2 class="visually-hidden" id="titulo-totais">Totais da loja</h2>
-            <div class="sh-metricas">
-                <a class="sh-metric" href="${ctx}/produtos?tamanho=25">
-                    <span class="sh-metric__topo">
-                        <span class="sh-metric__rotulo">Produtos</span>
-                        <span class="sh-metric__icone" aria-hidden="true"><i class="bi bi-box-seam"></i></span>
-                    </span>
-                    <span class="sh-metric__valor" data-contar="<c:out value='${resumo.totalProdutos}'/>" data-formato="inteiro"><c:out value="${resumo.totalProdutos}" /></span>
-                    <span class="sh-metric__apoio"><c:out value="${nTotal == 0 ? 'Cadastre o primeiro produto' : 'itens cadastrados'}" /></span>
-                </a>
-                <a class="sh-metric" href="${ctx}/unidades">
-                    <span class="sh-metric__topo">
-                        <span class="sh-metric__rotulo">Unidades</span>
-                        <span class="sh-metric__icone" aria-hidden="true"><i class="bi bi-stack"></i></span>
-                    </span>
-                    <span class="sh-metric__valor" data-contar="<c:out value='${resumo.quantidadeTotalItens}'/>" data-formato="inteiro"><c:out value="${resumo.quantidadeTotalItens}" /></span>
-                    <span class="sh-metric__apoio">no estoque, somando os produtos</span>
-                </a>
-                <a class="sh-metric" href="${ctx}/valor-estoque">
-                    <span class="sh-metric__topo">
-                        <span class="sh-metric__rotulo">Valor do estoque</span>
-                        <span class="sh-metric__icone" aria-hidden="true"><i class="bi bi-cash-coin"></i></span>
-                    </span>
-                    <span class="sh-metric__valor" data-contar="<c:out value='${resumo.valorTotalEstoque}'/>" data-formato="moeda">R$ <fmt:formatNumber value="${resumo.valorTotalEstoque}" pattern="#,##0.00" /></span>
-                    <span class="sh-metric__apoio">preço vezes quantidade</span>
-                </a>
-                <a class="sh-metric" href="${ctx}/categorias">
-                    <span class="sh-metric__topo">
-                        <span class="sh-metric__rotulo">Categorias</span>
-                        <span class="sh-metric__icone" aria-hidden="true"><i class="bi bi-tags"></i></span>
-                    </span>
-                    <span class="sh-metric__valor" data-contar="<c:out value='${resumo.totalCategorias}'/>" data-formato="inteiro"><c:out value="${resumo.totalCategorias}" /></span>
-                    <span class="sh-metric__apoio"><c:out value="${resumo.totalCategorias == 0 ? 'Crie a primeira categoria' : 'grupos de produtos'}" /></span>
-                </a>
+        <%-- ===== Gráfico de 14 dias (SVG feito à mão, dados por fetch) ===== --%>
+        <section class="sh-grafico sh-card" aria-labelledby="titulo-grafico" data-sh-grafico
+            data-url="<c:out value='${ctx}/api/dashboard/movimentos?dias=14'/>">
+            <div class="sh-grafico__cab">
+                <div>
+                    <h2 class="sh-titulo-secao" id="titulo-grafico">Entradas e saídas, 14 dias</h2>
+                    <p class="sh-grafico__resumo" data-grafico-resumo>Carregando os movimentos&hellip;</p>
+                </div>
+                <ul class="sh-grafico__legenda" aria-hidden="true">
+                    <li><span class="sh-grafico__amostra sh-grafico__amostra--entrada"></span>Entrou (acima da linha)</li>
+                    <li><span class="sh-grafico__amostra sh-grafico__amostra--saida"></span>Saiu (abaixo)</li>
+                </ul>
             </div>
+            <div class="sh-grafico__area" data-grafico-area>
+                <%-- Estados (o JS mostra um por vez). Sem JavaScript, só o aviso do noscript aparece. --%>
+                <div class="sh-grafico__estado" data-grafico-estado="carregando" hidden>
+                    <div class="sh-grafico__esqueleto" aria-hidden="true">
+                        <span class="sh-esqueleto sh-esq-1"></span><span class="sh-esqueleto sh-esq-2"></span><span class="sh-esqueleto sh-esq-3"></span>
+                        <span class="sh-esqueleto sh-esq-4"></span><span class="sh-esqueleto sh-esq-5"></span><span class="sh-esqueleto sh-esq-6"></span>
+                        <span class="sh-esqueleto sh-esq-7"></span><span class="sh-esqueleto sh-esq-8"></span><span class="sh-esqueleto sh-esq-9"></span>
+                        <span class="sh-esqueleto sh-esq-10"></span><span class="sh-esqueleto sh-esq-11"></span><span class="sh-esqueleto sh-esq-12"></span>
+                        <span class="sh-esqueleto sh-esq-13"></span><span class="sh-esqueleto sh-esq-14"></span>
+                    </div>
+                </div>
+                <div class="sh-grafico__estado sh-grafico__estado--msg" data-grafico-estado="erro" hidden>
+                    <sh:mascote estado="preocupada" tamanho="m" />
+                    <div>
+                        <p class="sh-grafico__msg-titulo">Não consegui buscar os movimentos agora.</p>
+                        <p class="sh-grafico__msg-texto" data-grafico-erro-texto>O resto da tela continua valendo. Tente de novo em instantes.</p>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-grafico-tentar>Tentar de novo</button>
+                    </div>
+                </div>
+                <div class="sh-grafico__estado sh-grafico__estado--msg" data-grafico-estado="vazio" hidden>
+                    <sh:mascote estado="dormindo" tamanho="m" />
+                    <div>
+                        <p class="sh-grafico__msg-titulo">Nenhum movimento nesses 14 dias.</p>
+                        <p class="sh-grafico__msg-texto">Quando você registrar entradas e saídas, elas aparecem aqui, dia a dia.</p>
+                        <a class="btn btn-primary btn-sm" href="${ctx}/estoque?movTipo=ENTRADA">Registrar uma entrada</a>
+                    </div>
+                </div>
+                <div class="sh-grafico__quadro" data-grafico-quadro hidden></div>
+                <div class="sh-grafico__dica" data-grafico-dica aria-hidden="true" hidden></div>
+                <noscript><p class="sh-grafico__msg-texto">O gráfico precisa de JavaScript. Os números do dia a dia estão em <a href="${ctx}/estoque">Movimentações</a>.</p></noscript>
+            </div>
+            <details class="sh-grafico__tabela" data-grafico-tabela hidden>
+                <summary>Ver os números em tabela</summary>
+                <div class="table-responsive">
+                    <table class="table table-sm sh-num">
+                        <caption class="visually-hidden">Entradas, saídas e ajustes por dia, nos últimos 14 dias</caption>
+                        <thead>
+                            <tr><th scope="col">Dia</th><th scope="col" class="text-end">Entradas</th><th scope="col" class="text-end">Saídas</th><th scope="col" class="text-end">Ajustes</th></tr>
+                        </thead>
+                        <tbody data-grafico-linhas></tbody>
+                    </table>
+                </div>
+            </details>
         </section>
 
-        <%-- ===== Produtos recentes ===== --%>
-        <section class="sh-card" aria-labelledby="titulo-recentes">
-            <div class="sh-card__cab">
-                <div>
-                    <h2 class="sh-card__titulo" id="titulo-recentes">Produtos recentes</h2>
-                    <p class="sh-card__desc">Os últimos itens cadastrados.</p>
-                </div>
-                <a class="btn btn-outline-secondary btn-sm" href="${ctx}/produtos?tamanho=25">Ver todos os produtos</a>
+        <%-- ===== Os números da loja (sem caixas: cada número é um link) ===== --%>
+        <section class="sh-numeros" aria-labelledby="titulo-totais">
+            <h2 class="visually-hidden" id="titulo-totais">Totais da loja</h2>
+            <ul class="sh-numeros__lista sh-escalona">
+                <li>
+                    <a class="sh-numero" href="${ctx}/produtos?tamanho=25">
+                        <span class="sh-numero__valor sh-num" data-contar="<c:out value='${resumo.totalProdutos}'/>" data-formato="inteiro"><c:out value="${resumo.totalProdutos}" /></span>
+                        <span class="sh-numero__rotulo">produtos</span>
+                        <span class="sh-numero__apoio"><c:out value="${nTotal == 0 ? 'cadastre o primeiro' : 'cadastrados'}" /></span>
+                    </a>
+                </li>
+                <li>
+                    <a class="sh-numero" href="${ctx}/unidades">
+                        <span class="sh-numero__valor sh-num" data-contar="<c:out value='${resumo.quantidadeTotalItens}'/>" data-formato="inteiro"><c:out value="${resumo.quantidadeTotalItens}" /></span>
+                        <span class="sh-numero__rotulo">unidades</span>
+                        <span class="sh-numero__apoio">somando as prateleiras</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="sh-numero" href="${ctx}/valor-estoque">
+                        <span class="sh-numero__valor sh-num" data-contar="<c:out value='${resumo.valorTotalEstoque}'/>" data-formato="moeda">R$ <fmt:formatNumber value="${resumo.valorTotalEstoque}" pattern="#,##0.00" /></span>
+                        <span class="sh-numero__rotulo">em estoque</span>
+                        <span class="sh-numero__apoio">preço vezes quantidade</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="sh-numero" href="${ctx}/categorias">
+                        <span class="sh-numero__valor sh-num" data-contar="<c:out value='${resumo.totalCategorias}'/>" data-formato="inteiro"><c:out value="${resumo.totalCategorias}" /></span>
+                        <span class="sh-numero__rotulo">categorias</span>
+                        <span class="sh-numero__apoio"><c:out value="${resumo.totalCategorias == 0 ? 'crie a primeira' : 'grupos de produtos'}" /></span>
+                    </a>
+                </li>
+            </ul>
+        </section>
+
+        <%-- ===== Chegou por último ===== --%>
+        <section class="sh-recentes" aria-labelledby="titulo-recentes">
+            <div class="sh-recentes__cab">
+                <h2 class="sh-titulo-secao" id="titulo-recentes">Chegou por último</h2>
+                <a class="sh-recentes__todos" href="${ctx}/produtos?tamanho=25">Ver todos os produtos</a>
             </div>
             <c:choose>
                 <c:when test="${empty produtosRecentes}">
-                    <sh:estadoVazio icone="box-seam" titulo="Nenhum produto cadastrado"
+                    <sh:estadoVazio ilustracao="caixa" titulo="Nenhum produto cadastrado"
                         texto="Cadastre o primeiro produto para acompanhar o saldo e receber o aviso de reposição."
                         acaoUrl="/produtos/novo" acaoRotulo="Cadastrar produto" />
                 </c:when>
                 <c:otherwise>
-                    <ul class="sh-lista">
+                    <ul class="sh-recentes__lista sh-escalona">
                         <c:forEach var="produto" items="${produtosRecentes}">
-                            <li class="sh-lista__item sh-lista__item--recente">
-                                <div class="sh-lista__info">
-                                    <a class="sh-lista__nome" href="<c:out value='${ctx}/produtos/${produto.id}'/>"><c:out value="${produto.nome}" /></a>
-                                    <span class="sh-lista__sub"><c:out value="${produto.categoria.nome}" /></span>
+                            <li class="sh-recente">
+                                <div class="sh-recente__info">
+                                    <a class="sh-recente__nome" href="<c:out value='${ctx}/produtos/${produto.id}'/>"><c:out value="${produto.nome}" /></a>
+                                    <span class="sh-recente__sub"><c:out value="${produto.categoria.nome}" /></span>
                                 </div>
-                                <div class="sh-lista__preco sh-num">
-                                    R$ <fmt:formatNumber value="${produto.preco}" pattern="#,##0.00" />
-                                </div>
-                                <div class="sh-lista__situacao">
-                                    <sh:badgeEstoque nivel="${produto.nivelEstoque}" />
-                                </div>
+                                <span class="sh-recente__preco sh-num">R$ <fmt:formatNumber value="${produto.preco}" pattern="#,##0.00" /></span>
+                                <sh:badgeEstoque nivel="${produto.nivelEstoque}" />
                             </li>
                         </c:forEach>
                     </ul>
