@@ -64,7 +64,8 @@ public class AuthController {
                             Model model) {
         if (!resultado.hasErrors()) {
             try {
-                usuarioService.cadastrarLoja(form.getNome(), form.getEmail(), form.getSenha());
+                usuarioService.cadastrarLoja(form.getNome(), form.getEmail(), form.getSenha(),
+                        form.tipoConvertido(), form.subtipoConvertido());
                 return "redirect:/login?cadastrado";
             } catch (RegraNegocioException e) {
                 model.addAttribute("erro", e.getMessage());
@@ -77,6 +78,8 @@ public class AuthController {
         model.addAttribute("modoCadastro", true);
         model.addAttribute("nome", form.getNome());
         model.addAttribute("email", form.getEmail());
+        model.addAttribute("tipoEscolhido", form.getTipoLoja());
+        model.addAttribute("subtipoEscolhido", form.getSubtipo());
         return "login";
     }
 }

@@ -66,3 +66,7 @@ Cada decisão tem o motivo e as alternativas descartadas. Quando uma decisão mu
 - **Confirmação em dois passos:** planejar (validar tudo) e gravar; produtos travados em ordem crescente de id. A nota ganhou a UNIQUE de negócio (loja, fornecedor, modelo, série, número).
 - **Descartado:** reescrever o parceiro existente com os dados do XML (um arquivo externo não pode alterar cadastro); aceitar campos de formato fixo truncados.
 - **Limite conhecido:** os contadores de uso são em memória (não valem entre instâncias); o IP vem de `remoteAddr`.
+
+## AD-11 — Tipo de loja como interruptor de módulos (menu), lido do banco a cada página
+- **Decisão:** `tipo_loja` e `subtipo` ficam em `usuario` (V6, padrão ESTOQUE) e só controlam a visibilidade dos módulos (enum `Modulo`: ESTOQUE, VENDAS, OS). O `GlobalModelAdvice` publica `tipoLoja` e o mapa `modulos` em toda requisição, lendo só o tipo do banco (`findTipoLojaByCodigo`), não da sessão, para a troca valer na hora. Os JSPs usam `<sh:modulo nome="VENDAS">` (tags/modulo.tag). A combinação tipo/subtipo é validada no service (RN-44).
+- **Descartado:** guardar o tipo no `UsuarioPrincipal` (ficaria desatualizado até novo login); CHECK de combinação no banco (a lista muda com o produto, e a regra mora no service); tela de Configurações (ainda não existe: por ora só o endpoint `POST /conta/tipo-loja`).

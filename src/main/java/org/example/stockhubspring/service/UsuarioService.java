@@ -1,6 +1,8 @@
 package org.example.stockhubspring.service;
 
 import org.example.stockhubspring.exception.RegraNegocioException;
+import org.example.stockhubspring.model.Subtipo;
+import org.example.stockhubspring.model.TipoLoja;
 import org.example.stockhubspring.model.Usuario;
 import org.example.stockhubspring.repository.UsuarioRepository;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -33,8 +35,15 @@ public class UsuarioService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Transactional
+    /** Cadastro sem tipo informado: a loja nasce como ESTOQUE (RN-43). */
     public Usuario cadastrarLoja(String nome, String email, String senha) {
+        return cadastrarLoja(nome, email, senha, null, null);
+    }
+
+    @Transactional
+    public Usuario cadastrarLoja(String nome, String email, String senha, TipoLoja tipoLoja, Subtipo subtipo) {
+        TipoLoja tipo = tipoLoja == null ? TipoLoja.ESTOQUE : tipoLoja;
+        validarTipoESubtipo(tipo, subtipo);
         String nomeLimpo = nome == null ? null : nome.trim();
         String emailNormalizado = normalizarEmail(email);
         validarCadastro(nomeLimpo, emailNormalizado, senha);
@@ -49,12 +58,33 @@ public class UsuarioService {
         usuario.setEmail(emailNormalizado);
         usuario.setSenha(passwordEncoder.encode(senha));
         usuario.setAtivo(true);
+        usuario.setTipoLoja(tipo);
+        usuario.setSubtipo(subtipo);
 
         try {
             // saveAndFlush para a violação de unicidade (corrida entre dois cadastros) estourar aqui.
             return usuarioRepository.saveAndFlush(usuario);
         } catch (DataIntegrityViolationException e) {
             throw new RegraNegocioException(MSG_CADASTRO_GENERICA);
+        }
+    }
+
+    /** Altera tipo e subtipo da loja (RN-43/RN-44). Só muda menus e módulos; nenhum dado é perdido. */
+    @Transactional
+    public Usuario alterarTipoLoja(Integer codigo, TipoLoja tipoLoja, Subtipo subtipo) {
+        TipoLoja tipo = tipoLoja == null ? TipoLoja.ESTOQUE : tipoLoja;
+        validarTipoESubtipo(tipo, subtipo);
+        Usuario usuario = usuarioRepository.findById(codigo)
+                .orElseThrow(() -> new RegraNegocioException("Loja não encontrada."));
+        usuario.setTipoLoja(tipo);
+        usuario.setSubtipo(subtipo);
+        return usuarioRepository.save(usuario);
+    }
+
+    /** RN-44: o subtipo (opcional) precisa pertencer ao tipo escolhido. */
+    static void validarTipoESubtipo(TipoLoja tipo, Subtipo subtipo) {
+        if (subtipo != null && !subtipo.pertenceA(tipo)) {
+            throw new RegraNegocioException("O ramo escolhido não combina com o tipo de loja.");
         }
     }
 

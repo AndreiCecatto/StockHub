@@ -78,3 +78,10 @@ A loja envia o XML de uma NF-e de compra, revisa, e só depois de confirmar os i
 | RN-40 | **Datas.** `dhEmi` mais de 1 dia no futuro é recusada; nota com mais de 12 meses gera aviso. | nota futura é adulterada; nota velha pode já estar lançada |
 | RN-41 | **Avisos de gravação.** A revisão avisa que o custo é atualizado e que EAN/NCM serão gravados nos produtos que ainda não os têm (por item, no produto sugerido). Se a loja tem CNPJ e o destinatário diverge, há aviso forte, mas a confirmação continua sendo a mesma caixa `confirmouDestinatario`, que é sempre obrigatória. | o dono vê o que será alterado |
 | RN-42 | **Log.** A chave aparece nos logs só pelos 8 últimos dígitos; nunca o XML. | menos dado fiscal em log |
+
+### Tipo e subtipo da loja (migration V6)
+
+| ID | Regra | Motivo |
+|---|---|---|
+| RN-43 | **Tipo da loja.** `usuario.tipo_loja` é ESTOQUE (padrão), COMERCIO, OFICINA ou MISTO. Define só quais módulos aparecem: ESTOQUE sempre; VENDAS em COMERCIO e MISTO; OS em OFICINA e MISTO. Nunca muda as regras de estoque nem apaga dados; trocar de tipo é livre (POST `/conta/tipo-loja`). Cadastro sem tipo vira ESTOQUE. O tipo não é controle de acesso: só esconde itens de menu. | contas existentes não quebram; menu enxuto |
+| RN-44 | **Subtipo (ramo).** `usuario.subtipo` é opcional e cada valor pertence a um tipo: estoque (almoxarifado, depósito, estoque de escritório), comércio (mercado, papelaria, material de construção, farmácia, vestuário, informática, outro comércio) e serviços (mecânica, moto, elétrica e eletrônica, assistência técnica, refrigeração, outro serviço). MISTO aceita os de comércio e de serviços. A combinação é validada no service (e no formulário); o banco só garante, por CHECK, que tipo e subtipo estão na lista. | evita combinação sem sentido |

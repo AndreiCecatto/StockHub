@@ -1,6 +1,8 @@
 package org.example.stockhubspring.service;
 
 import org.example.stockhubspring.exception.RegraNegocioException;
+import org.example.stockhubspring.model.Subtipo;
+import org.example.stockhubspring.model.TipoLoja;
 import org.example.stockhubspring.model.Usuario;
 import org.example.stockhubspring.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -194,5 +196,44 @@ class UsuarioServiceTest {
     void normalizarEmailNulo() {
         assertThat(UsuarioService.normalizarEmail(null)).isNull();
         assertThat(UsuarioService.normalizarEmail("  A@B.C ")).isEqualTo("a@b.c");
+    }
+
+    @Test
+    @DisplayName("RN-43: sem tipo informado a loja nasce como ESTOQUE e sem ramo")
+    void semTipoViraEstoque() {
+        Usuario u = service.cadastrarLoja("Loja", "a@b.com", SENHA_OK);
+        assertThat(u.getTipoLoja()).isEqualTo(TipoLoja.ESTOQUE);
+        assertThat(u.getSubtipo()).isNull();
+    }
+
+    @Test
+    @DisplayName("RN-44: tipo e ramo compatíveis são gravados")
+    void tipoERamoGravados() {
+        Usuario u = service.cadastrarLoja("Loja", "a@b.com", SENHA_OK, TipoLoja.MISTO, Subtipo.PAPELARIA);
+        assertThat(u.getTipoLoja()).isEqualTo(TipoLoja.MISTO);
+        assertThat(u.getSubtipo()).isEqualTo(Subtipo.PAPELARIA);
+    }
+
+    @Test
+    @DisplayName("RN-44: ramo que não pertence ao tipo é recusado e nada é salvo")
+    void ramoIncompativelRecusado() {
+        assertThatThrownBy(() -> service.cadastrarLoja("Loja", "a@b.com", SENHA_OK, TipoLoja.COMERCIO, Subtipo.MECANICA))
+                .isInstanceOf(RegraNegocioException.class);
+        verificarQueNadaFoiSalvo();
+    }
+
+    @Test
+    @DisplayName("alterarTipoLoja valida a combinação e atualiza a loja")
+    void alterarTipoLoja() {
+        Usuario existente = new Usuario();
+        existente.setCodigo(5);
+        when(usuarioRepository.findById(5)).thenReturn(java.util.Optional.of(existente));
+        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Usuario u = service.alterarTipoLoja(5, TipoLoja.OFICINA, Subtipo.MOTO);
+        assertThat(u.getTipoLoja()).isEqualTo(TipoLoja.OFICINA);
+
+        assertThatThrownBy(() -> service.alterarTipoLoja(5, TipoLoja.ESTOQUE, Subtipo.MOTO))
+                .isInstanceOf(RegraNegocioException.class);
     }
 }

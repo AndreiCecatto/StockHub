@@ -2,6 +2,8 @@ package org.example.stockhubspring.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -35,6 +37,31 @@ public class Usuario {
     @CnpjValido
     @Column(length = 14)
     private String cnpj;
+
+    // Tipo e ramo da loja (V6): só decidem quais módulos e menus aparecem
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_loja", nullable = false, length = 20)
+    private TipoLoja tipoLoja = TipoLoja.ESTOQUE;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private Subtipo subtipo;
+
+    public TipoLoja getTipoLoja() {
+        return tipoLoja;
+    }
+
+    public void setTipoLoja(TipoLoja tipoLoja) {
+        this.tipoLoja = tipoLoja;
+    }
+
+    public Subtipo getSubtipo() {
+        return subtipo;
+    }
+
+    public void setSubtipo(Subtipo subtipo) {
+        this.subtipo = subtipo;
+    }
 
     public String getCnpj() {
         return cnpj;
