@@ -4,7 +4,9 @@ Escrito em 2026-10-27 para retomar o trabalho em outra sessão, sem depender da 
 
 ## Estado atual
 - Branch `main`, cerca de 40 commits locais **não enviados** ao GitHub (repositório público). Enviar só com aprovação do dono: `git push origin main`, sem `--force`.
-- Última suíte completa: 955 testes, 0 falhas, BUILD SUCCESS.
+- Última suíte completa: 995 testes, 0 falhas, BUILD SUCCESS (duas execuções seguidas; uma execução anterior, logo depois do módulo de clientes, deu 9 erros que não se repetiram, causa não identificada: vale reexecutar e, se voltar, olhar `target/surefire-reports`).
+- Clientes concluído (V12, RN-91 a RN-98, AD-16): cadastro completo, busca, filtros, resumo e inativação. Falta ver as telas no navegador. Não existe vínculo venda-cliente (sem tabela de venda), então não há "total gasto em compras".
+- Protótipos das 3 direções visuais prontos em `C:\Users\andre\Documents\StockHub-prototipos\` (A Edição, B Instrumento, C Grafite). O agente recomenda a A (serifa só em títulos). **Aguardando a escolha do dono** para aplicar em tokens, shell, dashboard e listas.
 - Banco local `stockhub` zerado e semeado com 21 lojas de teste (uma por tipo e subtipo). Logins em `C:\Users\andre\Documents\StockHub-logins-teste.txt` (fora do repositório; senha `Teste@1234`). Os testes de concorrência apagam só lojas `@teste.invalid`.
 - O dono roda o app pelo IntelliJ na porta 8080. Agentes devem usar outra porta (8083 a 8090) e nunca encerrar a 8080.
 - Para ver várias lojas ao mesmo tempo sem uma derrubar a sessão da outra: um endereço diferente por loja, como `http://comercio-mercado.localhost:8080` (o cookie de sessão é separado por endereço). Janelas anônimas compartilham cookie entre si.
