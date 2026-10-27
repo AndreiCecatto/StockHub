@@ -51,13 +51,15 @@ class EstoqueServiceTest {
     private ProdutoRepository produtoRepository;
     @Mock
     private MovimentacaoEstoqueRepository movimentacaoRepository;
+    @Mock
+    private org.example.stockhubspring.repository.ReservaEstoqueRepository reservaRepository;
 
     private EstoqueService service;
     private Usuario usuario;
 
     @BeforeEach
     void preparar() {
-        service = new EstoqueService(produtoRepository, movimentacaoRepository);
+        service = new EstoqueService(produtoRepository, movimentacaoRepository, reservaRepository);
         usuario = Fabrica.usuario(7);
         when(movimentacaoRepository.saveAndFlush(any(MovimentacaoEstoque.class)))
                 .thenAnswer(invocacao -> invocacao.getArgument(0));

@@ -46,6 +46,15 @@ public interface ProdutoRepository extends JpaRepository<Produto, Integer>, JpaS
     @Query("select p from Produto p where p.id = :id and p.usuario.codigo = :usuarioCodigo and p.ativo = true")
     Optional<Produto> buscarAtivoComBloqueio(@Param("id") Integer id, @Param("usuarioCodigo") Integer usuarioCodigo);
 
+    /** Igual a buscarAtivoComBloqueio, mas também acha produto inativo (liberar reserva de produto já inativado). */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from Produto p where p.id = :id and p.usuario.codigo = :usuarioCodigo")
+    Optional<Produto> buscarQualquerComBloqueio(@Param("id") Integer id, @Param("usuarioCodigo") Integer usuarioCodigo);
+
+    /** O produto tem alguma reserva, em qualquer situação? Quem tem não pode ser apagado de vez (RN-08). */
+    @Query(value = "select exists (select 1 from reserva_estoque r where r.produto_id = :id)", nativeQuery = true)
+    boolean temReserva(@Param("id") Integer id);
+
     /** Página filtrada/ordenada por Specification, com a categoria já carregada. */
     @Override
     @EntityGraph(attributePaths = "categoria")

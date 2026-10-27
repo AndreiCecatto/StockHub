@@ -192,8 +192,8 @@ class ImportacaoNfeIntegracaoTest extends IntegracaoBase {
             assertThat(movs.get(0).get("quantidade")).isEqualTo(10);
             assertThat(movs.get(0).get("quantidade_anterior")).isEqualTo(5);
             assertThat(movs.get(0).get("quantidade_nova")).isEqualTo(15);
-            assertThat(movs.get(0).get("origem_tipo")).isEqualTo("NFE_COMPRA");
-            assertThat(movs.get(0).get("origem_id")).isEqualTo(salva.getId());
+            assertThat(movs.get(0).get("tipo_documento")).isEqualTo("COMPRA_NFE");
+            assertThat(movs.get(0).get("documento_id")).isEqualTo(salva.getId());
             assertThat(movs.get(0).get("observacao")).isEqualTo("NF-e 1234 de FORNECEDOR DE TESTE LTDA");
 
             // produto novo: nasce com saldo 0 e recebe a ENTRADA (livro-razão fecha: 0 -> 3)
@@ -213,7 +213,7 @@ class ImportacaoNfeIntegracaoTest extends IntegracaoBase {
             assertThat(movsNovo).hasSize(1);
             assertThat(movsNovo.get(0).get("quantidade_anterior")).isEqualTo(0);
             assertThat(movsNovo.get(0).get("quantidade_nova")).isEqualTo(3);
-            assertThat(movsNovo.get(0).get("origem_id")).isEqualTo(salva.getId());
+            assertThat(movsNovo.get(0).get("documento_id")).isEqualTo(salva.getId());
 
             // itens da nota ligados às movimentações
             List<Map<String, Object>> itens = jdbc.queryForList(
@@ -576,7 +576,7 @@ class ImportacaoNfeIntegracaoTest extends IntegracaoBase {
 
             assertThat(saldoNoBanco(primeiro.getId())).isEqualTo(5);
             assertThat(saldoNoBanco(cheio.getId())).isEqualTo(2_000_000_000);
-            assertThat(jdbc.queryForObject("select count(*) from movimentacao_estoque where origem_tipo = 'NFE_COMPRA' "
+            assertThat(jdbc.queryForObject("select count(*) from movimentacao_estoque where tipo_documento = 'COMPRA_NFE' "
                     + "and usuario_codigo = ?", Long.class, loja.getCodigo())).isZero();
             assertThat(contar("nota_fiscal", loja.getCodigo())).isZero();
             assertThat(contar("parceiro", loja.getCodigo())).isZero();

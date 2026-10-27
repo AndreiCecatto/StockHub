@@ -58,13 +58,21 @@ public class MovimentacaoEstoque {
     @Column(length = 255, updatable = false)
     private String observacao;
 
-    // Documento que originou a movimentação (opcional): os dois campos vêm juntos ou ficam nulos
+    // Documento que originou a movimentação (V10): MANUAL quando foi lançada à mão, sem documento
     @Enumerated(EnumType.STRING)
-    @Column(name = "origem_tipo", length = 20, updatable = false)
-    private OrigemMovimentacao origemTipo;
+    @Column(name = "tipo_documento", nullable = false, length = 20, updatable = false)
+    private TipoDocumento tipoDocumento = TipoDocumento.MANUAL;
 
-    @Column(name = "origem_id", updatable = false)
-    private Integer origemId;
+    @Column(name = "documento_id", updatable = false)
+    private Integer documentoId;
+
+    // Preço de venda praticado (V10); NULL quando não é uma venda ou o preço não foi informado
+    @Column(name = "preco_unitario", precision = 14, scale = 4, updatable = false)
+    private BigDecimal precoUnitario;
+
+    // Se esta movimentação é um estorno, o código da movimentação desfeita (V10); cada uma é desfeita uma só vez
+    @Column(name = "estorno_de_id", updatable = false)
+    private Integer estornoDeId;
 
     // Custo unitário do produto no momento da movimentação (base das análises de caixa, RN-45)
     @Column(name = "custo_unitario", nullable = false, precision = 14, scale = 4, updatable = false)
@@ -153,18 +161,34 @@ public class MovimentacaoEstoque {
         this.observacao = observacao;
     }
 
-    public OrigemMovimentacao getOrigemTipo() {
-        return origemTipo;
+    public TipoDocumento getTipoDocumento() {
+        return tipoDocumento;
     }
 
-    public Integer getOrigemId() {
-        return origemId;
+    public Integer getDocumentoId() {
+        return documentoId;
     }
 
-    /** Define a origem na criação (a coluna não é atualizável: movimentação é imutável, RN-06). */
-    public void definirOrigem(OrigemMovimentacao tipo, Integer id) {
-        this.origemTipo = tipo;
-        this.origemId = id;
+    /** Define o documento de origem na criação (a coluna não é atualizável: movimentação é imutável, RN-06). */
+    public void definirDocumento(TipoDocumento tipo, Integer id) {
+        this.tipoDocumento = tipo == null ? TipoDocumento.MANUAL : tipo;
+        this.documentoId = id;
+    }
+
+    public BigDecimal getPrecoUnitario() {
+        return precoUnitario;
+    }
+
+    public void setPrecoUnitario(BigDecimal precoUnitario) {
+        this.precoUnitario = precoUnitario;
+    }
+
+    public Integer getEstornoDeId() {
+        return estornoDeId;
+    }
+
+    public void setEstornoDeId(Integer estornoDeId) {
+        this.estornoDeId = estornoDeId;
     }
 
     public BigDecimal getCustoUnitario() {

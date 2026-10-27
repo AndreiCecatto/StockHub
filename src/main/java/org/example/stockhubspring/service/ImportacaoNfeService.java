@@ -14,7 +14,7 @@ import org.example.stockhubspring.model.ImportacaoNfe;
 import org.example.stockhubspring.model.MovimentacaoEstoque;
 import org.example.stockhubspring.model.NotaFiscal;
 import org.example.stockhubspring.model.NotaFiscalItem;
-import org.example.stockhubspring.model.OrigemMovimentacao;
+import org.example.stockhubspring.model.TipoDocumento;
 import org.example.stockhubspring.model.Parceiro;
 import org.example.stockhubspring.model.Produto;
 import org.example.stockhubspring.model.SituacaoItemNfe;
@@ -396,7 +396,7 @@ public class ImportacaoNfeService {
      * Confirma a importação numa ÚNICA transação: relê e revalida o XML guardado (conferindo o SHA-256; nunca dados
      * do navegador, só as decisões por item), valida TODAS as decisões antes de gravar qualquer coisa, trava os
      * produtos em ordem crescente de id (sem deadlock entre duas confirmações), cria/aproveita o fornecedor, grava a
-     * nota e dá a ENTRADA de cada item com origem NFE_COMPRA. Qualquer falha desfaz tudo e a mensagem diz qual item.
+     * nota e dá a ENTRADA de cada item com origem COMPRA_NFE. Qualquer falha desfaz tudo e a mensagem diz qual item.
      */
     @Transactional
     public NotaFiscal confirmar(UUID token, ConfirmacaoNfeForm form, Usuario usuario) {
@@ -715,7 +715,7 @@ public class ImportacaoNfeService {
                                            NotaFiscal notaFiscal) {
         try {
             return estoqueService.movimentar(produto.getId(), TipoMovimentacao.ENTRADA, item.quantidadeInteira(),
-                    observacao, usuario, OrigemMovimentacao.NFE_COMPRA, notaFiscal.getId(),
+                    observacao, usuario, TipoDocumento.COMPRA_NFE, notaFiscal.getId(),
                     unidadeIgual(produto, item) ? item.custoUnitario() : null);
         } catch (RegraNegocioException | RecursoNaoEncontradoException e) {
             throw new RegraNegocioException(prefixo(item) + e.getMessage() + " Nada foi importado.");

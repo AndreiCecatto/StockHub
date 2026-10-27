@@ -57,6 +57,11 @@ public class Produto {
     @Column(name = "estoque_minimo", nullable = false)
     private int estoqueMinimo;
 
+    // Preço de venda para vendas e OS (V10); NULL = vale o campo "preco" do cadastro
+    @DecimalMin(value = "0", message = "O preço de venda deve ser maior ou igual a zero.")
+    @Column(name = "preco_venda", precision = 14, scale = 4)
+    private BigDecimal precoVenda;
+
     // Último custo de compra (atualizado pela importação de NF-e); o preço de VENDA continua em "preco"
     @DecimalMin(value = "0", message = "O custo deve ser maior ou igual a zero.")
     @Column(nullable = false, precision = 14, scale = 4)
@@ -100,6 +105,19 @@ public class Produto {
 
     public BigDecimal getValorTotal() {
         return preco.multiply(BigDecimal.valueOf(quantidade));
+    }
+
+    /** Preço de venda efetivo: o preço de venda, se houver, senão o preço do cadastro. */
+    public BigDecimal getPrecoDeVenda() {
+        return precoVenda != null ? precoVenda : preco;
+    }
+
+    public BigDecimal getPrecoVenda() {
+        return precoVenda;
+    }
+
+    public void setPrecoVenda(BigDecimal precoVenda) {
+        this.precoVenda = precoVenda;
     }
 
     public Integer getId() {

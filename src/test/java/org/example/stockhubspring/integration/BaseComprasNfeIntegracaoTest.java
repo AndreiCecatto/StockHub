@@ -5,7 +5,7 @@ import org.example.stockhubspring.exception.RegraNegocioException;
 import org.example.stockhubspring.model.Categoria;
 import org.example.stockhubspring.model.MovimentacaoEstoque;
 import org.example.stockhubspring.model.NotaFiscal;
-import org.example.stockhubspring.model.OrigemMovimentacao;
+import org.example.stockhubspring.model.TipoDocumento;
 import org.example.stockhubspring.model.Parceiro;
 import org.example.stockhubspring.model.Produto;
 import org.example.stockhubspring.model.TipoMovimentacao;
@@ -189,8 +189,8 @@ class BaseComprasNfeIntegracaoTest extends IntegracaoBase {
 
         MovimentacaoEstoque mov = estoqueService.movimentar(p.getId(), TipoMovimentacao.ENTRADA, 5, "Compra", loja);
 
-        assertThat(mov.getOrigemTipo()).isNull();
-        assertThat(mov.getOrigemId()).isNull();
+        assertThat(mov.getTipoDocumento()).isEqualTo(TipoDocumento.MANUAL);
+        assertThat(mov.getDocumentoId()).isNull();
         assertThat(mov.getQuantidadeAnterior()).isEqualTo(1);
         assertThat(mov.getQuantidadeNova()).isEqualTo(6);
     }
@@ -202,12 +202,12 @@ class BaseComprasNfeIntegracaoTest extends IntegracaoBase {
         NotaFiscal nota = nota(loja, "9".repeat(44));
 
         MovimentacaoEstoque mov = estoqueService.movimentar(p.getId(), TipoMovimentacao.ENTRADA, 5, "NF-e 1",
-                loja, OrigemMovimentacao.NFE_COMPRA, nota.getId());
+                loja, TipoDocumento.COMPRA_NFE, nota.getId());
         limparSessao();
 
         MovimentacaoEstoque lida = movimentacaoRepository.findById(mov.getId()).orElseThrow();
-        assertThat(lida.getOrigemTipo()).isEqualTo(OrigemMovimentacao.NFE_COMPRA);
-        assertThat(lida.getOrigemId()).isEqualTo(nota.getId());
+        assertThat(lida.getTipoDocumento()).isEqualTo(TipoDocumento.COMPRA_NFE);
+        assertThat(lida.getDocumentoId()).isEqualTo(nota.getId());
         assertThat(saldoNoBanco(p.getId())).isEqualTo(6);
     }
 
@@ -217,7 +217,7 @@ class BaseComprasNfeIntegracaoTest extends IntegracaoBase {
         Produto p = novoProduto(loja, categoria, "Caneta", 1, 0);
 
         assertThatThrownBy(() -> estoqueService.movimentar(p.getId(), TipoMovimentacao.ENTRADA, 5, "x", loja,
-                OrigemMovimentacao.NFE_COMPRA, null)).isInstanceOf(RegraNegocioException.class);
+                TipoDocumento.COMPRA_NFE, null)).isInstanceOf(RegraNegocioException.class);
         assertThatThrownBy(() -> estoqueService.movimentar(p.getId(), TipoMovimentacao.ENTRADA, 5, "x", loja,
                 null, 3)).isInstanceOf(RegraNegocioException.class);
         assertThat(saldoNoBanco(p.getId())).isEqualTo(1);
@@ -229,12 +229,12 @@ class BaseComprasNfeIntegracaoTest extends IntegracaoBase {
         Produto p = novoProduto(loja, categoria, "Caneta", 1, 0);
 
         assertThatThrownBy(() -> estoqueService.movimentar(p.getId(), TipoMovimentacao.ENTRADA, 5,
-                "estoque inicial", loja, OrigemMovimentacao.NFE_COMPRA, 1))
+                "estoque inicial", loja, TipoDocumento.COMPRA_NFE, 1))
                 .isInstanceOf(RegraNegocioException.class);
     }
 
     @Test
-    @DisplayName("o banco recusa origem só com o tipo (sem id)")
+    @DisplayName("o banco recusa compra sem o código do documento")
     void bancoRecusaOrigemPelaMetade() {
         Produto p = novoProduto(loja, categoria, "Caneta", 1, 0);
         MovimentacaoEstoque mov = new MovimentacaoEstoque();
@@ -244,21 +244,21 @@ class BaseComprasNfeIntegracaoTest extends IntegracaoBase {
         mov.setQuantidade(1);
         mov.setQuantidadeAnterior(1);
         mov.setQuantidadeNova(2);
-        mov.definirOrigem(OrigemMovimentacao.NFE_COMPRA, null);
+        mov.definirDocumento(TipoDocumento.COMPRA_NFE, null);
 
         assertThatThrownBy(() -> movimentacaoRepository.saveAndFlush(mov))
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
 
     @Test
-    @DisplayName("o banco recusa tipo de origem que ainda não existe (VENDA entra por nova migration)")
+    @DisplayName("o banco recusa tipo de documento fora da lista (V10)")
     void bancoRecusaOrigemDesconhecida() {
         Produto p = novoProduto(loja, categoria, "Caneta", 1, 0);
         MovimentacaoEstoque mov = novaMovimentacao(p);
         movimentacaoRepository.saveAndFlush(mov);
 
         assertThatThrownBy(() -> jdbc.update(
-                "update movimentacao_estoque set origem_tipo = 'VENDA', origem_id = 1 where id = ?", mov.getId()))
+                "update movimentacao_estoque set tipo_documento = 'FATURA', documento_id = 1 where id = ?", mov.getId()))
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
 

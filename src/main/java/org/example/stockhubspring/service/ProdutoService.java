@@ -316,7 +316,8 @@ public class ProdutoService {
         boolean semHistoricoReal = historico.isEmpty()
                 || (historico.size() == 1 && ehEstoqueInicial(historico.get(0)));
 
-        if (semHistoricoReal) {
+        // Produto com reserva (mesmo cancelada) guarda histórico de venda: só inativa (RN-08)
+        if (semHistoricoReal && !produtoRepository.temReserva(id)) {
             // Só pode haver o registro de estoque inicial: sai antes do produto (chave estrangeira)
             movimentacaoRepository.deleteAll(historico);
             produtoRepository.delete(produto);

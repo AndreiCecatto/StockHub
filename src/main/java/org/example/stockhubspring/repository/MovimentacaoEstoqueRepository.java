@@ -52,6 +52,17 @@ public interface MovimentacaoEstoqueRepository
                                @Param("inicio") LocalDateTime inicio,
                                @Param("fim") LocalDateTime fim);
 
+    /** Códigos, entre os dados, das movimentações que já foram estornadas (para marcar na tela). */
+    @Query("select m.estornoDeId from MovimentacaoEstoque m where m.estornoDeId in :ids")
+    List<Integer> idsEstornados(@Param("ids") Collection<Integer> ids);
+
+    /** Esta movimentação já foi estornada? */
+    boolean existsByEstornoDeId(Integer estornoDeId);
+
+    /** Movimentação da loja pelo código (o isolamento por loja vale também aqui, RN-01). */
+    @EntityGraph(attributePaths = {"produto"})
+    java.util.Optional<MovimentacaoEstoque> findByIdAndUsuarioCodigo(Integer id, Integer usuarioCodigo);
+
     /** As duas primeiras movimentações do produto: basta para saber se há histórico além do inicial (RN-08). */
     List<MovimentacaoEstoque> findTop2ByProdutoIdOrderByIdAsc(Integer produtoId);
 
@@ -66,6 +77,8 @@ public interface MovimentacaoEstoqueRepository
                    sum(m.quantidade * m.custo_unitario) as valor
             from movimentacao_estoque m
             where m.usuario_codigo = :usuarioCodigo and m.tipo = 'SAIDA'
+              and m.estorno_de_id is null
+              and not exists (select 1 from movimentacao_estoque e where e.estorno_de_id = m.id)
               and m.criado_em >= :inicio and m.criado_em < :fim
             group by cast(m.criado_em as date)
             order by 1
@@ -79,6 +92,7 @@ public interface MovimentacaoEstoqueRepository
             + "sum(m.quantidade * m.custoUnitario)) "
             + "from MovimentacaoEstoque m join m.produto p "
             + "where m.usuario.codigo = :usuarioCodigo "
+            + "and m.estornoDeId is null and not exists (select 1 from MovimentacaoEstoque e where e.estornoDeId = m.id) "
             + "and m.tipo = org.example.stockhubspring.model.TipoMovimentacao.SAIDA "
             + "and m.criadoEm >= :inicio and m.criadoEm < :fim "
             + "group by p.id, p.nome order by sum(m.quantidade) desc, p.nome")
@@ -91,6 +105,7 @@ public interface MovimentacaoEstoqueRepository
             + "sum(m.quantidade * m.custoUnitario)) "
             + "from MovimentacaoEstoque m join m.produto p join p.categoria c "
             + "where m.usuario.codigo = :usuarioCodigo "
+            + "and m.estornoDeId is null and not exists (select 1 from MovimentacaoEstoque e where e.estornoDeId = m.id) "
             + "and m.tipo = org.example.stockhubspring.model.TipoMovimentacao.SAIDA "
             + "and m.criadoEm >= :inicio and m.criadoEm < :fim "
             + "group by c.id, c.nome order by sum(m.quantidade * m.custoUnitario) desc, c.nome")
@@ -110,6 +125,8 @@ public interface MovimentacaoEstoqueRepository
                    coalesce(sum(case when m.tipo = 'SAIDA' then m.quantidade * m.custo_unitario end), 0) as saidas
             from movimentacao_estoque m
             where m.usuario_codigo = :usuarioCodigo
+              and m.estorno_de_id is null
+              and not exists (select 1 from movimentacao_estoque e where e.estorno_de_id = m.id)
               and m.criado_em >= :inicio and m.criado_em < :fim
             group by to_char(m.criado_em, 'YYYY-MM')
             order by 1
@@ -123,6 +140,7 @@ public interface MovimentacaoEstoqueRepository
             + "from MovimentacaoEstoque m join m.produto p "
             + "where m.usuario.codigo = :usuarioCodigo and p.usuario.codigo = :usuarioCodigo "
             + "and p.ativo = true and p.quantidade > 0 "
+            + "and m.estornoDeId is null and not exists (select 1 from MovimentacaoEstoque e where e.estornoDeId = m.id) "
             + "and m.tipo = org.example.stockhubspring.model.TipoMovimentacao.SAIDA "
             + "and m.criadoEm >= :inicio and m.criadoEm < :fim "
             + "group by p.id, p.nome, p.quantidade")
