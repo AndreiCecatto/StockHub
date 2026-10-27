@@ -75,6 +75,96 @@
     }
   }
 
+  /* 4. Âncoras do menu: URL limpa e rolagem própria (suave, interrompível), que faz a cena da seção tocar sozinha.
+   * O salto nativo do link deixava a cena parada no começo (progresso 0) e escrevia #secao na URL. */
+  var raiz = document.documentElement;
+  var reduzido = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var TOPO = 64; // altura da barra fixa (--ap-topo)
+
+  // abriu (ou recarregou) com #secao: tira o hash sem mexer na rolagem nem no histórico
+  if (window.location.hash && window.history && window.history.replaceState) {
+    window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search);
+  }
+
+  var rodando = null;
+  var parar = function () {
+    if (rodando) {
+      window.cancelAnimationFrame(rodando);
+      rodando = null;
+    }
+  };
+  ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach(function (nome) {
+    window.addEventListener(nome, parar, { passive: true });
+  });
+
+  var suave = function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+  var saida = function (t) { return 1 - Math.pow(1 - t, 3); };
+
+  // anima a rolagem de "de" até "para" em "ms" ms; chama "fim" ao chegar (não chama se o usuário interromper)
+  var rolarAte = function (para, ms, curva, fim) {
+    parar();
+    var de = window.pageYOffset;
+    var t0 = null;
+    var passo = function (agora) {
+      if (t0 === null) {
+        t0 = agora;
+      }
+      var k = Math.min((agora - t0) / ms, 1);
+      window.scrollTo({ top: de + (para - de) * curva(k), behavior: 'instant' });
+      if (k < 1) {
+        rodando = window.requestAnimationFrame(passo);
+      } else {
+        rodando = null;
+        if (fim) {
+          fim();
+        }
+      }
+    };
+    rodando = window.requestAnimationFrame(passo);
+  };
+
+  document.addEventListener('click', function (ev) {
+    var a = ev.target.closest ? ev.target.closest('a[href^="#"]') : null;
+    if (!a || ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) {
+      return;
+    }
+    var id = a.getAttribute('href').slice(1);
+    var alvo = id ? document.getElementById(id) : document.body;
+    if (!alvo) {
+      return;
+    }
+    ev.preventDefault();
+    var y = id ? Math.max(0, alvo.getBoundingClientRect().top + window.pageYOffset - TOPO) : 0;
+    var chegou = function () {
+      if (id && alvo.id) {
+        if (!alvo.hasAttribute('tabindex')) {
+          alvo.setAttribute('tabindex', '-1');
+        }
+        alvo.focus({ preventScroll: true });
+      }
+    };
+    if (reduzido) {
+      window.scrollTo({ top: y, behavior: 'instant' });
+      chegou();
+      return;
+    }
+    var dist = Math.abs(y - window.pageYOffset);
+    var ms = Math.min(1500, 450 + dist * 0.12);
+    // cena fixa (telas largas com GSAP): depois de chegar, avança até a metade da cena para o movimento tocar
+    var cena = alvo.querySelector ? (alvo.classList.contains('sh-cena') ? alvo : alvo.querySelector('.sh-cena')) : null;
+    var largo = window.matchMedia('(min-width: 992px) and (min-height: 600px)').matches;
+    var extra = 0;
+    if (cena && largo && raiz.classList.contains('ap-gsap')) {
+      extra = Math.max(0, (cena.offsetHeight - (window.innerHeight - TOPO)) * 0.5);
+    }
+    rolarAte(y, ms, suave, function () {
+      chegou();
+      if (extra) {
+        rolarAte(y + extra, 1800, saida);
+      }
+    });
+  });
+
   /* 3. Ctrl K ou ⌘ K */
   var mac = /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent || '');
   if (mac) {

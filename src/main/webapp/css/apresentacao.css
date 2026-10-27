@@ -17,12 +17,8 @@
   --ap-gutter: clamp(20px, 5vw, 48px);
 }
 
-/* Âncoras do menu: rolagem suave só quando o usuário não pediu menos movimento (a rolagem em si continua nativa) */
-@media (prefers-reduced-motion: no-preference) {
-  html:has(.ap-pagina) {
-    scroll-behavior: smooth;
-  }
-}
+/* Âncoras do menu: a rolagem suave é feita por js/apresentacao.js (rAF, interrompível). O CSS nativo ficou de fora porque
+   brigava com o scrollTo e com o ScrollTrigger; sem JavaScript o link salta direto para a seção. */
 
 .ap-pagina #conteudo {
   outline: none;

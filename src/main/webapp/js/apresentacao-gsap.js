@@ -44,9 +44,9 @@
       p: 1,
       ease: 'none',
       onUpdate: function () {
-        cena.style.setProperty('--sh-progresso', proxy.p.toFixed(4));
+        cena.style.setProperty('--sh-progresso', proxy.p.toFixed(3));
       },
-      scrollTrigger: { trigger: cena, start: 'top top+=' + topo, end: 'bottom bottom', scrub: 0.35 }
+      scrollTrigger: { trigger: cena, start: 'top top+=' + topo, end: 'bottom bottom', scrub: 0.5 }
     });
   }
 
