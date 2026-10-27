@@ -15,17 +15,41 @@
     }
   });
 
-  // Máscara leve da placa: maiúsculas, só letras/números, hífen opcional (ABC-1234 ou ABC1D23).
+  // Máscara leve da placa. Ao digitar: maiúsculas e só letras, números e hífen (o valor só é reescrito
+  // se mudou, preservando o cursor). Ao sair do campo (blur): ABC1234 vira ABC-1234; ABC1D23 não muda.
+  function ehPlaca(campo) {
+    return campo && campo.hasAttribute && campo.hasAttribute('data-os-placa');
+  }
+
   document.addEventListener('input', function (evento) {
     var campo = evento.target;
-    if (!campo || !campo.hasAttribute || !campo.hasAttribute('data-os-placa')) {
+    if (!ehPlaca(campo)) {
       return;
     }
-    var limpo = campo.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
-    if (/^[A-Z]{3}[0-9]{4}$/.test(limpo) && campo.value.indexOf('-') !== -1) {
-      limpo = limpo.slice(0, 3) + '-' + limpo.slice(3);
+    var original = campo.value;
+    var ajustado = original.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+    if (ajustado === original) {
+      return;
     }
-    campo.value = limpo;
+    var inicio = campo.selectionStart;
+    var fim = campo.selectionEnd;
+    campo.value = ajustado;
+    if (inicio !== null && fim !== null) {
+      var diferenca = original.length - ajustado.length;
+      campo.setSelectionRange(Math.max(0, inicio - diferenca), Math.max(0, fim - diferenca));
+    }
+  });
+
+  document.addEventListener('focusout', function (evento) {
+    var campo = evento.target;
+    if (!ehPlaca(campo)) {
+      return;
+    }
+    var limpo = campo.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    var novo = /^[A-Z]{3}[0-9]{4}$/.test(limpo) ? limpo.slice(0, 3) + '-' + limpo.slice(3) : campo.value;
+    if (novo !== campo.value) {
+      campo.value = novo;
+    }
   });
 
   document.addEventListener('click', function (evento) {
