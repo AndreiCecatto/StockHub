@@ -2,12 +2,13 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="sh" tagdir="/WEB-INF/tags" %>
 <%--
-    Entrar e criar loja (novo design, lote 2). Rotas e campos inalterados:
+    Entrar e criar loja (v2 "caderneta de balcão"). Rotas e campos inalterados:
       GET /login, GET /cadastro, POST /login (email, senha: tratado pelo Spring Security),
       POST /cadastro (nome, email, senha).
     Dados do model: erro, sucesso, modoCadastro, errosCampos (nome, email, senha, senhaDentroDoLimite), nome, email.
     A senha nunca volta preenchida (o input de senha não tem atributo value).
     Erro de login: uma mensagem única e genérica (não revela se o e-mail existe), em role="alert".
+    O mascote reage: preocupada se houve erro, contente nos demais casos; fecha os olhos na senha (js/entrar.js).
 --%>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <%-- Erros por campo (só existem no cadastro). A regra dos 72 bytes chega com o nome "senhaDentroDoLimite". --%>
@@ -16,27 +17,36 @@
 <c:set var="eSenha" value="${not empty errosCampos['senha'] ? errosCampos['senha'] : errosCampos['senhaDentroDoLimite']}" />
 <c:set var="temErrosCampos" value="${not empty eNome or not empty eEmail or not empty eSenha}" />
 <c:set var="rotuloEnviar" value="${modoCadastro ? 'Criar minha loja' : 'Entrar'}" />
+<c:set var="humor" value="${not empty erro or temErrosCampos ? 'preocupada' : 'contente'}" />
 
 <sh:layoutPublico titulo="${modoCadastro ? 'Criar loja' : 'Entrar'}">
+    <jsp:attribute name="scripts">
+        <link rel="stylesheet" href="${ctx}/css/entrar.css">
+        <script defer src="${ctx}/js/entrar.js"></script>
+    </jsp:attribute>
+    <jsp:body>
     <div class="sh-auth">
-        <%-- Painel de marca: só em telas largas (no celular fica só o formulário) --%>
+        <%-- Capa da caderneta: só em telas largas (no celular fica só o formulário) --%>
         <section class="sh-auth__marca" aria-label="Sobre o StockHub">
             <a class="sh-marca" href="${ctx}/login">
-                <span class="sh-marca__logo"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
-                <span class="sh-marca__nome">StockHub</span>
+                <sh:mascote estado="contente" tamanho="p" classe="sh-marca__mascote" />
+                <span class="sh-marca__texto">
+                    <span class="sh-marca__nome">StockHub</span>
+                    <span class="sh-marca__sub">caderneta de balcão</span>
+                </span>
             </a>
             <div>
+                <div class="sh-auth__mascote-grande" data-sh-olhar>
+                    <sh:mascote estado="${humor}" tamanho="g" />
+                </div>
                 <p class="sh-auth__frase">Saiba o que tem, o que falta e o que saiu.</p>
-                <ul class="sh-auth__beneficios">
-                    <li><i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
-                        <span>Veja o que está acabando antes de faltar.</span></li>
-                    <li><i class="bi bi-arrow-left-right" aria-hidden="true"></i>
-                        <span>Registre entradas, saídas e ajustes em segundos.</span></li>
-                    <li><i class="bi bi-clock-history" aria-hidden="true"></i>
-                        <span>Todo o histórico guardado: o que mudou e quando.</span></li>
+                <ul class="sh-auth__notas">
+                    <li>Veja o que está acabando antes de faltar.</li>
+                    <li>Anote entradas, saídas e ajustes em segundos.</li>
+                    <li>Tudo fica guardado: o que mudou e quando.</li>
                 </ul>
             </div>
-            <p class="sh-auth__rodape-marca">Controle de estoque para lojas pequenas.</p>
+            <p class="sh-auth__rodape-marca">Controle de estoque para quem toca uma loja pequena.</p>
         </section>
 
         <div class="sh-auth__lado">
@@ -45,19 +55,21 @@
             </div>
 
             <div class="sh-auth__caixa">
-                <div class="sh-auth__logo-mobile">
-                    <span class="sh-marca__logo"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
+                <div class="sh-auth__logo-mobile" data-sh-olhar>
+                    <sh:mascote estado="${humor}" tamanho="m" />
                     <span>StockHub</span>
                 </div>
 
-                <h1 class="sh-auth__titulo"><c:choose>
-                    <c:when test="${modoCadastro}">Criar sua loja</c:when>
-                    <c:otherwise>Entrar</c:otherwise>
-                </c:choose></h1>
-                <p class="sh-auth__sub"><c:choose>
-                    <c:when test="${modoCadastro}">Crie o estoque da sua loja em poucos segundos.</c:when>
-                    <c:otherwise>Acesse o painel da sua loja.</c:otherwise>
-                </c:choose></p>
+                <div>
+                    <h1 class="sh-auth__titulo"><c:choose>
+                        <c:when test="${modoCadastro}">Criar <span class="sh-rabisco">sua loja</span></c:when>
+                        <c:otherwise>Entrar</c:otherwise>
+                    </c:choose></h1>
+                    <p class="sh-auth__sub"><c:choose>
+                        <c:when test="${modoCadastro}">Comece a caderneta de estoque em poucos segundos.</c:when>
+                        <c:otherwise>Abra a caderneta da sua loja.</c:otherwise>
+                    </c:choose></p>
+                </div>
 
                 <c:if test="${not empty sucesso}">
                     <div class="sh-alert sh-alert--success" role="status">
@@ -137,8 +149,8 @@
                                         autocomplete="current-password" required>
                                 </c:otherwise>
                             </c:choose>
-                            <button type="button" class="sh-senha__alternar" aria-controls="senha" aria-pressed="false"
-                                aria-label="Mostrar senha">
+                            <button type="button" class="sh-senha__alternar" data-sh-senha-alternar aria-controls="senha"
+                                aria-pressed="false" aria-label="Mostrar senha">
                                 <i class="bi bi-eye" aria-hidden="true"></i>
                             </button>
                         </div>
@@ -166,8 +178,7 @@
                         </c:if>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-lg w-100 mt-2">
-                        <i class="bi ${modoCadastro ? 'bi-shop' : 'bi-door-open'}" aria-hidden="true"></i>
+                    <button type="submit" class="btn btn-primary btn-lg w-100 sh-auth__enviar">
                         <span><c:out value="${rotuloEnviar}" /></span>
                     </button>
                 </form>
@@ -185,4 +196,5 @@
             </div>
         </div>
     </div>
+    </jsp:body>
 </sh:layoutPublico>
