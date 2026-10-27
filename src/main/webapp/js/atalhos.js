@@ -193,6 +193,8 @@
         novoItem();
         break;
       case 'm':
+        // sem isto a própria letra "m" seria digitada no campo que acabou de receber o foco
+        evento.preventDefault();
         movimentar();
         break;
       case PREFIXO_IR:
