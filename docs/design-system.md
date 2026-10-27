@@ -1044,3 +1044,31 @@ Nas telas de compra usamos nomes comuns; o termo fiscal fica só em dica (`title
 - Nota que não é compra normal (complementar, ajuste, devolução) é recusada no envio com a frase "Esta é uma nota de ...", sem termo fiscal solto.
 - Impostos e demais campos fiscais ficam em seção recolhida (`<details class="nfe-detalhes">`).
 - Desfazer movimentação (5b): "Desfazer" (estorno), "Desfeita por um estorno", "Estorno da movimentação #n". Reserva: "Em estoque", "Reservado" e "Disponível" (disponível = em estoque menos reservado). "Clientes" só aparece no menu das lojas com Vendas ou Ordens de serviço.
+
+## 14. Refino v4: acabamento "produto" (27/10/2026)
+
+Refino de acabamento sobre a v3, sem mudar rotas, regras de negócio nem estrutura das telas. **Tudo nasce em `css/tokens.css`** (um lugar só); as telas herdam.
+
+| Token | Antes | Agora | Efeito |
+|---|---|---|---|
+| `--sh-font` | Inter primeiro | `-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, ...` | SF em aparelhos Apple, Inter local nos demais; sem CDN |
+| `--sh-font-mono` | Geist Mono | **mesma pilha da interface** (algarismos tabulares via `font-variant-numeric`) | `.sh-mono` e valores grandes deixam de parecer "máquina de escrever" |
+| `--sh-font-codigo` (novo) | n/a | Geist Mono | só `code.sh-codigo` |
+| `--sh-radius-xs/sm/radius/lg` | 4 / 6 / 8 / 10 px | **6 / 8 / 12 / 16 px** | campos e botões 8, cartões e tabelas 12, painéis, modais e peek 16 (o mapeamento do Bootstrap segue os tokens) |
+| `--sh-track-rotulo` | 0,07em | **0** | rótulos pequenos em caixa normal, sem tracking |
+| `--sh-shadow-card` (novo) | n/a | `0 1px 2px` + `0 4px 16px -6px` a 4 a 6% | sombra quase invisível em cartões, métricas e tabelas; no escuro vale `0` (a borda separa) |
+| `--sh-shadow-1` | 6% | 5% | controles secundários |
+
+Padrões novos (bloco "Refino v4" no fim de `css/componentes.css`):
+
+- **Sem caixa-alta:** `text-transform: uppercase` saiu de todos os rótulos (eyebrows, grupos do menu, cabeçalhos do livro-razão, passos); hierarquia vem de tamanho, peso e cor.
+- **Superfícies:** `.sh-card`, `.sh-metric`, `.sh-table-wrap` e os painéis das telas usam `--sh-shadow-card` + borda de 1 px; o hover de cartão clicável só muda o fundo, nunca levita.
+- **Cabeçalho de página:** mais respiro (32 px abaixo), título 680 com tracking de -0,03em, descrição limitada a 62ch.
+- **Tabelas:** cabeçalho com mais ar, divisores de linha a 70% (hairline mais leve).
+- **Links de texto:** sublinhado de 1 px com `text-underline-offset` e transição de cor.
+- **Barra de rolagem fina** (`scrollbar-width: thin`) onde há suporte.
+- **Mantidos:** vidro com `backdrop-filter` só em barra superior, barra inferior, barra de ações e paleta; acento único (cobalto); foco de 2 px com afastamento; `prefers-reduced-motion` zera animações e transições; contraste AA (nenhuma cor mudou).
+
+**Correção:** o botão "Desfazer" agora aparece na linha que `js/v3-estoque.js` insere logo depois de lançar um movimento. A página informa o papel em `data-v3e-pode-desfazer` (`EstoqueController` envia `podeDesfazer`); o JS só mostra o botão quando o papel pode e o saldo mudou (mesma regra de `EstoqueService.estornaveis`, que continua sendo a decisão final no servidor).
+
+**Verificação:** Edge + Playwright contra a aplicação real (porta 8082), 1440 e 390 px, claro e escuro, em `/`, `/login`, `/cadastro`, início, produtos, movimentações, análises, NF-e, equipe, categorias, estoque baixo, unidades e valor do estoque: sem rolagem horizontal e sem erro de console. **Não verificado:** telas de OS e clientes (a loja demo não tem esses módulos e criar outra conta exige aprovação), Safari e Firefox.
