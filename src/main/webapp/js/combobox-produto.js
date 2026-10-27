@@ -14,6 +14,7 @@
  * o trecho encontrado vira <mark> por nós de texto.
  *
  * Expõe SH.mov.criarCombobox(select, opcoes) e alguns utilitários de saldo (SH.mov.nivel, SH.mov.criarBadge).
+ * v3: o objeto devolvido também tem limpar() e atualizarProduto(id, saldo), usados pelo envio sem recarregar.
  */
 (function () {
   'use strict';
@@ -336,7 +337,7 @@
         var nome = elemento('span', 'sh-combo__nome');
         escreverNome(nome, produto, busca.palavras);
         var meta = elemento('span', 'sh-combo__meta');
-        meta.appendChild(elemento('span', null, textoSaldo(produto)));
+        meta.appendChild(elemento('span', null, MOV.formatar(produto.saldo) + ' un.'));
         meta.appendChild(MOV.criarBadge(MOV.nivel(produto.saldo, produto.minimo)));
         item.appendChild(nome);
         item.appendChild(meta);
@@ -378,9 +379,9 @@
         return;
       }
       var saldo = elemento('p', 'sh-combo__saldo');
-      saldo.appendChild(document.createTextNode('Saldo atual '));
+      saldo.appendChild(document.createTextNode('Saldo '));
       saldo.appendChild(elemento('strong', null, MOV.formatar(produto.saldo)));
-      saldo.appendChild(document.createTextNode(' un. (mínimo ' + MOV.formatar(produto.minimo) + ') '));
+      saldo.appendChild(elemento('span', 'sh-mono', 'mín. ' + MOV.formatar(produto.minimo)));
       saldo.appendChild(MOV.criarBadge(MOV.nivel(produto.saldo, produto.minimo)));
 
       var acoes = elemento('div', 'sh-combo__acoes');
@@ -548,6 +549,37 @@
       },
       focar: function () {
         entrada.focus();
+      },
+      /** Tira a escolha e limpa o texto (formulário pronto para o próximo lançamento). Não mexe no foco. */
+      limpar: function () {
+        fechar();
+        definirSelecao(null, 'limpar');
+        entrada.value = '';
+      },
+      /**
+       * Atualiza o saldo de um produto sem recarregar (depois de um lançamento): a lista de busca, o cartão do
+       * produto escolhido e a opção do select (que é a fonte dos dados para o resto da tela).
+       */
+      atualizarProduto: function (id, saldo) {
+        var produto = porId[String(id)];
+        var numero = parseInt(saldo, 10);
+        if (!produto || !isFinite(numero)) {
+          return false;
+        }
+        produto.saldo = numero;
+        Array.prototype.forEach.call(select.options, function (op) {
+          if (op.value === produto.id) {
+            op.setAttribute('data-saldo', String(numero));
+            op.textContent = produto.nome + ' (saldo: ' + numero + ' un.)';
+          }
+        });
+        if (selecionado && selecionado.id === produto.id) {
+          mostrarCartao(produto);
+        }
+        if (aberto) {
+          desenhar(entrada.value);
+        }
+        return true;
       }
     };
   };

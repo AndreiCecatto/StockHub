@@ -1,6 +1,5 @@
 /*
- * StockHub: formulário "Registrar movimentação" (seções 4.9 e 4.10 de docs/design-system.md).
- * Substitui o antigo js/estoque.js (removido no lote 5).
+ * StockHub v3: console "Registrar movimentação" (seção 12 de docs/design-system.md).
  *
  * O que este arquivo faz, tudo como melhoria: sem ele o formulário funciona com os atributos nativos.
  *  - tipo (Entrada, Saída, Ajuste): rótulo, min e max da quantidade, dica, texto do botão e obrigatoriedade
@@ -8,11 +7,15 @@
  *  - seletor de produto com busca (js/combobox-produto.js) e pré-seleção por ?movProduto=ID&movTipo=ENTRADA
  *    (o servidor ignora esses parâmetros: aqui o ID é validado contra as opções e o tipo contra a lista fixa);
  *  - botões − e + da quantidade;
- *  - prévia "saldo atual → saldo depois", com aviso (sem bloquear o envio) quando a saída excede o saldo:
- *    quem decide é o servidor, porque o saldo da página pode estar desatualizado;
+ *  - prévia "saldo atual → saldo depois" com selo e medidor, e aviso (sem bloquear o envio) quando a saída excede o
+ *    saldo: quem decide é o servidor, porque o saldo da página pode estar desatualizado. Os nós da prévia são fixos
+ *    (JSP): o JS só troca texto e classe, então nada pisca a cada tecla;
  *  - motivos rápidos que preenchem a observação. O texto reservado "Estoque inicial" nunca é oferecido
- *    e, se digitado, é recusado aqui com uma explicação (o servidor também recusa).
+ *    e, se digitado, é recusado aqui com uma explicação (o servidor também recusa);
+ *  - atalhos de uma tecla (E, S, A escolhem o tipo; F vai ao filtro de produto), com as mesmas regras de js/atalhos.js:
+ *    nunca digitando em campo, nunca com Ctrl/Alt/Meta, respeitando a chave "Atalhos de teclado ativados".
  * A validação e o bloqueio de envio duplo são do js/formularios.js (form[data-sh-validar]); Ctrl+Enter, do atalhos.js.
+ * O envio sem recarregar e o livro-razão são do js/v3-estoque.js, que usa SH.mov.formulario daqui.
  * Regra do projeto: nada de HTML montado com dado do usuário (só createElement e textContent).
  */
 (function () {
@@ -33,13 +36,19 @@
   var marcaObrigatoria = document.getElementById('obs-obrigatoria');
   var rotuloBotao = document.getElementById('rotulo-botao');
   var previa = document.getElementById('previa-saldo');
-  var previaVisual = document.getElementById('previa-visual');
+  var previaSelo = document.getElementById('previa-selo');
+  var previaAntes = document.getElementById('previa-antes');
+  var previaDepois = document.getElementById('previa-depois');
+  var previaDelta = document.getElementById('previa-delta');
+  var previaMedidor = document.getElementById('previa-medidor');
+  var previaFill = document.getElementById('previa-fill');
+  var previaTexto = document.getElementById('previa-texto');
   var previaAviso = document.getElementById('previa-aviso');
   var previaLeitor = document.getElementById('previa-leitor');
   var motivos = document.getElementById('motivos');
   var radios = Array.prototype.slice.call(form.querySelectorAll('input[name="tipo"]'));
   var botoesQuantidade = Array.prototype.slice.call(form.querySelectorAll('[data-sh-qtd]'));
-  var chips = Array.prototype.slice.call(form.querySelectorAll('.sh-chip[data-motivo]'));
+  var chips = Array.prototype.slice.call(form.querySelectorAll('.v3e-chip[data-motivo]'));
   if (!select || !quantidade || !observacao || !radios.length) {
     return;
   }
@@ -76,6 +85,8 @@
       obsObrigatoria: true
     }
   };
+
+  var CLASSE_NIVEL = { NORMAL: 'normal', BAIXO: 'baixo', SEM_ESTOQUE: 'sem' };
 
   function tem(objeto, chave) {
     return Object.prototype.hasOwnProperty.call(objeto, chave);
@@ -141,6 +152,8 @@
 
   /* ---------- Prévia: saldo atual -> saldo depois ---------- */
   var temporizadorLeitor = null;
+  var nivelDoSelo = null;
+  var ultimoDepois = null;
 
   function falar(texto) {
     if (!previaLeitor) {
@@ -153,6 +166,20 @@
     }, 700);
   }
 
+  /** Troca discreta do número (opacidade e 3 px de subida); nada com menos movimento. */
+  function pulsar(el) {
+    if (!el.animate || (SH.reduzMovimento && SH.reduzMovimento())) {
+      return;
+    }
+    el.animate(
+      [
+        { opacity: 0.35, transform: 'translateY(3px)' },
+        { opacity: 1, transform: 'none' }
+      ],
+      { duration: 180, easing: 'cubic-bezier(.2,.8,.2,1)' }
+    );
+  }
+
   function mostrarAviso(texto) {
     limpar(previaAviso);
     var icone = elemento('i', 'bi bi-exclamation-triangle-fill');
@@ -160,6 +187,45 @@
     previaAviso.appendChild(icone);
     previaAviso.appendChild(elemento('span', null, texto));
     previaAviso.hidden = false;
+  }
+
+  function definirSelo(nivel) {
+    if (nivel === nivelDoSelo) {
+      return;
+    }
+    nivelDoSelo = nivel;
+    limpar(previaSelo);
+    if (nivel) {
+      previaSelo.appendChild(MOV.criarBadge(nivel));
+    }
+  }
+
+  /** Medidor como o da tag medidorEstoque: barra até saldo / (2 x mínimo), em degraus de 5 %, marcador no mínimo. */
+  function definirMedidor(saldo, minimo, nivel) {
+    if (!previaMedidor || !previaFill) {
+      return;
+    }
+    if (nivel === null || minimo <= 0) {
+      previaMedidor.hidden = true;
+      return;
+    }
+    var pct = Math.max(0, Math.min(100, (saldo * 50) / minimo));
+    var passo = Math.round(pct / 5) * 5;
+    if (saldo > 0 && passo === 0) {
+      passo = 5;
+    }
+    previaFill.className = 'v3e-medidor__fill v3e-p-' + passo;
+    previaMedidor.className = 'sh-meter v3e-medidor v3e-medidor--' + CLASSE_NIVEL[nivel];
+    previaMedidor.hidden = false;
+  }
+
+  function escrever(depois) {
+    if (depois !== ultimoDepois) {
+      ultimoDepois = depois;
+      previaDepois.textContent = depois;
+      previaDepois.classList.toggle('is-vazio', depois === '—');
+      pulsar(previaDepois);
+    }
   }
 
   function atualizarPrevia() {
@@ -172,20 +238,32 @@
     var valor = lerQuantidade();
     var fmt = MOV.formatar;
 
-    limpar(previaVisual);
     previaAviso.hidden = true;
+    previaDelta.textContent = '';
+    previaDelta.className = 'v3e-previa__delta sh-mono';
 
     if (!produto) {
       var semProduto = 'Escolha um produto para ver o saldo depois.';
-      previaVisual.appendChild(elemento('p', 'sh-previa__texto', semProduto));
+      previaAntes.textContent = '—';
+      escrever('—');
+      definirSelo(null);
+      definirMedidor(0, 0, null);
+      previaTexto.textContent = semProduto;
       falar(semProduto);
       return;
     }
+
+    var nivelAtual = MOV.nivel(produto.saldo, produto.minimo);
+    previaAntes.textContent = fmt(produto.saldo);
+
     if (valor === null || valor < cfg.min || valor > cfg.max) {
       var pedido =
         'Saldo atual: ' + fmt(produto.saldo) + ' un. ' +
         (tipo === 'AJUSTE' ? 'Informe a contagem final' : 'Informe a quantidade') + ' para ver o saldo depois.';
-      previaVisual.appendChild(elemento('p', 'sh-previa__texto', pedido));
+      escrever('—');
+      definirSelo(nivelAtual);
+      definirMedidor(produto.saldo, produto.minimo, nivelAtual);
+      previaTexto.textContent = pedido;
       falar(pedido);
       return;
     }
@@ -199,33 +277,36 @@
       depois = valor;
     }
 
-    var fala;
     if (depois < 0) {
       // Saída maior que o saldo: avisa, não bloqueia (o servidor decide, RN-02 e RN-07)
       var recusa = 'Saída maior que o saldo (' + fmt(produto.saldo) + ' un.): o sistema vai recusar.';
-      previaVisual.appendChild(elemento('p', 'sh-previa__texto', 'Saldo atual: ' + fmt(produto.saldo) + ' un.'));
+      escrever('—');
+      definirSelo(nivelAtual);
+      definirMedidor(produto.saldo, produto.minimo, nivelAtual);
+      previaTexto.textContent = '';
       mostrarAviso(recusa);
       falar(recusa);
       return;
     }
 
-    previaVisual.appendChild(elemento('span', 'sh-previa__num sh-previa__num--antes', fmt(produto.saldo)));
-    var seta = elemento('span', 'sh-previa__seta', '→');
-    seta.setAttribute('aria-hidden', 'true');
-    previaVisual.appendChild(seta);
-    previaVisual.appendChild(elemento('span', 'sh-previa__num', fmt(depois)));
-    previaVisual.appendChild(elemento('span', 'sh-previa__un', 'un.'));
-    previaVisual.appendChild(MOV.criarBadge(MOV.nivel(depois, produto.minimo)));
-    fala = 'Saldo de ' + fmt(produto.saldo) + ' para ' + fmt(depois) + ' unidades.';
+    var nivelDepois = MOV.nivel(depois, produto.minimo);
+    escrever(fmt(depois));
+    definirSelo(nivelDepois);
+    definirMedidor(depois, produto.minimo, nivelDepois);
+    previaTexto.textContent = '';
 
+    var diferenca = depois - produto.saldo;
+    if (diferenca === 0) {
+      previaDelta.textContent = '±0';
+    } else {
+      previaDelta.textContent = (diferenca > 0 ? '+' : '−') + fmt(Math.abs(diferenca));
+      previaDelta.className += diferenca > 0 ? ' v3e-previa__delta--mais' : ' v3e-previa__delta--menos';
+    }
+
+    var fala = 'Saldo de ' + fmt(produto.saldo) + ' para ' + fmt(depois) + ' unidades.';
     if (tipo === 'AJUSTE') {
-      var diferenca = depois - produto.saldo;
-      var texto =
-        diferenca === 0
-          ? 'Sem diferença em relação ao saldo atual.'
-          : (diferenca > 0 ? '+' : '−') + fmt(Math.abs(diferenca)) + ' em relação ao saldo atual.';
-      previaVisual.appendChild(elemento('span', 'sh-previa__diferenca', texto));
-      fala += ' ' + texto;
+      fala +=
+        ' ' + (diferenca === 0 ? 'Sem diferença em relação ao saldo atual.' : (diferenca > 0 ? '+' : '−') + fmt(Math.abs(diferenca)) + ' em relação ao saldo atual.');
     }
     if (depois > SALDO_MAXIMO) {
       var limite = 'O saldo passaria do limite de ' + fmt(SALDO_MAXIMO) + ' un.: o sistema vai recusar.';
@@ -397,8 +478,25 @@
     return false;
   }
 
+  function focarSeletor() {
+    if (combo) {
+      combo.focar();
+    } else {
+      select.focus();
+    }
+  }
+
+  function escolherTipo(tipo) {
+    for (var i = 0; i < radios.length; i++) {
+      if (radios[i].value === tipo && !radios[i].checked) {
+        radios[i].checked = true;
+        radios[i].dispatchEvent(new window.Event('change', { bubbles: true }));
+      }
+    }
+  }
+
   /* ---------- Ligações ---------- */
-  form.classList.add('sh-mov--js');
+  form.classList.add('v3e--js');
   botoesQuantidade.forEach(function (botao) {
     botao.hidden = false;
     botao.addEventListener('click', function () {
@@ -433,9 +531,122 @@
   conferirReservado();
   atualizarTipo(false);
 
+  /* ---------- Atalhos de uma tecla: E, S, A (tipo) e F (filtro) ---------- */
+  var ultimoPrefixoIr = 0;
+
+  function emCampo(alvo) {
+    if (!alvo || !alvo.tagName) {
+      return false;
+    }
+    var t = alvo.tagName.toLowerCase();
+    if (t === 'textarea' || t === 'select') {
+      return true;
+    }
+    if (t === 'input') {
+      var tipo = (alvo.getAttribute('type') || 'text').toLowerCase();
+      return ['checkbox', 'radio', 'button', 'submit', 'reset', 'range', 'color', 'file', 'image'].indexOf(tipo) === -1;
+    }
+    return !!alvo.isContentEditable;
+  }
+
+  document.addEventListener('keydown', function (evento) {
+    if (evento.defaultPrevented || evento.repeat || evento.ctrlKey || evento.altKey || evento.metaKey || evento.shiftKey) {
+      return;
+    }
+    if (SH.armazenar && SH.armazenar.ler('sh-atalhos') === 'desligados') {
+      return;
+    }
+    if (document.body.classList.contains('modal-open') || document.querySelector('dialog[open]') || emCampo(evento.target)) {
+      return;
+    }
+    var tecla = evento.key ? evento.key.toLowerCase() : '';
+    if (tecla === 'g') {
+      ultimoPrefixoIr = Date.now(); // "g" + letra é a navegação do sistema (atalhos.js): não é nosso
+      return;
+    }
+    if (Date.now() - ultimoPrefixoIr < 1500) {
+      return;
+    }
+    var tipoPedido = tecla === 'e' ? 'ENTRADA' : tecla === 's' ? 'SAIDA' : tecla === 'a' ? 'AJUSTE' : '';
+    if (tipoPedido) {
+      evento.preventDefault();
+      escolherTipo(tipoPedido);
+      if (produtoAtual()) {
+        quantidade.focus();
+        if (quantidade.select) {
+          quantidade.select();
+        }
+      } else {
+        focarSeletor();
+      }
+    } else if (tecla === 'm') {
+      // Aqui o "m" do atalhos.js não pode digitar a letra no seletor: o preventDefault vem antes (fase de captura)
+      evento.preventDefault();
+      focarSeletor();
+    } else if (tecla === 'f') {
+      var filtro = document.getElementById('filtro-produto');
+      if (filtro) {
+        evento.preventDefault();
+        filtro.focus();
+      }
+    }
+  }, true);
+
+  /* ---------- API para o envio sem recarregar (js/v3-estoque.js) ---------- */
+  function limparMarcasDeErro() {
+    [select, quantidade, observacao].forEach(function (campo) {
+      campo.classList.remove('is-invalid');
+      campo.removeAttribute('aria-invalid');
+    });
+    var entradaCombo = document.getElementById('produto-busca');
+    if (entradaCombo) {
+      entradaCombo.classList.remove('is-invalid');
+      entradaCombo.removeAttribute('aria-invalid');
+    }
+    Array.prototype.forEach.call(form.querySelectorAll('.sh-erro-campo'), function (erro) {
+      erro.hidden = true;
+    });
+    var resumo = form.querySelector('[data-sh-resumo-erros]');
+    if (resumo) {
+      resumo.hidden = true;
+    }
+    var alerta = form.querySelector('[data-v3e-alerta]');
+    if (alerta) {
+      alerta.hidden = true;
+    }
+  }
+
+  SH.mov.formulario = {
+    form: form,
+    combo: combo,
+    focarSeletor: focarSeletor,
+    tipoAtual: tipoAtual,
+    atualizarProduto: function (id, saldo) {
+      return combo ? combo.atualizarProduto(id, saldo) : false;
+    },
+    /** Formulário pronto para o próximo lançamento: mantém só o tipo. Não mexe no foco. */
+    reiniciar: function () {
+      limparMarcasDeErro();
+      if (combo) {
+        combo.limpar();
+      } else {
+        select.value = '';
+        select.dispatchEvent(new window.Event('change', { bubbles: true }));
+      }
+      quantidade.value = '';
+      observacao.value = '';
+      marcarChip(null);
+      conferirReservado();
+      avisarMudanca(observacao); // atualiza o contador de caracteres
+      atualizarTipo(false);
+    },
+    /** Tira as marcas de erro e o resumo (antes de mostrar os do servidor). */
+    limparErros: limparMarcasDeErro
+  };
+
   /* ---------- Pré-seleção por link (?movProduto=ID&movTipo=ENTRADA) e foco ---------- */
   // Depois de um erro do servidor o foco já foi para o resumo de erros ou para o alerta: não o roubamos
-  var erroDoServidor = document.querySelector('[data-sh-resumo-erros]:not([hidden]), .sh-alert--danger[role="alert"]');
+  var erroDoServidor = document.querySelector('[data-sh-resumo-erros]:not([hidden]), .sh-alert--danger[role="alert"]:not([hidden]):not([data-v3e-alerta])');
   var escolheuProduto = false;
   var escolheuTipo = false;
 
@@ -454,14 +665,6 @@
     var idPedido = parametros.get('movProduto');
     if (idPedido && /^[1-9][0-9]{0,9}$/.test(idPedido)) {
       escolheuProduto = combo ? combo.selecionarPorId(idPedido, 'inicio') : escolherNoSelect(idPedido);
-    }
-  }
-
-  function focarSeletor() {
-    if (combo) {
-      combo.focar();
-    } else {
-      select.focus();
     }
   }
 

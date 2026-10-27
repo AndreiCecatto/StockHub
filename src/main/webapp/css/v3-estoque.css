@@ -1,0 +1,1139 @@
+/*
+ * StockHub v3: Movimentações (console de lançamento + livro-razão). Carregado só por estoque.jsp, depois de tokens.css,
+ * layout.css, componentes.css e movimento.css. Só usa tokens (--sh-*) e componentes existentes (.sh-badge, .sh-meter,
+ * .sh-alert, .sh-resumo-erros, .sh-erro-campo, .sh-vazio, .sh-paginacao). Nenhuma cor solta.
+ * Prefixos próprios: v3e (página), sh-combo (seletor de produto, mantido para o JS), v3e-seg (tipo), v3e-qtd,
+ * v3e-previa, v3e-chip, v3e-filtros, v3e-linha (livro-razão).
+ * Movimento: só transform e opacity (a cor de fundo do destaque desbota, como o .sh-novo do sistema), desaceleração,
+ * sem overshoot. Menos movimento: sem animação, destaque estático (o JS tira a marca depois de alguns segundos).
+ */
+
+/* ============================== Página ============================== */
+.v3e {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sh-space-6);
+  align-items: start;
+}
+
+/* Telas largas: console fixo de 372 px à esquerda, livro-razão ocupando o resto */
+@media (min-width: 1100px) {
+  .v3e {
+    grid-template-columns: 372px minmax(0, 1fr);
+  }
+}
+
+/* O console acompanha a rolagem do histórico, se couber na altura da janela */
+@media (min-width: 1100px) and (min-height: 900px) {
+  .v3e-console {
+    position: sticky;
+    top: calc(var(--sh-topbar-h) + var(--sh-space-4));
+  }
+}
+
+/* ============================== Console ============================== */
+.v3e-console {
+  padding: var(--sh-space-5);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-lg);
+  background: var(--sh-surface);
+}
+
+.v3e-console__cab {
+  margin-bottom: var(--sh-space-5);
+}
+
+.v3e-console__titulo,
+.v3e-razao-card__titulo {
+  margin: 2px 0 0;
+  font-size: var(--sh-fs-secao);
+  font-weight: 700;
+  line-height: var(--sh-lh-titulo);
+  letter-spacing: var(--sh-track-titulo);
+}
+
+.v3e-form {
+  display: grid;
+  gap: var(--sh-space-5);
+}
+
+.v3e-form .sh-resumo-erros,
+.v3e-form .sh-alert {
+  margin-bottom: 0;
+}
+
+.v3e-enviar {
+  display: grid;
+  gap: var(--sh-space-2);
+}
+
+.v3e-dica-teclas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sh-space-1) var(--sh-space-4);
+  margin: 0;
+  color: var(--sh-text-subtle);
+  font-size: var(--sh-text-sm);
+}
+
+.v3e-dica-teclas kbd.sh-tecla {
+  min-width: 0;
+  padding: 0 5px;
+  font-family: var(--sh-font-mono);
+  font-size: 0.6875rem;
+}
+
+/* Sem teclado físico (celular) as dicas de atalho só atrapalham */
+@media (hover: none) {
+  .v3e-dica-teclas,
+  .v3e-rodape-teclas {
+    display: none;
+  }
+}
+
+/* ---------- Último lançamento (recibo) ---------- */
+.v3e-recibo {
+  position: relative;
+  display: grid;
+  gap: var(--sh-space-1);
+  padding: var(--sh-space-3) var(--sh-space-4);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius);
+  background: var(--sh-surface-2);
+  animation: v3e-entra var(--sh-t-3) var(--sh-ease-out-forte) both;
+}
+
+.v3e-recibo::before {
+  content: "";
+  position: absolute;
+  inset: -1px auto -1px -1px;
+  width: 3px;
+  border-radius: var(--sh-radius) 0 0 var(--sh-radius);
+  background: var(--sh-accent);
+}
+
+.v3e-recibo__cab {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sh-space-3);
+}
+
+.v3e-recibo__rotulo {
+  color: var(--sh-text-subtle);
+  font-size: var(--sh-fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--sh-track-rotulo);
+  text-transform: uppercase;
+}
+
+.v3e-recibo__hora {
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+.v3e-recibo__produto {
+  min-width: 0;
+  font-weight: 650;
+  letter-spacing: var(--sh-track-corpo);
+  overflow-wrap: anywhere;
+}
+
+.v3e-recibo__linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sh-space-1) var(--sh-space-3);
+  font-size: var(--sh-text-md);
+}
+
+.v3e-recibo__saldo {
+  color: var(--sh-text-muted);
+}
+
+.v3e-recibo__saldo strong {
+  color: var(--sh-text);
+  font-weight: 650;
+}
+
+/* ============================== Seletor de produto (combobox) ============================== */
+.sh-combo {
+  position: relative;
+}
+
+/* Com JS o select continua no formulário (é ele que vai no POST), mas some da tela e da leitura */
+.sh-combo--ativo > select {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sh-combo__campo {
+  position: relative;
+}
+
+.sh-combo__campo > .bi-search {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: var(--sh-text-subtle);
+  pointer-events: none;
+}
+
+.sh-combo__input {
+  padding-left: 38px;
+}
+
+.sh-combo__popup {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + var(--sh-space-1));
+  left: 0;
+  right: 0;
+  max-height: min(340px, 60vh);
+  overflow-y: auto;
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-lg);
+  background: var(--sh-surface);
+  box-shadow: var(--sh-shadow-pop);
+  animation: v3e-entra var(--sh-t-2) var(--sh-ease-out) both;
+  --sh-dist-entrada: 4px;
+}
+
+.sh-combo__lista {
+  list-style: none;
+  margin: 0;
+  padding: var(--sh-space-1);
+}
+
+.sh-combo__opcao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sh-space-1) var(--sh-space-3);
+  min-height: 44px;
+  padding: var(--sh-space-2) var(--sh-space-3);
+  border-radius: var(--sh-radius-sm);
+  color: var(--sh-text);
+  cursor: pointer;
+}
+
+.sh-combo__opcao:hover {
+  background: var(--sh-surface-2);
+}
+
+/* Opção ativa (aria-activedescendant): fundo + filete de acento, não só cor */
+.sh-combo__opcao[aria-selected="true"] {
+  background: var(--sh-accent-soft);
+  box-shadow: inset 3px 0 0 var(--sh-accent);
+}
+
+.sh-combo__nome {
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* Trecho encontrado: negrito + sublinhado (não depende de cor) */
+.sh-combo__nome mark {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-color: var(--sh-accent-text);
+  text-underline-offset: 3px;
+}
+
+.sh-combo__meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sh-space-1) var(--sh-space-2);
+  color: var(--sh-text-muted);
+  font-family: var(--sh-font-mono);
+  font-size: var(--sh-text-sm);
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+.sh-combo__aviso {
+  margin: 0;
+  padding: var(--sh-space-3) var(--sh-space-4);
+  border-top: 1px solid var(--sh-border);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.sh-combo__lista:empty + .sh-combo__aviso {
+  border-top: 0;
+}
+
+.sh-combo__aviso a {
+  font-weight: 600;
+}
+
+/* Produto escolhido: saldo atual, situação e atalhos */
+.sh-combo__cartao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sh-space-2) var(--sh-space-3);
+  margin-top: var(--sh-space-2);
+  padding: var(--sh-space-2) var(--sh-space-3);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius);
+  background: var(--sh-surface-2);
+}
+
+.sh-combo__saldo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sh-space-1) var(--sh-space-2);
+  margin: 0;
+  font-size: var(--sh-text-md);
+}
+
+.sh-combo__saldo strong,
+.sh-combo__saldo .sh-mono {
+  font-family: var(--sh-font-mono);
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+.sh-combo__saldo strong {
+  font-weight: 650;
+}
+
+.sh-combo__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sh-space-1) var(--sh-space-3);
+}
+
+.sh-combo__acoes a {
+  font-size: var(--sh-text-md);
+  font-weight: 600;
+}
+
+/* ============================== Tipo: controle segmentado ============================== */
+.v3e-seg {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.v3e-seg legend {
+  float: none;
+  width: auto;
+  padding: 0;
+}
+
+.v3e-seg__trilho {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 3px;
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius);
+  background: var(--sh-surface-2);
+}
+
+.v3e-seg__item {
+  position: relative;
+  min-width: 0;
+}
+
+/* O rádio fica invisível mas continua focável e lido pelo leitor de tela (não é display: none) */
+.v3e-seg__input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+
+.v3e-seg__opcao {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--sh-alvo);
+  padding: 0 var(--sh-space-2);
+  border-radius: var(--sh-radius-sm);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+  font-weight: 600;
+  letter-spacing: var(--sh-track-corpo);
+  cursor: pointer;
+  transition: color var(--sh-t-1) var(--sh-ease);
+}
+
+.v3e-seg__opcao:hover {
+  color: var(--sh-text);
+}
+
+.v3e-seg__sinal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--sh-radius-xs);
+  background: var(--sh-surface);
+  border: 1px solid var(--sh-border);
+  font-size: 0.8125rem;
+  line-height: 1;
+}
+
+.v3e-seg__input:checked + .v3e-seg__opcao {
+  color: var(--sh-text);
+}
+
+#tipo-ENTRADA:checked + .v3e-seg__opcao .v3e-seg__sinal {
+  color: var(--sh-success-fg);
+  background: var(--sh-success-bg);
+  border-color: var(--sh-success-border);
+}
+
+#tipo-SAIDA:checked + .v3e-seg__opcao .v3e-seg__sinal {
+  color: var(--sh-info-fg);
+  background: var(--sh-info-bg);
+  border-color: var(--sh-info-border);
+}
+
+#tipo-AJUSTE:checked + .v3e-seg__opcao .v3e-seg__sinal {
+  color: var(--sh-text);
+  background: var(--sh-surface-3);
+  border-color: var(--sh-border-strong);
+}
+
+/* Marcado (plano B sem :has): a própria opção fica "elevada" */
+.v3e-seg__input:checked + .v3e-seg__opcao {
+  background: var(--sh-surface);
+  box-shadow: 0 0 0 1px var(--sh-border), var(--sh-shadow-1);
+}
+
+.v3e-seg__marca {
+  display: none;
+}
+
+/* Com :has, uma marca desliza entre as opções (transform) e a opção marcada perde o fundo próprio */
+@supports selector(:has(*)) {
+  .v3e-seg__input:checked + .v3e-seg__opcao {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .v3e-seg__marca {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    left: 3px;
+    display: block;
+    width: calc((100% - 6px) / 3);
+    border: 1px solid var(--sh-border);
+    border-radius: var(--sh-radius-sm);
+    background: var(--sh-surface);
+    box-shadow: var(--sh-shadow-1);
+    transition: transform var(--sh-t-3) var(--sh-ease-out-forte);
+  }
+
+  .v3e-seg__trilho:has(#tipo-SAIDA:checked) .v3e-seg__marca {
+    transform: translateX(100%);
+  }
+
+  .v3e-seg__trilho:has(#tipo-AJUSTE:checked) .v3e-seg__marca {
+    transform: translateX(200%);
+  }
+}
+
+.v3e-seg__input:focus-visible + .v3e-seg__opcao {
+  outline: 2px solid var(--sh-focus);
+  outline-offset: 2px;
+}
+
+/* ============================== Quantidade com − e + ============================== */
+.v3e-qtd {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sh-space-2);
+}
+
+.v3e-qtd .form-control {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 52px;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.v3e-qtd__botao {
+  flex: 0 0 52px;
+  width: 52px;
+  min-height: 52px;
+  padding: 0;
+  font-size: 1.125rem;
+}
+
+/* Com os botões − e +, as setinhas nativas do campo numérico sobram (a classe vem do JS) */
+.v3e-form.v3e--js .v3e-qtd .form-control {
+  text-align: center;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.v3e-form.v3e--js .v3e-qtd .form-control::-webkit-inner-spin-button,
+.v3e-form.v3e--js .v3e-qtd .form-control::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+/* ============================== Prévia: saldo atual → saldo depois ============================== */
+.v3e-previa {
+  display: grid;
+  gap: var(--sh-space-2);
+  padding: var(--sh-space-3) var(--sh-space-4);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius);
+  background: var(--sh-surface-2);
+}
+
+.v3e-previa__cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sh-space-3);
+  min-height: 24px;
+}
+
+.v3e-previa__titulo {
+  color: var(--sh-text-subtle);
+  font-size: var(--sh-fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--sh-track-rotulo);
+  text-transform: uppercase;
+}
+
+.v3e-previa__numeros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sh-space-1) var(--sh-space-3);
+}
+
+.v3e-previa__antes {
+  color: var(--sh-text-muted);
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.v3e-previa__seta {
+  align-self: center;
+  color: var(--sh-text-subtle);
+}
+
+.v3e-previa__depois {
+  font-size: 2rem;
+  font-weight: 650;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.v3e-previa__depois.is-vazio {
+  color: var(--sh-text-subtle);
+  font-weight: 400;
+}
+
+.v3e-previa__delta {
+  margin-left: auto;
+  padding: 1px 7px;
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-xs);
+  background: var(--sh-surface);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+}
+
+.v3e-previa__delta:empty {
+  display: none;
+}
+
+.v3e-previa__delta--mais {
+  color: var(--sh-success-fg);
+  border-color: var(--sh-success-border);
+  background: var(--sh-success-bg);
+}
+
+.v3e-previa__delta--menos {
+  color: var(--sh-info-fg);
+  border-color: var(--sh-info-border);
+  background: var(--sh-info-bg);
+}
+
+/* Medidor da prévia: o preenchimento é uma escala (transform) escolhida por classe de degrau, sem style inline */
+.v3e-medidor {
+  display: block;
+  width: 100%;
+}
+
+.v3e-medidor__fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--sh-meter-normal);
+  transform: scaleX(var(--p, 0));
+  transform-origin: left center;
+  transition: transform var(--sh-t-3) var(--sh-ease-out-forte), background-color var(--sh-t-2) var(--sh-ease);
+}
+
+.v3e-medidor--baixo .v3e-medidor__fill {
+  background: var(--sh-meter-baixo);
+}
+
+.v3e-medidor--sem .v3e-medidor__fill {
+  background: var(--sh-meter-sem);
+}
+
+.v3e-p-0 { --p: 0; }
+.v3e-p-5 { --p: .05; }
+.v3e-p-10 { --p: .1; }
+.v3e-p-15 { --p: .15; }
+.v3e-p-20 { --p: .2; }
+.v3e-p-25 { --p: .25; }
+.v3e-p-30 { --p: .3; }
+.v3e-p-35 { --p: .35; }
+.v3e-p-40 { --p: .4; }
+.v3e-p-45 { --p: .45; }
+.v3e-p-50 { --p: .5; }
+.v3e-p-55 { --p: .55; }
+.v3e-p-60 { --p: .6; }
+.v3e-p-65 { --p: .65; }
+.v3e-p-70 { --p: .7; }
+.v3e-p-75 { --p: .75; }
+.v3e-p-80 { --p: .8; }
+.v3e-p-85 { --p: .85; }
+.v3e-p-90 { --p: .9; }
+.v3e-p-95 { --p: .95; }
+.v3e-p-100 { --p: 1; }
+
+.v3e-previa__texto {
+  margin: 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.v3e-previa__texto:empty {
+  display: none;
+}
+
+.v3e-previa__aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sh-space-2);
+  margin: 0;
+  color: var(--sh-warning-fg);
+  font-size: var(--sh-text-md);
+  font-weight: 600;
+}
+
+.v3e-previa__aviso .bi {
+  flex: 0 0 auto;
+  line-height: 1.5;
+}
+
+/* ============================== Motivos rápidos ============================== */
+.v3e-motivos .form-label {
+  display: block;
+}
+
+.v3e-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sh-space-2);
+}
+
+.v3e-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--sh-space-3);
+  border: 1px solid var(--sh-border-strong);
+  border-radius: var(--sh-radius-sm);
+  background: var(--sh-surface);
+  color: var(--sh-text);
+  font: inherit;
+  font-size: var(--sh-text-md);
+  font-weight: 500;
+  transition: background-color var(--sh-t-1) var(--sh-ease), border-color var(--sh-t-1) var(--sh-ease),
+    transform var(--sh-t-1) var(--sh-ease-out);
+}
+
+@media (min-width: 992px) {
+  .v3e-chip {
+    min-height: 30px;
+  }
+}
+
+.v3e-chip:hover {
+  background: var(--sh-surface-2);
+}
+
+.v3e-chip:active {
+  transform: scale(.98);
+}
+
+.v3e-chip[aria-pressed="true"] {
+  border-color: var(--sh-accent);
+  background: var(--sh-accent-soft);
+  color: var(--sh-accent-text);
+  font-weight: 600;
+}
+
+/* ============================== Livro-razão: cartão ============================== */
+.v3e-razao-card {
+  min-width: 0;
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-lg);
+  background: var(--sh-surface);
+  overflow: clip; /* recorta os cantos sem criar rolagem (o título do dia continua "grudando") */
+}
+
+.v3e-razao-card__cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sh-space-3) var(--sh-space-4);
+  padding: var(--sh-space-5) var(--sh-space-5) var(--sh-space-4);
+}
+
+.v3e-razao-card__desc {
+  margin: var(--sh-space-1) 0 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+.v3e-razao-card__desc .sh-mono {
+  color: var(--sh-text);
+  font-weight: 650;
+}
+
+/* ---------- Filtros ---------- */
+.v3e-filtros {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sh-space-3);
+  padding: var(--sh-space-4) var(--sh-space-5);
+  border-top: 1px solid var(--sh-border);
+  background: var(--sh-surface-2);
+}
+
+.v3e-filtros__produto,
+.v3e-filtros__tipo,
+.v3e-filtros__acoes {
+  grid-column: 1 / -1;
+}
+
+.v3e-filtros__campo {
+  min-width: 0;
+}
+
+.v3e-filtros__campo .form-label {
+  font-size: var(--sh-text-sm);
+  color: var(--sh-text-muted);
+}
+
+.v3e-filtros__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sh-space-2);
+}
+
+/* >= 768 px: grade de 12 colunas. Linha 1: produto (8) e tipo (4). Linha 2: de (4), até (4) e ações (4) */
+@media (min-width: 768px) {
+  .v3e-filtros {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .v3e-filtros__campo {
+    grid-column: span 4;
+  }
+
+  .v3e-filtros__produto {
+    grid-column: span 8;
+  }
+
+  .v3e-filtros__tipo {
+    grid-column: span 4;
+  }
+
+  .v3e-filtros__acoes {
+    grid-column: span 4;
+    align-self: end;
+  }
+}
+
+.v3e-ativos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sh-space-2) var(--sh-space-3);
+  margin: 0;
+  padding: var(--sh-space-2) var(--sh-space-5);
+  border-top: 1px solid var(--sh-border);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+.v3e-ativos__rotulo {
+  font-size: var(--sh-fs-micro);
+  font-weight: 600;
+  letter-spacing: var(--sh-track-rotulo);
+  text-transform: uppercase;
+  color: var(--sh-text-subtle);
+}
+
+.v3e-ativos__item strong {
+  color: var(--sh-text);
+  font-weight: 600;
+}
+
+/* ---------- Cabeçalho de colunas ---------- */
+.v3e-colunas {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .v3e-colunas {
+    display: grid;
+    grid-template-columns: var(--v3e-colunas);
+    column-gap: var(--sh-space-3);
+    padding: var(--sh-space-2) var(--sh-space-5);
+    border-top: 1px solid var(--sh-border);
+    border-bottom: 1px solid var(--sh-border);
+    color: var(--sh-text-subtle);
+    font-size: var(--sh-fs-micro);
+    font-weight: 600;
+    letter-spacing: var(--sh-track-rotulo);
+    text-transform: uppercase;
+  }
+
+  .v3e-colunas[hidden] {
+    display: none;
+  }
+}
+
+.v3e-colunas__dir {
+  text-align: right;
+}
+
+.v3e-razao-card {
+  --v3e-colunas: 52px 104px minmax(0, 1fr) 84px 120px;
+}
+
+/* ---------- Dia ---------- */
+.v3e-dia__titulo {
+  position: sticky;
+  top: var(--sh-topbar-h);
+  z-index: 2;
+  display: flex;
+  align-items: baseline;
+  gap: var(--sh-space-2);
+  margin: 0;
+  padding: var(--sh-space-2) var(--sh-space-5);
+  border-top: 1px solid var(--sh-border);
+  border-bottom: 1px solid var(--sh-border);
+  background: var(--sh-surface-2);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+  font-weight: 500;
+}
+
+.v3e-dia:first-child .v3e-dia__titulo {
+  border-top: 0;
+}
+
+.v3e-dia__titulo strong {
+  color: var(--sh-text);
+  font-weight: 650;
+  letter-spacing: var(--sh-track-corpo);
+}
+
+.v3e-dia__titulo .sh-mono {
+  font-size: var(--sh-text-sm);
+}
+
+.v3e-dia__n {
+  margin-left: auto;
+  color: var(--sh-text-subtle);
+  font-size: var(--sh-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.v3e-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---------- Linha ---------- */
+.v3e-linha {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--v3e-colunas);
+  column-gap: var(--sh-space-3);
+  align-items: baseline;
+  padding: 10px var(--sh-space-5);
+  border-top: 1px solid var(--sh-border);
+  font-size: var(--sh-text-md);
+  transition: background-color var(--sh-t-1) var(--sh-ease);
+}
+
+.v3e-lista > .v3e-linha:first-child {
+  border-top: 0;
+}
+
+.v3e-linha:hover {
+  background: color-mix(in srgb, var(--sh-surface-2) 70%, transparent);
+}
+
+.v3e-linha:focus-visible {
+  outline-offset: -2px;
+}
+
+.v3e-hora {
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+.v3e-tipo {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.v3e-prod {
+  min-width: 0;
+}
+
+.v3e-prod__nome {
+  color: var(--sh-text);
+  font-weight: 600;
+  letter-spacing: var(--sh-track-corpo);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.v3e-prod__nome:hover {
+  color: var(--sh-accent-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.v3e-obs {
+  margin: 2px 0 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  overflow-wrap: anywhere;
+}
+
+.v3e-qtd-col {
+  text-align: right;
+  font-size: var(--sh-text-base);
+  font-weight: 650;
+}
+
+.v3e-qtd-col--entrada {
+  color: var(--sh-success-fg);
+}
+
+.v3e-qtd-col--saida {
+  color: var(--sh-info-fg);
+}
+
+.v3e-qtd-col--ajuste {
+  color: var(--sh-text);
+}
+
+.v3e-saldo {
+  text-align: right;
+  white-space: nowrap;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-base);
+}
+
+.v3e-saldo .bi {
+  margin: 0 3px;
+  color: var(--sh-text-subtle);
+  font-size: 0.75rem;
+}
+
+.v3e-saldo strong {
+  color: var(--sh-text);
+  font-weight: 650;
+}
+
+/* Celular: duas linhas por lançamento (produto e hora; tipo, quantidade e saldo), e a observação por último */
+@media (max-width: 767.98px) {
+  .v3e-linha {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "prod prod hora"
+      "tipo qtd saldo"
+      "obs obs obs";
+    row-gap: 6px;
+    align-items: center;
+    padding: var(--sh-space-3) var(--sh-space-4);
+  }
+
+  .v3e-prod {
+    display: contents;
+  }
+
+  .v3e-prod__nome { grid-area: prod; }
+  .v3e-obs { grid-area: obs; margin-top: 0; }
+  .v3e-hora { grid-area: hora; justify-self: end; }
+  .v3e-tipo { grid-area: tipo; }
+  .v3e-qtd-col { grid-area: qtd; margin-right: var(--sh-space-3); }
+  .v3e-saldo { grid-area: saldo; }
+
+  .v3e-dia__titulo {
+    padding-inline: var(--sh-space-4);
+  }
+
+  .v3e-razao-card__cab,
+  .v3e-filtros,
+  .v3e-ativos {
+    padding-inline: var(--sh-space-4);
+  }
+}
+
+/* ---------- Linha nova (entra no topo) ---------- */
+@keyframes v3e-entra {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--sh-dist-entrada) * -1));
+  }
+}
+
+@keyframes v3e-destaque {
+  from {
+    background-color: var(--sh-accent-soft);
+  }
+}
+
+@keyframes v3e-filete {
+  to {
+    opacity: 0;
+  }
+}
+
+.v3e-linha--nova {
+  animation: v3e-entra var(--sh-t-3) var(--sh-ease-out-forte) both, v3e-destaque 2.6s var(--sh-ease-out) both;
+  --sh-dist-entrada: 8px;
+}
+
+.v3e-linha--nova::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--sh-accent);
+  animation: v3e-filete 3.2s var(--sh-ease) 1.2s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Menos movimento: o destaque fica estático até o JS tirar a marca */
+  .v3e-linha--nova {
+    background-color: var(--sh-accent-soft);
+  }
+
+  .v3e-linha--nova::before {
+    animation: none;
+  }
+}
+
+/* Linha reservada enquanto o servidor responde (só aparece se demorar) */
+.v3e-linha--pendente {
+  min-height: 52px;
+  align-items: center;
+}
+
+.v3e-linha--pendente .sh-esqueleto {
+  height: 14px;
+}
+
+.v3e-linha--pendente .v3e-pendente__a { grid-column: 3; width: 55%; }
+.v3e-linha--pendente .v3e-pendente__b { grid-column: 4 / span 2; justify-self: end; width: 70%; }
+
+@media (max-width: 767.98px) {
+  .v3e-linha--pendente {
+    grid-template-areas: "prod prod prod";
+  }
+
+  .v3e-linha--pendente .v3e-pendente__a { grid-area: prod; width: 50%; }
+  .v3e-linha--pendente .v3e-pendente__b { display: none; }
+}
+
+/* ---------- Vazio, rodapé de atalhos e paginação ---------- */
+.v3e-vazio {
+  border-top: 1px solid var(--sh-border);
+}
+
+.v3e-rodape-teclas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sh-space-1) var(--sh-space-5);
+  margin: 0;
+  padding: var(--sh-space-3) var(--sh-space-5);
+  border-top: 1px solid var(--sh-border);
+  color: var(--sh-text-subtle);
+  font-size: var(--sh-text-sm);
+}
+
+.v3e-rodape-teclas kbd.sh-tecla {
+  min-width: 0;
+  padding: 0 5px;
+  font-family: var(--sh-font-mono);
+  font-size: 0.6875rem;
+}
+
+.v3e-razao-card .sh-paginacao {
+  border-top: 1px solid var(--sh-border);
+}
+
+@media print {
+  .v3e-console,
+  .v3e-filtros,
+  .v3e-rodape-teclas {
+    display: none;
+  }
+
+  .v3e {
+    display: block;
+  }
+
+  .v3e-dia__titulo {
+    position: static;
+  }
+}
