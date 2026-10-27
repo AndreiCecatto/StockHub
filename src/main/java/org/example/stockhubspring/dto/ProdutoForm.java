@@ -11,7 +11,10 @@ import jakarta.validation.constraints.Size;
 import org.example.stockhubspring.model.Produto;
 import org.example.stockhubspring.util.Textos;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 /**
  * Dados de entrada do formulário de produto (RN-11). Não tem usuário nem "ativo": o dono vem
@@ -51,6 +54,14 @@ public class ProdutoForm {
     @NotNull(message = "Selecione uma categoria.")
     private Integer categoriaId;
 
+    // Campos por ramo (AD-17): o service só aplica os que o subtipo da loja permite; os demais são ignorados
+    private String tamanho;
+    private String cor;
+    private String lote;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    private LocalDate dataValidade;
+    private String numeroSerie;
+
     /** Preenche o formulário de edição a partir do produto (inclui o saldo atual, só para exibição). */
     public static ProdutoForm de(Produto produto) {
         ProdutoForm form = new ProdutoForm();
@@ -61,6 +72,11 @@ public class ProdutoForm {
         form.quantidade = produto.getQuantidade();
         form.estoqueMinimo = produto.getEstoqueMinimo();
         form.categoriaId = produto.getCategoria() == null ? null : produto.getCategoria().getId();
+        form.tamanho = produto.getTamanho();
+        form.cor = produto.getCor();
+        form.lote = produto.getLote();
+        form.dataValidade = produto.getDataValidade();
+        form.numeroSerie = produto.getNumeroSerie();
         return form;
     }
 
@@ -139,5 +155,45 @@ public class ProdutoForm {
 
     public void setCategoriaId(Integer categoriaId) {
         this.categoriaId = categoriaId;
+    }
+
+    public String getTamanho() {
+        return tamanho;
+    }
+
+    public void setTamanho(String tamanho) {
+        this.tamanho = Textos.limpar(tamanho);
+    }
+
+    public String getCor() {
+        return cor;
+    }
+
+    public void setCor(String cor) {
+        this.cor = Textos.limpar(cor);
+    }
+
+    public String getLote() {
+        return lote;
+    }
+
+    public void setLote(String lote) {
+        this.lote = Textos.limpar(lote);
+    }
+
+    public LocalDate getDataValidade() {
+        return dataValidade;
+    }
+
+    public void setDataValidade(LocalDate dataValidade) {
+        this.dataValidade = dataValidade;
+    }
+
+    public String getNumeroSerie() {
+        return numeroSerie;
+    }
+
+    public void setNumeroSerie(String numeroSerie) {
+        this.numeroSerie = Textos.limpar(numeroSerie);
     }
 }

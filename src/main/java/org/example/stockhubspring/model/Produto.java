@@ -19,6 +19,7 @@ import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.DynamicUpdate;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 /**
  * Produto de uma loja. O saldo ({@code quantidade}) só muda por
@@ -80,6 +81,26 @@ public class Produto {
     @Pattern(regexp = "^\\d{8}$", message = "O NCM deve ter 8 dígitos.")
     @Column(length = 8)
     private String ncm;
+
+    // Campos opcionais por ramo da loja (V13, AD-17). Quais valem é decidido pelo service (CamposRamo).
+    @Size(max = 20, message = "O tamanho deve ter no máximo 20 caracteres.")
+    @Column(length = 20)
+    private String tamanho;
+
+    @Size(max = 40, message = "A cor deve ter no máximo 40 caracteres.")
+    @Column(length = 40)
+    private String cor;
+
+    @Size(max = 40, message = "O lote deve ter no máximo 40 caracteres.")
+    @Column(length = 40)
+    private String lote;
+
+    @Column(name = "data_validade")
+    private LocalDate dataValidade;
+
+    @Size(max = 60, message = "O número de série deve ter no máximo 60 caracteres.")
+    @Column(name = "numero_serie", length = 60)
+    private String numeroSerie;
 
     // false = produto inativado (RN-08): some das listagens, mas o histórico permanece
     @Column(nullable = false)
@@ -214,6 +235,46 @@ public class Produto {
 
     public void setNcm(String ncm) {
         this.ncm = ncm;
+    }
+
+    public String getTamanho() {
+        return tamanho;
+    }
+
+    public void setTamanho(String tamanho) {
+        this.tamanho = tamanho;
+    }
+
+    public String getCor() {
+        return cor;
+    }
+
+    public void setCor(String cor) {
+        this.cor = cor;
+    }
+
+    public String getLote() {
+        return lote;
+    }
+
+    public void setLote(String lote) {
+        this.lote = lote;
+    }
+
+    public LocalDate getDataValidade() {
+        return dataValidade;
+    }
+
+    public void setDataValidade(LocalDate dataValidade) {
+        this.dataValidade = dataValidade;
+    }
+
+    public String getNumeroSerie() {
+        return numeroSerie;
+    }
+
+    public void setNumeroSerie(String numeroSerie) {
+        this.numeroSerie = numeroSerie;
     }
 
     public Usuario getUsuario() {
