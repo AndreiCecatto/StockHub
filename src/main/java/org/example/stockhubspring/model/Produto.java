@@ -14,6 +14,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -55,6 +56,25 @@ public class Produto {
     @Min(value = 0, message = "O estoque mínimo deve ser maior ou igual a zero.")
     @Column(name = "estoque_minimo", nullable = false)
     private int estoqueMinimo;
+
+    // Último custo de compra (atualizado pela importação de NF-e); o preço de VENDA continua em "preco"
+    @DecimalMin(value = "0", message = "O custo deve ser maior ou igual a zero.")
+    @Column(nullable = false, precision = 14, scale = 4)
+    private BigDecimal custo = BigDecimal.ZERO;
+
+    @Size(max = 6, message = "A unidade deve ter no máximo 6 caracteres.")
+    @Column(nullable = false, length = 6)
+    private String unidade = "UN";
+
+    // Código de barras (GTIN): só dígitos, 8/12/13/14. Opcional.
+    @Pattern(regexp = "^(\\d{8}|\\d{12}|\\d{13}|\\d{14})$", message = "O código de barras deve ter 8, 12, 13 ou 14 dígitos.")
+    @Column(length = 14)
+    private String ean;
+
+    // NCM: 8 dígitos. Opcional.
+    @Pattern(regexp = "^\\d{8}$", message = "O NCM deve ter 8 dígitos.")
+    @Column(length = 8)
+    private String ncm;
 
     // false = produto inativado (RN-08): some das listagens, mas o histórico permanece
     @Column(nullable = false)
@@ -144,6 +164,38 @@ public class Produto {
 
     public void setCategoria(Categoria categoria) {
         this.categoria = categoria;
+    }
+
+    public BigDecimal getCusto() {
+        return custo;
+    }
+
+    public void setCusto(BigDecimal custo) {
+        this.custo = custo;
+    }
+
+    public String getUnidade() {
+        return unidade;
+    }
+
+    public void setUnidade(String unidade) {
+        this.unidade = unidade;
+    }
+
+    public String getEan() {
+        return ean;
+    }
+
+    public void setEan(String ean) {
+        this.ean = ean;
+    }
+
+    public String getNcm() {
+        return ncm;
+    }
+
+    public void setNcm(String ncm) {
+        this.ncm = ncm;
     }
 
     public Usuario getUsuario() {

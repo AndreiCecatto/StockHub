@@ -4,6 +4,7 @@ import org.example.stockhubspring.dto.MovimentacaoFiltro;
 import org.example.stockhubspring.exception.RecursoNaoEncontradoException;
 import org.example.stockhubspring.exception.RegraNegocioException;
 import org.example.stockhubspring.model.MovimentacaoEstoque;
+import org.example.stockhubspring.model.OrigemMovimentacao;
 import org.example.stockhubspring.model.Produto;
 import org.example.stockhubspring.model.TipoMovimentacao;
 import org.example.stockhubspring.model.Usuario;
@@ -103,13 +104,28 @@ public class EstoqueService {
     @Transactional
     public MovimentacaoEstoque movimentar(Integer produtoId, TipoMovimentacao tipo, int quantidade,
                                           String observacao, Usuario usuario) {
+        return movimentar(produtoId, tipo, quantidade, observacao, usuario, null, null);
+    }
+
+    /**
+     * Igual a {@link #movimentar(Integer, TipoMovimentacao, int, String, Usuario)}, registrando o documento
+     * que originou a movimentação (ex.: NFE_COMPRA e o id da nota). Origem é tudo ou nada: tipo e id juntos,
+     * ou os dois nulos.
+     */
+    @Transactional
+    public MovimentacaoEstoque movimentar(Integer produtoId, TipoMovimentacao tipo, int quantidade,
+                                          String observacao, Usuario usuario,
+                                          OrigemMovimentacao origemTipo, Integer origemId) {
+        if ((origemTipo == null) != (origemId == null)) {
+            throw new RegraNegocioException("Informe o tipo e o código da origem juntos.");
+        }
         // RN-08: o motivo "Estoque inicial" identifica o único registro que pode ser apagado junto
         // com o produto; por isso só o sistema o grava (ver registrarEstoqueInicial).
         if (ehMotivoReservado(observacao)) {
             throw new RegraNegocioException("O motivo \"" + MOTIVO_ESTOQUE_INICIAL + "\" é reservado ao sistema "
                     + "(é gerado ao cadastrar um produto com saldo). Informe outro motivo.");
         }
-        return registrar(produtoId, tipo, quantidade, observacao, usuario);
+        return registrar(produtoId, tipo, quantidade, observacao, usuario, origemTipo, origemId);
     }
 
     /**
@@ -118,7 +134,7 @@ public class EstoqueService {
      */
     @Transactional
     public MovimentacaoEstoque registrarEstoqueInicial(Integer produtoId, int quantidade, Usuario usuario) {
-        return registrar(produtoId, TipoMovimentacao.ENTRADA, quantidade, MOTIVO_ESTOQUE_INICIAL, usuario);
+        return registrar(produtoId, TipoMovimentacao.ENTRADA, quantidade, MOTIVO_ESTOQUE_INICIAL, usuario, null, null);
     }
 
     /** O motivo é o texto reservado do estoque inicial? Ignora maiúsculas e espaços nas pontas. */
@@ -128,7 +144,8 @@ public class EstoqueService {
     }
 
     private MovimentacaoEstoque registrar(Integer produtoId, TipoMovimentacao tipo, int quantidade,
-                                          String observacao, Usuario usuario) {
+                                          String observacao, Usuario usuario,
+                                          OrigemMovimentacao origemTipo, Integer origemId) {
         if (tipo == null) {
             throw new RegraNegocioException("Informe o tipo da movimentação.");
         }
@@ -167,6 +184,7 @@ public class EstoqueService {
         movimentacao.setQuantidadeAnterior(anterior);
         movimentacao.setQuantidadeNova((int) nova);
         movimentacao.setObservacao(motivo);
+        movimentacao.definirOrigem(origemTipo, origemId);
         // saveAndFlush: grava o saldo e o registro juntos, ainda dentro da transação
         produtoRepository.save(produto);
         return movimentacaoRepository.saveAndFlush(movimentacao);

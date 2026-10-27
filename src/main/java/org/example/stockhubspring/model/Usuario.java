@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import org.example.stockhubspring.util.CnpjValido;
 
 @Entity
 @Table(name = "usuario")
@@ -29,6 +30,19 @@ public class Usuario {
     private String senha;
 
     private boolean ativo = true;
+
+    // CNPJ da loja (opcional, só dígitos, com dígito verificador válido quando informado)
+    @CnpjValido
+    @Column(length = 14)
+    private String cnpj;
+
+    public String getCnpj() {
+        return cnpj;
+    }
+
+    public void setCnpj(String cnpj) {
+        this.cnpj = cnpj;
+    }
 
     public Integer getCodigo() {
         return codigo;

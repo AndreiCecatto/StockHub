@@ -53,6 +53,14 @@ public class MovimentacaoEstoque {
     @Column(length = 255, updatable = false)
     private String observacao;
 
+    // Documento que originou a movimentação (opcional): os dois campos vêm juntos ou ficam nulos
+    @Enumerated(EnumType.STRING)
+    @Column(name = "origem_tipo", length = 20, updatable = false)
+    private OrigemMovimentacao origemTipo;
+
+    @Column(name = "origem_id", updatable = false)
+    private Integer origemId;
+
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;
 
@@ -126,6 +134,20 @@ public class MovimentacaoEstoque {
 
     public void setObservacao(String observacao) {
         this.observacao = observacao;
+    }
+
+    public OrigemMovimentacao getOrigemTipo() {
+        return origemTipo;
+    }
+
+    public Integer getOrigemId() {
+        return origemId;
+    }
+
+    /** Define a origem na criação (a coluna não é atualizável: movimentação é imutável, RN-06). */
+    public void definirOrigem(OrigemMovimentacao tipo, Integer id) {
+        this.origemTipo = tipo;
+        this.origemId = id;
     }
 
     public LocalDateTime getCriadoEm() {
