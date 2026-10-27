@@ -191,3 +191,14 @@ A loja envia o XML de uma NF-e de compra, revisa, e só depois de confirmar os i
 | RN-108 | **Exibição.** Onde a OS mostra o equipamento (detalhe, lista, impressão, resumo do cliente), a placa e o modelo aparecem quando existem. A loja existente e as OS antigas não mudam. **A exibição não depende do subtipo atual da loja:** a OS é documento histórico, então depois de trocar o subtipo (por exemplo de MECANICA para OUTRO_SERVICO) as OS antigas continuam mostrando placa e modelo gravados. Só o formulário de nova OS e a gravação seguem o subtipo atual (RN-104). Diferente do produto (RN-103), onde o campo oculto some da tela. | compatibilidade e documento histórico |
 
 Decisão de recorte (placa e modelo): permanecem só em MECANICA e MOTO. ELETRICA_ELETRONICA, ASSISTENCIA_TECNICA e REFRIGERACAO atendem aparelhos, não veículos com placa; o identificador (série) já cobre esses casos. Rever se um ramo pedir de fato.
+
+## Personalização do início (AD-19, V15)
+
+| RN | Regra | Motivo |
+|---|---|---|
+| RN-109 | **Padrão é o que já existe.** Sem linha em `preferencia_bloco`, todo bloco aplicável à loja aparece. A migration V15 não insere linha nenhuma, e a loja nova também começa assim. Nenhuma loja muda sem uma ação explícita do dono ou do gerente. | compatibilidade |
+| RN-110 | **Quem altera.** Só DONO e GERENTE gravam preferências (rota sob `/conta/**` e conferência de novo no service). Os outros papéis recebem 403 e só veem o resultado. A preferência é da loja e vale para todos os membros. | mesma regra de `/conta/**` (RN-62) |
+| RN-111 | **Lista fechada de blocos.** Início: ATALHOS, PRATELEIRA, TOTAIS, FAZER_AGORA, HOJE_NA_LOJA, OS_FLUXO (exige módulo OS), GRAFICO_14_DIAS e CADASTRADOS_ULTIMO. A capa (título e frase do dia) e os "primeiros passos" da loja vazia não podem ser ocultados. Código fora da lista, ou de módulo que a loja não tem, é recusado ao salvar com mensagem clara e ignorado ao ler. O servidor decide; a tela só mostra caixas de seleção. | quem decide é o servidor; sem configuração livre |
+| RN-112 | **Ocultar é só visual e leve.** Bloco oculto não é desenhado e seus dados nem são consultados. Nenhum dado de estoque, produto ou movimento é alterado, e as telas de origem (por exemplo `/estoque`, `/os`) continuam acessíveis pelo menu. | reversível a qualquer momento |
+| RN-113 | **Gravar não apaga.** Salvar grava uma linha por bloco aplicável (visível ou não) por upsert, sem excluir linhas; a última gravação vence. Trocar tipo ou subtipo da loja mantém as preferências; as de bloco que não se aplica mais ficam guardadas e sem efeito, e voltam a valer se o módulo voltar (como a RN-103). | nunca perder configuração |
+| RN-114 | **Rastro.** Cada linha guarda quando e por qual membro foi atualizada (`atualizado_em`, `atualizado_por`). | saber quem mexeu |
