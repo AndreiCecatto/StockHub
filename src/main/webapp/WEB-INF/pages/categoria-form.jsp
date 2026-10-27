@@ -13,7 +13,7 @@
 <c:set var="eDescricao" value="${errosCampos['descricao']}" />
 <c:set var="temErrosCampos" value="${not empty eNome or not empty eDescricao}" />
 
-<sh:layout titulo="${edicao ? 'Editar categoria' : 'Nova categoria'}" ativo="categorias" largura="form" formulario="true"
+<sh:layout titulo="${edicao ? 'Editar categoria' : 'Nova categoria'}" ativo="categorias" formulario="true"
     voltarUrl="/categorias" voltarRotulo="Categorias">
     <jsp:attribute name="migalhas">
         <li class="breadcrumb-item"><a href="${ctx}/dashboard">Início</a></li>
@@ -21,11 +21,13 @@
         <li class="breadcrumb-item active" aria-current="page"><c:out value="${edicao ? 'Editar' : 'Nova categoria'}" /></li>
     </jsp:attribute>
     <jsp:attribute name="scripts">
+        <script src="${ctx}/js/v3-prod-init.js"></script>
         <link rel="stylesheet" href="${ctx}/css/lote-produtos.css">
+        <script defer src="${ctx}/js/produtos.js"></script>
     </jsp:attribute>
     <jsp:body>
         <sh:cabecalhoPagina titulo="${edicao ? 'Editar categoria' : 'Nova categoria'}"
-            descricao="Um grupo para organizar produtos no catálogo." />
+            descricao="${edicao ? 'Altere o nome ou a descrição do grupo.' : 'Crie um grupo para organizar produtos no catálogo.'}" />
 
         <form method="post" action="${ctx}/categorias" data-sh-validar data-sh-avisar-alteracoes data-sh-enviando="Salvando…">
             <input type="hidden" name="<c:out value='${_csrf.parameterName}'/>" value="<c:out value='${_csrf.token}'/>" />
@@ -39,6 +41,8 @@
                 </ul>
             </div>
 
+            <div class="v3-form-grade">
+            <div class="v3-form-grade__campos">
             <section class="sh-card sh-secao" aria-labelledby="titulo-dados">
                 <div class="sh-card__cab">
                     <h2 class="sh-card__titulo" id="titulo-dados">Dados da categoria</h2>
@@ -76,6 +80,18 @@
                     </div>
                 </div>
             </section>
+
+            <c:if test="${edicao}">
+                <p class="v3-regra v3-regra--solta"><i class="bi bi-lock" aria-hidden="true"></i><span class="v3-regra__txt">Uma categoria usada por qualquer produto, ativo ou inativado, não pode ser excluída. Para excluir esta, mova antes os produtos dela para outra categoria.</span></p>
+            </c:if>
+            </div>
+
+            <aside class="v3-previa v3-so-js" data-v3-previa-categoria aria-labelledby="titulo-previa-cat">
+                <h2 class="sh-eyebrow" id="titulo-previa-cat">Como aparece na lista</h2>
+                <p class="v3-previa__cat-nome" data-v3-cat-nome></p>
+                <p class="v3-previa__cat-desc" data-v3-cat-desc></p>
+            </aside>
+            </div>
 
             <div class="sh-form-actions">
                 <a class="btn btn-outline-secondary" href="${ctx}/categorias">Cancelar</a>
