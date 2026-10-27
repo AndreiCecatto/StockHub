@@ -1,6 +1,6 @@
-# StockHub: mercado e requisitos (Fase 1 do redesenho)
+# StockHub: mercado e requisitos
 
-Documento para o dono do projeto e para o `designer-ui` e o `dev-backend` na próxima fase.
+Levantamento de mercado e dos requisitos que orientaram o redesenho do produto.
 Legenda usada em todo o texto:
 
 - **[Fonte]** afirmação confirmada por uma fonte listada na seção 1.
@@ -9,7 +9,7 @@ Legenda usada em todo o texto:
 
 ## 1. Fontes e limites
 
-A pesquisa foi feita pelo coordenador, sem acesso à web neste documento. Nada aqui foi acrescentado além do que ela trouxe.
+A pesquisa foi feita à parte e este documento só registra o que ela trouxe, sem acrescentar afirmações.
 
 ### Fontes consultadas
 
@@ -132,14 +132,14 @@ Observações de achados no código que afetam a próxima fase:
 
 | Item | Quem faz |
 |---|---|
-| Redesenho visual e de usabilidade das telas existentes (dashboard, produtos, detalhe, estoque, categorias, login), responsividade, acessibilidade | designer-ui (só front) |
-| Busca ao digitar e escolha de produto com busca no formulário de movimentação (em vez do `<select>` gigante) | designer-ui (só front; usa dados já enviados) |
-| Seletor de motivos pré-definidos (perda, quebra, vencimento, furto, correção de contagem) que **preenche o texto da observação** | designer-ui (só front, sem mudar backend); versão estruturada fica para depois |
-| Destaque visual de estoque baixo e sem estoque, atalhos do dashboard para `/estoque-baixo` e para os produtos filtrados por nível (filtro `nivelEstoque` já existe) | designer-ui (só front) |
-| Impressão de listas por CSS (`@media print`) como alternativa leve de relatório | designer-ui (só front) |
-| Filtros no histórico (produto, tipo, período) | dev-backend (repositório, service e controller) |
-| Histórico por produto na tela de detalhe | dev-backend (consulta por produto) + designer-ui (bloco na tela) |
-| Exportação CSV (produtos e histórico) | dev-backend (endpoint) + designer-ui (botão) |
+| Redesenho visual e de usabilidade das telas existentes (dashboard, produtos, detalhe, estoque, categorias, login), responsividade, acessibilidade | front-end |
+| Busca ao digitar e escolha de produto com busca no formulário de movimentação (em vez do `<select>` gigante) | front-end (usa dados já enviados) |
+| Seletor de motivos pré-definidos (perda, quebra, vencimento, furto, correção de contagem) que **preenche o texto da observação** | front-end (só front, sem mudar backend); versão estruturada fica para depois |
+| Destaque visual de estoque baixo e sem estoque, atalhos do dashboard para `/estoque-baixo` e para os produtos filtrados por nível (filtro `nivelEstoque` já existe) | front-end |
+| Impressão de listas por CSS (`@media print`) como alternativa leve de relatório | front-end |
+| Filtros no histórico (produto, tipo, período) | backend (repositório, service e controller) |
+| Histórico por produto na tela de detalhe | backend (consulta por produto) + front-end (bloco na tela) |
+| Exportação CSV (produtos e histórico) | backend (endpoint) + front-end (botão) |
 
 Critério: a v1 usa o que o backend já entrega (resumo, paginação, filtros de produto, saldo anterior/novo) e só pede backend novo onde não há como resolver no front: filtros do histórico, histórico por produto e CSV. Cada item de backend é pequeno ou médio, sem migration.
 
@@ -162,7 +162,7 @@ Critério: a v1 usa o que o backend já entrega (resumo, paginação, filtros de
 
 ### Divisão entre front-end e backend
 
-| Só front-end (designer-ui, sem mudar backend) | Exige backend novo (dev-backend) |
+| Só front-end (front-end, sem mudar backend) | Exige backend novo (backend) |
 |---|---|
 | Layout, componentes, responsividade, acessibilidade de todas as telas | Filtros e período no histórico de movimentações |
 | Busca ao digitar (filtro na lista já carregada ou envio automático do formulário que já existe) | Histórico por produto |

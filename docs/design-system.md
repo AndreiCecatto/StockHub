@@ -1,6 +1,6 @@
-# StockHub: identidade visual, experiência e plano de implementação (Fase 2 do redesenho)
+# StockHub: identidade visual e experiência
 
-Documento para o `designer-ui` (implementação na fase 3) e para o `dev-backend` (pedidos pequenos da seção 9).
+Registro das decisões de design do front. **A direção vigente é a seção 12 (v3, "central de operações")**; as seções 1 a 11 ficam como histórico das versões anteriores.
 Escrito em 26/10/2026, a partir de `docs/mercado-requisitos.md`, `docs/regras-negocio.md`, dos controllers e do front atual.
 
 Legenda usada em todo o texto:
@@ -587,7 +587,7 @@ Estratégia de convivência: arquivos **novos** (`css/tokens.css`, `layout.css`,
 
 | Lote | Conteúdo | Pronto quando | Commit sugerido |
 |---|---|---|---|
-| **0** (`dev-backend`) | **B1**: `/vendor/**` no `permitAll`; teste de que `/vendor/...` abre sem login | login carrega os arquivos de `vendor/` sem sessão | "Libera os arquivos de vendor sem login" |
+| **0** (backend) | **B1**: `/vendor/**` no `permitAll`; teste de que `/vendor/...` abre sem login | login carrega os arquivos de `vendor/` sem sessão | "Libera os arquivos de vendor sem login" |
 | **1 Fundação** | baixar Bootstrap 5.3.8, Bootstrap Icons 1.11.3 e Inter para `vendor/` com `VERSOES.md` (versão, licença, URL, SHA-256); `tokens.css` (cores claro e escuro, tipografia, espaço, raios, sombras, movimento, mapeamento `--bs-*`, regra de `prefers-reduced-motion`); `layout.css`; `componentes.css` (botão, campo, badge, medidor, alerta, toast, tabela e cartões, esqueleto, estado vazio, paginação, linha do tempo); `impressao.css`; `tags/layout.tag`, barra lateral, superior, inferior e offcanvas "Mais"; `breadcrumb.jsp`, `cabecalho-pagina.jsp`, `badge-estoque.jsp`, `medidor-estoque.jsp`, `estado-vazio.jsp`, `paginacao.jsp` novo, `modal-exclusao`, modal de atalhos; JS: `tema-init`, `nucleo`, `toast`, `atalhos`, `formularios`, `confirmar-exclusao`; arquivo opcional `css/guia-componentes.html` (público, sem dados) para ver todos os componentes nos dois temas, **removido no lote 5** | guia de componentes correto nos 2 temas; contrastes conferidos; nenhuma tela existente quebrada | "Adiciona a fundação do novo design: tokens, layout e componentes" |
 | **2 Entrada e início** | `login.jsp` (cadastro e login, painel de marca, mostrar senha, estados); `dashboard.jsp` (painel de reposição, barra de saúde, cartões com contagem animada, recentes, primeiros passos); `numeros.js` | login e dashboard no layout novo, só `<c:out>`, CSRF intacto, checklist 1 a 10, 17 e 25 | "Redesenha login, cadastro e dashboard" |
 | **3 Catálogo** | `produtos.jsp` (filtros, chips, tabela com cartões no celular, ordenação por cabeçalho, paginação unificada); `busca-viva.js`; `produto-form.jsp` (validação inline, contador, zona de perigo, aviso de alterações); `produto-detalhe.jsp` (sem histórico); `categorias.jsp`; `categoria-form.jsp` | CRUD completo funcionando; exclusão com modal; checklist 1 a 14 | "Redesenha produtos e categorias" (pode ser 2 commits: produtos; categorias) |
@@ -627,7 +627,7 @@ Antes de dar um lote por pronto: `./mvnw test` com o resultado real, conferênci
 
 **Divergências em relação ao mapa de telas (7.9 a 7.12):** os dois botões do dashboard para Unidades e Valor continuam como cartões de métrica; o cartão de "Total de unidades" e o de "Valor total" nas telas de relatório não são links. Em `error.jsp` o botão de tema é o compacto do login. A página de erro não sabe se há sessão: em 403 o botão **Entrar** aparece sempre.
 
-## 9. Pedidos ao `dev-backend`
+## 9. Pedidos ao backend
 
 Nenhum deles muda regra de negócio nem modelo; todos mantêm o isolamento por loja (RN-01).
 
@@ -763,7 +763,7 @@ Outros detalhes de artesanato: sublinhado de rabisco (`.sh-rabisco`, máscara SV
 
 **Pré-carga.** `js/navegacao.js` faz `<link rel="prefetch">` ao passar o mouse (65 ms de intenção), tocar ou focar links internos GET. Nunca: `/logout`, `/login`, `/cadastro`, `/excluir`, `/api`, `.csv`, `exportar`, `?acao=`, `data-sh-sem-prefetch`, outra origem, "economia de dados"; no máximo 8 por visita.
 
-**Limites, com honestidade.** A próxima página **continua sendo carregada do servidor**: o ganho é de continuidade visual, não de velocidade. A pré-carga só reduz a espera se o servidor deixar a resposta ser guardada; o Spring Security manda `Cache-Control: no-store` em páginas autenticadas por padrão, o que a anula (pedido ao `dev-backend`, seção 9 abaixo). Uma página muito alta pode mostrar um corte na foto antiga. Efeitos de entrada que rodam durante a transição são curtos de propósito para não somar movimento.
+**Limites, com honestidade.** A próxima página **continua sendo carregada do servidor**: o ganho é de continuidade visual, não de velocidade. A pré-carga só reduz a espera se o servidor deixar a resposta ser guardada; o Spring Security manda `Cache-Control: no-store` em páginas autenticadas por padrão, o que a anula (pedido ao backend, seção 9 abaixo). Uma página muito alta pode mostrar um corte na foto antiga. Efeitos de entrada que rodam durante a transição são curtos de propósito para não somar movimento.
 
 **Entrada e feedback.** `.sh-escalona` (filhos entram em sequência com atraso de 45 ms, até 8), linhas de tabela entram em sequência, contadores animados (`data-contar`, reexecutáveis por `SH.animarNumeros(raiz)`), barras que preenchem (`.sh-enche`, medidor, anel, gráfico), botão primário que afunda ao apertar, botão secundário com marca-texto passando no hover, toasts em forma de bilhete com o visto "estalando", esqueletos de carregamento (`.sh-esqueleto`).
 
@@ -787,7 +787,7 @@ Ordem: saudação com mascote, "o que fazer hoje", saúde do estoque, gráfico d
 
 CSS: `tokens.css` (reescrito), `layout.css` (reescrito), `identidade.css` (novo: botões, selos, cartões, mascote, rabisco, esqueleto, toast, vazio, escalonamento), `paleta.css`, `inicio.css`, `entrar.css` (novos). JS: `navegacao-init.js`, `navegacao.js`, `paleta.js`, `humano.js`, `inicio.js`, `entrar.js` (novos); `numeros.js` e `atalhos.js` (ajustados). Tags: `mascote.tag` (novo), `layout.tag`, `estadoVazio.tag`. Includes: `head.jsp`, `lateral.jsp`, `inferior.jsp`, `paleta.jsp` (novo), `modal-atalhos.jsp`. Páginas: `dashboard.jsp`, `login.jsp`. Fonte: `vendor/fraunces/`.
 
-### 11.9 Pedidos ao `dev-backend` (v2)
+### 11.9 Pedidos ao backend (v2)
 
 1. `GET /api/busca` e `GET /api/dashboard/movimentos` com o contrato acima, autenticados e filtrados pela loja do usuário. **Confirmar o significado de `entradas` e `saidas`:** a tela as chama só de "entradas" e "saídas" (sem "unidades"); se forem somas de quantidade, dá para trocar o texto por "unidades".
 2. Cabeçalho de cache nas páginas GET autenticadas (por exemplo `Cache-Control: private, max-age=10`) para a pré-carga ter efeito; hoje o padrão do Spring Security (`no-store`) a anula.
@@ -1007,9 +1007,9 @@ Novos: `--sh-surface-3`, `--sh-font-mono`, `--sh-fs-*`, `--sh-track-*`, `--sh-lh
 | Tela | Estado nesta entrega |
 |---|---|
 | Login e cadastro | **v3 pronta** (`login.jsp`, `entrar.css`, `entrar.js`): palco escuro com linhas de gráfico abstratas (nível de estoque em "dente de serra" e a linha do mínimo) que se desenham devagar, formulário limpo, aviso de Caps Lock |
-| Apresentação pública (`/`) | **a fazer** (outro agente), com o kit de rolagem (12.5) |
-| Início (`dashboard.jsp`) | Estrutura v1/v2 mantida, **sem mascote, rabisco ou voz de caderneta**; será refeito como narrativa de rolagem |
-| Produtos, formulário, detalhe, categorias, formulário de categoria, movimentações, estoque baixo, unidades, valor do estoque, erro | Estrutura v1/v2 **herdando a nova fundação** (cores, tipografia, botões, selos, tabelas, barra lateral, barra de comando); serão migrados para a linguagem de central de operações (peek, `data-sh-lista-teclado`, sparklines) |
+| Apresentação pública (`/`) | **v3 pronta** (`apresentacao.jsp`, `apresentacao.css`, `apresentacao.js`), narrativa de rolagem com o kit (12.5) |
+| Início (`dashboard.jsp`) | **v3 pronta** ("Visão geral": KPIs, reposição rápida, saúde do estoque e gráfico de 14 dias) |
+| Produtos, formulário, detalhe, categorias, movimentações, estoque baixo, unidades, valor do estoque, erro | **v3 prontas** (painel peek, lista por teclado, ajuste rápido de saldo, livro-razão) |
 
 ### 12.9 Arquivos da v3
 
