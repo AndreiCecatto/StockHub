@@ -1,0 +1,120 @@
+/*
+ * StockHub: telas de Clientes (/clientes). Só tokens (--sh-*), sem style inline. Prefixo: cli.
+ * Reaproveita .sh-seg, .form-control, .form-select e .btn de formularios.css (nenhum componente novo).
+ */
+.cli-filtros {
+  display: grid;
+  gap: var(--sh-space-3);
+  margin-bottom: var(--sh-space-4);
+}
+
+.cli-filtros__busca {
+  display: flex;
+  gap: var(--sh-space-2);
+}
+
+.cli-filtros__busca .form-control {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.cli-filtros__linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--sh-space-4);
+}
+
+.cli-filtros__grupo {
+  display: grid;
+  gap: 6px;
+}
+
+.cli-filtros__rotulo {
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+  color: var(--sh-text-muted);
+}
+
+.cli-filtros__grupo--ordem {
+  min-width: 190px;
+}
+
+.cli-nome {
+  text-decoration: none;
+}
+
+.cli-nome:hover {
+  text-decoration: underline;
+}
+
+.cli-fone {
+  white-space: nowrap;
+}
+
+.cli-inline {
+  display: inline;
+}
+
+.cli-selo {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 1px 8px;
+  border: 1px solid var(--sh-border);
+  border-radius: 999px;
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+}
+
+.cli-selo--inativo {
+  color: var(--sh-text-muted);
+  background: var(--sh-surface-2);
+}
+
+/* Resumo e dados do detalhe: listas de definição em grade */
+.cli-resumo,
+.cli-dados {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--sh-space-4);
+  margin: 0;
+}
+
+.cli-resumo dt,
+.cli-dados dt {
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+  color: var(--sh-text-muted);
+}
+
+.cli-resumo dd,
+.cli-dados dd {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.cli-resumo dd {
+  font-size: var(--sh-text-xl);
+  font-weight: 700;
+  color: var(--sh-text);
+}
+
+.cli-dados__largo {
+  grid-column: 1 / -1;
+}
+
+.cli-obs {
+  white-space: pre-line;
+}
+
+.cli-nota {
+  margin: var(--sh-space-4) 0 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+}
+
+@media (max-width: 575.98px) {
+  .cli-filtros__busca {
+    flex-direction: column;
+  }
+}
