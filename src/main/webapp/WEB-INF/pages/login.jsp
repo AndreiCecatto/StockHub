@@ -2,13 +2,15 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="sh" tagdir="/WEB-INF/tags" %>
 <%--
-    Entrar e criar loja (v2 "caderneta de balcão"). Rotas e campos inalterados:
+    Entrar e criar conta (v3 "central de operações"). Rotas e campos inalterados:
       GET /login, GET /cadastro, POST /login (email, senha: tratado pelo Spring Security),
       POST /cadastro (nome, email, senha).
     Dados do model: erro, sucesso, modoCadastro, errosCampos (nome, email, senha, senhaDentroDoLimite), nome, email.
     A senha nunca volta preenchida (o input de senha não tem atributo value).
     Erro de login: uma mensagem única e genérica (não revela se o e-mail existe), em role="alert".
-    O mascote reage: preocupada se houve erro, contente nos demais casos; fecha os olhos na senha (js/entrar.js).
+    Palco à esquerda (só a partir de 992 px): linhas de gráfico abstratas (nível de estoque em "dente de serra" e a linha
+    do mínimo) que se desenham devagar; decoração pura (aria-hidden), parada com "menos movimento". js/entrar.js só
+    avisa quando o Caps Lock está ligado no campo de senha.
 --%>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <%-- Erros por campo (só existem no cadastro). A regra dos 72 bytes chega com o nome "senhaDentroDoLimite". --%>
@@ -16,37 +18,43 @@
 <c:set var="eEmail" value="${errosCampos['email']}" />
 <c:set var="eSenha" value="${not empty errosCampos['senha'] ? errosCampos['senha'] : errosCampos['senhaDentroDoLimite']}" />
 <c:set var="temErrosCampos" value="${not empty eNome or not empty eEmail or not empty eSenha}" />
-<c:set var="rotuloEnviar" value="${modoCadastro ? 'Criar minha loja' : 'Entrar'}" />
-<c:set var="humor" value="${not empty erro or temErrosCampos ? 'preocupada' : 'contente'}" />
+<c:set var="rotuloEnviar" value="${modoCadastro ? 'Criar conta' : 'Entrar'}" />
 
-<sh:layoutPublico titulo="${modoCadastro ? 'Criar loja' : 'Entrar'}">
+<sh:layoutPublico titulo="${modoCadastro ? 'Criar conta' : 'Entrar'}">
     <jsp:attribute name="scripts">
         <link rel="stylesheet" href="${ctx}/css/entrar.css">
         <script defer src="${ctx}/js/entrar.js"></script>
     </jsp:attribute>
     <jsp:body>
     <div class="sh-auth">
-        <%-- Capa da caderneta: só em telas largas (no celular fica só o formulário) --%>
-        <section class="sh-auth__marca" aria-label="Sobre o StockHub">
-            <a class="sh-marca" href="${ctx}/login">
-                <sh:mascote estado="contente" tamanho="p" classe="sh-marca__mascote" />
-                <span class="sh-marca__texto">
-                    <span class="sh-marca__nome">StockHub</span>
-                    <span class="sh-marca__sub">caderneta de balcão</span>
-                </span>
+        <%-- Palco: só em telas largas (no celular fica só o formulário) --%>
+        <section class="sh-auth__palco" aria-label="Sobre o StockHub">
+            <a class="sh-auth__marca" href="${ctx}/login">
+                <sh:marca tamanho="32" />
+                <span>StockHub</span>
             </a>
-            <div>
-                <div class="sh-auth__mascote-grande" data-sh-olhar>
-                    <sh:mascote estado="${humor}" tamanho="g" />
-                </div>
-                <p class="sh-auth__frase">Saiba o que tem, o que falta e o que saiu.</p>
-                <ul class="sh-auth__notas">
-                    <li>Veja o que está acabando antes de faltar.</li>
-                    <li>Anote entradas, saídas e ajustes em segundos.</li>
-                    <li>Tudo fica guardado: o que mudou e quando.</li>
+            <svg class="sh-auth__grafico" viewBox="0 0 640 360" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid slice">
+                <g class="sh-auth__grade">
+                    <path d="M0 60 H640 M0 120 H640 M0 180 H640 M0 240 H640 M0 300 H640"/>
+                    <path d="M80 0 V360 M160 0 V360 M240 0 V360 M320 0 V360 M400 0 V360 M480 0 V360 M560 0 V360"/>
+                </g>
+                <path class="sh-auth__minimo" d="M0 252 H640"/>
+                <polyline class="sh-auth__linha sh-auth__linha--1" pathLength="1"
+                    points="0,70 70,118 140,176 200,238 202,92 280,142 350,205 410,262 412,112 490,160 560,214 640,258"/>
+                <polyline class="sh-auth__linha sh-auth__linha--2" pathLength="1"
+                    points="0,214 90,196 170,226 250,184 330,206 410,162 490,178 570,136 640,122"/>
+                <circle class="sh-auth__ponto" cx="640" cy="258" r="4.5"/>
+                <circle class="sh-auth__ponto sh-auth__ponto--2" cx="640" cy="122" r="4.5"/>
+            </svg>
+            <div class="sh-auth__texto">
+                <p class="sh-auth__eyebrow">Controle de estoque</p>
+                <p class="sh-auth__frase">Saldos, movimentações e alertas em um só lugar.</p>
+                <ul class="sh-auth__fatos">
+                    <li><i class="bi bi-activity" aria-hidden="true"></i> Saldo atualizado a cada movimentação.</li>
+                    <li><i class="bi bi-bell" aria-hidden="true"></i> Alertas quando o estoque fica abaixo do mínimo.</li>
+                    <li><i class="bi bi-clock-history" aria-hidden="true"></i> Histórico completo: o que mudou e quando.</li>
                 </ul>
             </div>
-            <p class="sh-auth__rodape-marca">Controle de estoque para quem toca uma loja pequena.</p>
         </section>
 
         <div class="sh-auth__lado">
@@ -55,19 +63,16 @@
             </div>
 
             <div class="sh-auth__caixa">
-                <div class="sh-auth__logo-mobile" data-sh-olhar>
-                    <sh:mascote estado="${humor}" tamanho="m" />
+                <div class="sh-auth__logo-mobile">
+                    <sh:marca tamanho="32" />
                     <span>StockHub</span>
                 </div>
 
                 <div>
-                    <h1 class="sh-auth__titulo"><c:choose>
-                        <c:when test="${modoCadastro}">Criar <span class="sh-rabisco">sua loja</span></c:when>
-                        <c:otherwise>Entrar</c:otherwise>
-                    </c:choose></h1>
+                    <h1 class="sh-auth__titulo"><c:out value="${modoCadastro ? 'Criar conta' : 'Entrar'}" /></h1>
                     <p class="sh-auth__sub"><c:choose>
-                        <c:when test="${modoCadastro}">Comece a caderneta de estoque em poucos segundos.</c:when>
-                        <c:otherwise>Abra a caderneta da sua loja.</c:otherwise>
+                        <c:when test="${modoCadastro}">Cadastre sua loja para controlar o estoque.</c:when>
+                        <c:otherwise>Acesse o controle de estoque da sua loja.</c:otherwise>
                     </c:choose></p>
                 </div>
 
@@ -122,7 +127,7 @@
                     <div class="mb-3">
                         <label class="form-label" for="email">E-mail <span class="sh-obrigatorio">(obrigatório)</span></label>
                         <input id="email" type="email" class="form-control ${not empty eEmail ? 'is-invalid' : ''}" name="email"
-                            value="<c:out value='${email}'/>" placeholder="voce@email.com" autocomplete="username"
+                            value="<c:out value='${email}'/>" placeholder="voce@empresa.com" autocomplete="username"
                             inputmode="email" autocapitalize="none" spellcheck="false" required
                             ${not empty eEmail ? 'aria-invalid="true" aria-describedby="erro-email"' : ''}>
                         <c:if test="${not empty eEmail}">
@@ -154,6 +159,8 @@
                                 <i class="bi bi-eye" aria-hidden="true"></i>
                             </button>
                         </div>
+                        <%-- Aviso de Caps Lock (js/entrar.js escreve aqui; a região é anunciada ao mudar) --%>
+                        <div class="sh-auth__caps" data-sh-caps aria-live="polite"></div>
                         <c:if test="${not empty eSenha}">
                             <div id="erro-senha" class="sh-erro-campo">
                                 <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
@@ -186,10 +193,10 @@
                 <p class="sh-auth__troca">
                     <c:choose>
                         <c:when test="${modoCadastro}">
-                            Já tem uma loja? <a href="${ctx}/login">Entrar</a>
+                            Já tem conta? <a href="${ctx}/login">Entrar</a>
                         </c:when>
                         <c:otherwise>
-                            Ainda não tem uma loja? <a href="${ctx}/cadastro">Criar minha loja</a>
+                            Ainda não tem conta? <a href="${ctx}/cadastro">Criar conta</a>
                         </c:otherwise>
                     </c:choose>
                 </p>

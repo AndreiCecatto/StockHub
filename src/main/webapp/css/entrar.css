@@ -1,92 +1,175 @@
 /*
- * StockHub v2: telas de entrada (login e cadastro). A "capa da caderneta" à esquerda (só em telas largas) e o
- * formulário no papel, à direita. No celular fica só o formulário, com o mascote em cima.
- * Cores só por tokens.css.
+ * StockHub v3: telas de entrada (login e cadastro). Palco escuro à esquerda (só em telas largas) com linhas de gráfico
+ * abstratas que se desenham devagar, e o formulário à direita. No celular fica só o formulário.
+ * O palco é escuro nos dois temas (é identidade, não conteúdo): as cores dele são constantes locais, com contraste conferido
+ * (texto #F2F3F5 sobre #0B0C0E = 18:1; texto secundário #A9ADB5 = 8,9:1; ícones e anel de foco #8DB3FF = 9,6:1).
+ * Cores do formulário só por tokens.css.
  */
 .sh-auth {
+  --palco-bg: #0B0C0E;
+  --palco-texto: #F2F3F5;
+  --palco-mudo: #A9ADB5;
+  --palco-acento: #8DB3FF;
+  --palco-fio: rgba(255, 255, 255, .07);
   display: flex;
   min-height: 100vh;
   min-height: 100dvh;
 }
 
-/* ---------- Capa (tela larga) ---------- */
-.sh-auth__marca {
+/* ---------- Palco (tela larga) ---------- */
+.sh-auth__palco {
   display: none;
 }
 
 @media (min-width: 992px) {
-  .sh-auth__marca {
+  .sh-auth__palco {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    flex: 0 0 46%;
-    max-width: 680px;
-    padding: var(--sh-space-12) 56px var(--sh-space-10) 88px;
-    background-color: var(--sh-side-bg);
-    /* pauta de caderneta: linhas finas a cada 34 px */
-    background-image: repeating-linear-gradient(to bottom, transparent 0 33px, rgba(255, 255, 255, .06) 33px 34px);
-    color: var(--sh-side-text);
-    border-radius: 0 var(--sh-radius-lg) var(--sh-radius-lg) 0;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    flex: 0 0 52%;
+    max-width: 780px;
+    padding: var(--sh-space-10) 56px var(--sh-space-12);
+    background-color: var(--palco-bg);
+    background-image: radial-gradient(70% 55% at 12% 0%, rgba(45, 104, 214, .22), transparent 70%);
+    color: var(--palco-texto);
     overflow: hidden;
   }
+}
 
-  /* margem vertical, como a linha vermelha do caderno */
-  .sh-auth__marca::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 60px;
-    width: 2px;
-    background: var(--sh-side-marker);
-    opacity: .55;
+.sh-auth__marca {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sh-space-3);
+  justify-self: start;
+  color: var(--palco-texto);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.sh-auth__marca:hover,
+.sh-auth__marca:focus-visible {
+  color: var(--palco-texto);
+}
+
+.sh-auth__palco :focus-visible {
+  outline-color: var(--palco-acento) !important;
+}
+
+/* Gráfico abstrato: ocupa o meio do palco, atrás do texto; tudo decorativo */
+.sh-auth__grafico {
+  align-self: center;
+  /* sangra até a borda esquerda do palco e se dissolve ali; termina no recuo, com o ponto final visível */
+  width: calc(100% + 56px);
+  margin-left: -56px;
+  height: auto;
+  min-height: 0;
+  max-height: 46vh;
+  margin-block: var(--sh-space-6);
+  overflow: visible;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 22%), linear-gradient(180deg, #000 62%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent 0%, #000 22%), linear-gradient(180deg, #000 62%, transparent 100%);
+  mask-composite: intersect;
+}
+
+.sh-auth__grade path {
+  fill: none;
+  stroke: var(--palco-fio);
+  stroke-width: 1;
+}
+
+.sh-auth__minimo {
+  fill: none;
+  stroke: rgba(255, 255, 255, .28);
+  stroke-width: 1;
+  stroke-dasharray: 4 6;
+}
+
+.sh-auth__linha {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+}
+
+.sh-auth__linha--1 {
+  stroke: var(--palco-acento);
+  stroke-width: 2.25;
+}
+
+.sh-auth__linha--2 {
+  stroke: rgba(255, 255, 255, .42);
+  stroke-width: 1.5;
+}
+
+.sh-auth__ponto {
+  fill: var(--palco-bg);
+  stroke: var(--palco-acento);
+  stroke-width: 2;
+}
+
+.sh-auth__ponto--2 {
+  stroke: rgba(255, 255, 255, .6);
+}
+
+/* Entrada: as linhas se desenham devagar, uma de cada vez; os pontos finais surgem depois */
+.sh-auth__linha {
+  animation: sh-desenha 2800ms var(--sh-ease-out-forte) both;
+}
+
+.sh-auth__linha--1 { animation-delay: 300ms; }
+.sh-auth__linha--2 { animation-delay: 700ms; animation-duration: 2400ms; }
+
+.sh-auth__ponto {
+  animation: sh-aparece var(--sh-t-4) var(--sh-ease-out) 3000ms both;
+}
+
+.sh-auth__ponto--2 {
+  animation-delay: 3000ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-auth__linha {
+    stroke-dasharray: none;
+    animation: none;
   }
 
-  /* costura da capa */
-  .sh-auth__marca::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    right: 12px;
-    width: 2px;
-    background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, .16) 0 7px, transparent 7px 14px);
+  .sh-auth__ponto {
+    animation: none;
   }
 }
 
-.sh-auth__marca .sh-marca {
-  padding: 0;
+.sh-auth__texto {
+  position: relative;
+  z-index: 1;
+  align-self: end;
 }
 
-.sh-auth__marca .sh-marca__mascote {
-  flex-basis: 52px;
-  width: 52px;
-}
-
-.sh-auth__mascote-grande {
-  display: flex;
-  justify-content: flex-start;
-  margin: var(--sh-space-6) 0 var(--sh-space-2);
-}
-
-.sh-auth__mascote-grande .sh-mascote {
-  width: 188px;
+.sh-auth__eyebrow {
+  margin: 0 0 var(--sh-space-3);
+  color: var(--palco-acento);
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+  letter-spacing: var(--sh-track-rotulo);
+  text-transform: uppercase;
 }
 
 .sh-auth__frase {
-  margin: 0 0 var(--sh-space-5);
-  max-width: 15ch;
-  color: #fff;
-  font-family: var(--sh-font-display);
-  font-variation-settings: "SOFT" 100;
-  font-size: 2.75rem;
-  font-weight: 600;
-  line-height: 1.08;
-  letter-spacing: -0.02em;
+  margin: 0 0 var(--sh-space-6);
+  max-width: 18ch;
+  color: var(--palco-texto);
+  font-size: clamp(2rem, 1.2rem + 2.2vw, 3rem);
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: var(--sh-track-display);
+  text-wrap: balance;
 }
 
-.sh-auth__notas {
+.sh-auth__fatos {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -94,28 +177,18 @@
   gap: var(--sh-space-3);
 }
 
-.sh-auth__notas li {
-  position: relative;
-  padding-left: 22px;
-  font-size: var(--sh-text-lg);
-  line-height: 1.4;
+.sh-auth__fatos li {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-space-3);
+  color: var(--palco-mudo);
+  font-size: var(--sh-text-base);
 }
 
-.sh-auth__notas li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.55em;
-  width: 10px;
-  height: 10px;
-  border-radius: 50% 40% 50% 45%;
-  background: var(--sh-side-marker);
-}
-
-.sh-auth__rodape-marca {
-  margin: 0;
-  color: var(--sh-side-muted);
-  font-size: var(--sh-text-sm);
+.sh-auth__fatos .bi {
+  flex: 0 0 auto;
+  color: var(--palco-acento);
+  font-size: 1.0625rem;
 }
 
 /* ---------- Lado do formulário ---------- */
@@ -128,6 +201,7 @@
   align-items: center;
   justify-content: center;
   padding: var(--sh-space-12) var(--sh-gutter) var(--sh-space-8);
+  background: var(--sh-bg);
 }
 
 .sh-auth__tema {
@@ -138,24 +212,19 @@
 
 .sh-auth__caixa {
   width: 100%;
-  max-width: 420px;
+  max-width: 400px;
 }
 
-/* Mascote e nome no celular */
+/* Marca no celular */
 .sh-auth__logo-mobile {
   display: flex;
   align-items: center;
   gap: var(--sh-space-3);
-  margin-bottom: var(--sh-space-4);
+  margin-bottom: var(--sh-space-8);
   color: var(--sh-text);
-  font-family: var(--sh-font-display);
-  font-variation-settings: "SOFT" 100;
-  font-size: var(--sh-text-xl);
+  font-size: 1.125rem;
   font-weight: 700;
-}
-
-.sh-auth__logo-mobile .sh-mascote {
-  width: 84px;
+  letter-spacing: -0.02em;
 }
 
 @media (min-width: 992px) {
@@ -166,24 +235,23 @@
 
 .sh-auth__titulo {
   margin: 0 0 var(--sh-space-2);
-  font-family: var(--sh-font-display);
-  font-variation-settings: "SOFT" 100;
-  font-size: 2.25rem;
-  font-weight: 600;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  font-size: clamp(1.875rem, 1.5rem + 1.2vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: var(--sh-track-display);
 }
 
 .sh-auth__sub {
   margin: 0 0 var(--sh-space-6);
   color: var(--sh-text-muted);
-  font-size: var(--sh-text-lg);
+  font-size: var(--sh-text-base);
 }
 
 .sh-auth__troca {
   margin: var(--sh-space-6) 0 0;
   text-align: center;
   color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
 }
 
 .sh-auth__troca a {
@@ -191,33 +259,48 @@
 }
 
 .sh-auth .form-control {
-  min-height: 48px;
-  font-size: var(--sh-text-lg);
+  min-height: 44px;
+  font-size: 1rem;
 }
 
-.sh-auth .form-label {
-  font-weight: 600;
+.sh-auth .sh-senha__alternar {
+  height: 44px;
+  width: 44px;
 }
 
 .sh-auth__enviar {
   margin-top: var(--sh-space-3);
 }
 
-/* Entrada: os blocos da tela chegam em sequência */
+/* Aviso de Caps Lock: texto discreto abaixo do campo; vazio, não ocupa espaço */
+.sh-auth__caps:empty {
+  display: none;
+}
+
+.sh-auth__caps {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--sh-space-1);
+  color: var(--sh-warning-fg);
+  font-size: var(--sh-text-sm);
+  font-weight: 500;
+}
+
+/* Entrada: os blocos do formulário chegam em sequência (fade + subida curta) */
 .sh-auth__caixa > * {
-  animation: sh-sobe var(--sh-dur-slow) var(--sh-ease-out) both;
+  animation: sh-sobe var(--sh-t-3) var(--sh-ease-out) both;
 }
 
-.sh-auth__caixa > :nth-child(2) { animation-delay: 60ms; }
-.sh-auth__caixa > :nth-child(3) { animation-delay: 110ms; }
-.sh-auth__caixa > :nth-child(4) { animation-delay: 160ms; }
-.sh-auth__caixa > :nth-child(5) { animation-delay: 210ms; }
-.sh-auth__caixa > :nth-child(n+6) { animation-delay: 260ms; }
+.sh-auth__caixa > :nth-child(2) { animation-delay: 50ms; }
+.sh-auth__caixa > :nth-child(3) { animation-delay: 90ms; }
+.sh-auth__caixa > :nth-child(4) { animation-delay: 130ms; }
+.sh-auth__caixa > :nth-child(5) { animation-delay: 170ms; }
+.sh-auth__caixa > :nth-child(n+6) { animation-delay: 210ms; }
 
-.sh-auth__marca > * {
-  animation: sh-sobe var(--sh-dur-slow) var(--sh-ease-out) both;
+.sh-auth__texto > * {
+  animation: sh-sobe var(--sh-t-4) var(--sh-ease-out) 150ms both;
 }
 
-.sh-auth__marca > :nth-child(2) { animation-delay: 80ms; }
-.sh-auth__marca > :nth-child(3) { animation-delay: 160ms; }
-.sh-auth__marca > :nth-child(4) { animation-delay: 240ms; }
+.sh-auth__texto > :nth-child(2) { animation-delay: 220ms; }
+.sh-auth__texto > :nth-child(3) { animation-delay: 300ms; }
