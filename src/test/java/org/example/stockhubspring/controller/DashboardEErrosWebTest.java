@@ -1,7 +1,10 @@
 package org.example.stockhubspring.controller;
 
 import org.example.stockhubspring.exception.RegraNegocioException;
+import org.example.stockhubspring.model.OrdemServico;
 import org.example.stockhubspring.model.ResumoEstoque;
+import org.example.stockhubspring.model.StatusOs;
+import org.example.stockhubspring.model.TipoLoja;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +35,35 @@ class DashboardEErrosWebTest extends ControllerTestBase {
         when(dashboardService.buscarResumo(anyInt())).thenReturn(new ResumoEstoque());
         when(produtoService.listarEstoqueBaixo(anyInt(), anyInt(), anyInt())).thenReturn(new PageImpl<>(List.of()));
         when(produtoService.listarPagina(any(), anyInt())).thenReturn(new PageImpl<>(List.of()));
+        when(estoqueService.listarMovimentacoes(anyInt(), anyInt(), anyInt())).thenReturn(new PageImpl<>(List.of()));
+    }
+
+    @Test
+    @DisplayName("GET /dashboard traz a linha do tempo e não consulta OS em loja de estoque")
+    void painelSemOs() throws Exception {
+        mvc.perform(get("/dashboard").with(logadoComo(7)))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("movimentacoesRecentes"))
+                .andExpect(model().attributeDoesNotExist("osPorStatus", "osAndamento"));
+        verify(estoqueService).listarMovimentacoes(7, 1, 8);
+        org.mockito.Mockito.verifyNoInteractions(ordemServicoService);
+    }
+
+    @Test
+    @DisplayName("GET /dashboard de oficina traz o fluxo de OS e só as OS em andamento")
+    void painelDeOficinaTrazOs() throws Exception {
+        when(usuarioRepository.findTipoLojaByCodigo(7)).thenReturn(java.util.Optional.of(TipoLoja.OFICINA));
+        when(ordemServicoService.contarPorStatus(7)).thenReturn(new java.util.EnumMap<>(StatusOs.class));
+        OrdemServico emExecucao = new OrdemServico();
+        emExecucao.setStatus(StatusOs.EM_EXECUCAO);
+        OrdemServico orcamento = new OrdemServico();
+        orcamento.setStatus(StatusOs.ORCAMENTO);
+        when(ordemServicoService.listar(7, null)).thenReturn(List.of(orcamento, emExecucao));
+
+        mvc.perform(get("/dashboard").with(logadoComo(7)))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("osPorStatus"))
+                .andExpect(model().attribute("osAndamento", List.of(emExecucao)));
     }
 
     @Test
