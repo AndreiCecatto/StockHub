@@ -7,7 +7,7 @@
 ![Java 17](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)
 ![Spring Boot 4.1](https://img.shields.io/badge/Spring_Boot-4.1-6DB33F?logo=springboot&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-4169E1?logo=postgresql&logoColor=white)
-![Testes](https://img.shields.io/badge/testes-470_passando-2EA44F)
+![Testes](https://img.shields.io/badge/testes-953_passando-2EA44F)
 ![Licença MIT](https://img.shields.io/badge/licença-MIT-blue)
 
 [Funcionalidades](#funcionalidades) · [Como rodar](#como-rodar) · [Arquitetura](#arquitetura) · [Documentação](#documentação)
@@ -69,6 +69,11 @@ Projeto acadêmico de Sistemas para Internet, da Universidade Federal de Santa M
 | **Categorias** | Organização por loja; uma categoria em uso não pode ser excluída. |
 | **Movimentações** | Entrada, saída e ajuste com observação; livro-razão filtrável por produto, tipo e período. |
 | **Painel e relatórios** | Indicadores, produtos a repor, saúde do estoque, gráfico de 14 dias e relatórios de estoque baixo, unidades e valor. |
+| **Compras (NF-e)** | Importação do XML da nota de compra, com revisão item a item (vincular, criar ou ignorar), custo com frete rateado, pagamento e parcelas, limites contra abuso e parser seguro. A assinatura e a SEFAZ não são consultadas, e a tela avisa. |
+| **Análises** | Dinheiro parado no estoque, o que mais sai, compras e saídas por mês, produtos que vão acabar, parados e curva ABC, com gráficos próprios. |
+| **Tipo de loja e equipe** | Cada loja escolhe o tipo (só estoque, comércio, oficina ou misto); a equipe tem papéis (dono, gerente, operador, vendedor, mecânico). |
+| **Estorno e reserva** | Desfazer uma movimentação gera o movimento contrário; reservas separam peças sem baixar o saldo. |
+| **Ordens de serviço** | Para oficinas: orçamento, aprovação com reserva de peças, conclusão com baixa e impressão. |
 | **Exportação** | CSV de produtos (todos, filtrados ou só os marcados) e do histórico. |
 | **Usabilidade** | Paleta de comandos (`Ctrl+K`), atalhos de teclado (`?`), tema claro, escuro ou do sistema, navegação por teclado e respeito à preferência de menos movimento. |
 
@@ -79,7 +84,7 @@ Projeto acadêmico de Sistemas para Internet, da Universidade Federal de Santa M
 - Produtos com histórico são inativados em vez de apagados.
 - Cada loja acessa apenas os próprios dados, inclusive nos arquivos CSV.
 
-As 14 regras completas estão em [docs/regras-negocio.md](docs/regras-negocio.md).
+As 90 regras completas estão em [docs/regras-negocio.md](docs/regras-negocio.md).
 
 ## Tecnologias
 
@@ -88,7 +93,7 @@ As 14 regras completas estão em [docs/regras-negocio.md](docs/regras-negocio.md
 | Backend | Java 17, Spring Boot 4.1, Spring MVC, Spring Security, Spring Data JPA, Bean Validation |
 | Frontend | JSP e JSTL, Bootstrap 5, JavaScript e CSS próprios, GSAP na página inicial; sem etapa de build e sem CDN |
 | Banco | PostgreSQL 14+ com migrations Flyway |
-| Qualidade | JUnit 5, Mockito, Spring Security Test (470 testes) |
+| Qualidade | JUnit 5, Mockito, Spring Security Test (953 testes) |
 | Build | Maven, com wrapper incluso |
 
 ## Arquitetura
@@ -189,7 +194,7 @@ Para gerar o pacote executável: `./mvnw clean package`.
 ./mvnw test
 ```
 
-São 470 testes: regras de serviço (Mockito), controllers (`@WebMvcTest` e Spring Security Test) e integração contra o PostgreSQL configurado acima. Cada teste de integração desfaz o que gravou, então não deixa dados no banco.
+São 953 testes: regras de serviço (Mockito), controllers (`@WebMvcTest` e Spring Security Test) e integração contra o PostgreSQL configurado acima. Cada teste de integração desfaz o que gravou, então não deixa dados no banco.
 
 ## Segurança
 
@@ -200,7 +205,7 @@ Login com Spring Security e BCrypt, proteção CSRF em formulários e chamadas J
 | Documento | Conteúdo |
 | :--- | :--- |
 | [Arquitetura](docs/arquitetura.md) | decisões técnicas e alternativas descartadas |
-| [Regras de negócio](docs/regras-negocio.md) | as regras RN-01 a RN-14 |
+| [Regras de negócio](docs/regras-negocio.md) | as regras RN-01 a RN-90 |
 | [Design e front-end](docs/design-system.md) | identidade visual, componentes, movimento e acessibilidade |
 | [Mercado e requisitos](docs/mercado-requisitos.md) | levantamento que orientou os recursos |
 
