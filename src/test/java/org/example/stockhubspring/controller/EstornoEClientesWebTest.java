@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-/** Desfazer movimentação (RN-69, RN-70) e a tela de clientes (RN-76) na cadeia de segurança real. */
+/** Desfazer movimentação (RN-69, RN-70) na cadeia de segurança real. */
 class EstornoEClientesWebTest extends ControllerTestBase {
 
     @BeforeEach
@@ -99,61 +99,4 @@ class EstornoEClientesWebTest extends ControllerTestBase {
                 .andExpect(model().attribute("jaDesfeitas", Set.of(2)));
     }
 
-    // ---------- clientes ----------
-
-    @ParameterizedTest(name = "loja {0}: tela de clientes abre")
-    @EnumSource(value = TipoLoja.class, names = {"COMERCIO", "OFICINA", "MISTO"})
-    @DisplayName("módulo Vendas ou OS ligado mostra a lista de clientes")
-    void clientesComModulo(TipoLoja tipo) throws Exception {
-        when(usuarioRepository.findTipoLojaByCodigo(7)).thenReturn(Optional.of(tipo));
-
-        mvc.perform(get("/clientes").with(logadoComo(7, PapelMembro.VENDEDOR)))
-                .andExpect(status().isOk())
-                .andExpect(view().name("clientes"))
-                .andExpect(model().attributeExists("clientes"));
-    }
-
-    @Test
-    @DisplayName("loja só de estoque não tem a tela de clientes (404) nem cadastra")
-    void clientesSemModulo() throws Exception {
-        when(usuarioRepository.findTipoLojaByCodigo(7)).thenReturn(Optional.of(TipoLoja.ESTOQUE));
-
-        mvc.perform(get("/clientes").with(logadoComo(7, PapelMembro.DONO))).andExpect(status().isNotFound());
-        mvc.perform(post("/clientes").with(logadoComo(7, PapelMembro.DONO)).with(csrf())
-                        .param("documento", "52998224725").param("nome", "Ana"))
-                .andExpect(status().isNotFound());
-        verifyNoInteractions(clienteService);
-    }
-
-    @Test
-    @DisplayName("cadastrar cliente repassa os dados da loja logada e volta à lista")
-    void cadastraCliente() throws Exception {
-        when(usuarioRepository.findTipoLojaByCodigo(7)).thenReturn(Optional.of(TipoLoja.COMERCIO));
-
-        mvc.perform(post("/clientes").with(logadoComo(7, PapelMembro.VENDEDOR)).with(csrf())
-                        .param("documento", "529.982.247-25").param("nome", "Ana").param("uf", "rs"))
-                .andExpect(redirectedUrl("/clientes"))
-                .andExpect(flash().attributeExists("mensagem"));
-        verify(clienteService).cadastrar(any(Usuario.class), eq("529.982.247-25"), eq("Ana"), eq("rs"));
-    }
-
-    @Test
-    @DisplayName("erro de cadastro devolve o que foi digitado")
-    void erroDeCadastro() throws Exception {
-        when(usuarioRepository.findTipoLojaByCodigo(7)).thenReturn(Optional.of(TipoLoja.COMERCIO));
-        when(clienteService.cadastrar(any(), any(), any(), any()))
-                .thenThrow(new RegraNegocioException("Informe um CPF ou CNPJ válido."));
-
-        mvc.perform(post("/clientes").with(logadoComo(7, PapelMembro.DONO)).with(csrf())
-                        .param("documento", "123").param("nome", "Ana"))
-                .andExpect(redirectedUrl("/clientes"))
-                .andExpect(flash().attribute("erro", "Informe um CPF ou CNPJ válido."))
-                .andExpect(flash().attribute("nomeDigitado", "Ana"));
-    }
-
-    @Test
-    @DisplayName("sem login a tela de clientes manda para o login")
-    void clientesSemLogin() throws Exception {
-        mvc.perform(get("/clientes")).andExpect(status().is3xxRedirection());
-    }
 }

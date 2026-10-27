@@ -52,6 +52,8 @@ class EstornoReservaClienteServiceTest {
     private ReservaEstoqueRepository reservaRepository;
     @Mock
     private ParceiroRepository parceiroRepository;
+    @Mock
+    private org.example.stockhubspring.repository.OrdemServicoRepository osRepository;
 
     private EstoqueService estoque;
     private ClienteService clientes;
@@ -60,7 +62,7 @@ class EstornoReservaClienteServiceTest {
     @BeforeEach
     void preparar() {
         estoque = new EstoqueService(produtoRepository, movimentacaoRepository, reservaRepository);
-        clientes = new ClienteService(parceiroRepository);
+        clientes = new ClienteService(parceiroRepository, osRepository);
         dono = Fabrica.usuario(7);
         dono.setPapel(PapelMembro.DONO);
         when(parceiroRepository.saveAndFlush(any(Parceiro.class))).thenAnswer(i -> i.getArgument(0));

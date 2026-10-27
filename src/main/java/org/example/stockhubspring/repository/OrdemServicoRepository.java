@@ -38,4 +38,34 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Inte
 
         long getTotal();
     }
+
+    // ---- resumo do cliente (RN-98) ----
+
+    long countByUsuarioCodigoAndClienteId(Integer loja, Integer clienteId);
+
+    long countByUsuarioCodigoAndClienteIdAndStatus(Integer loja, Integer clienteId, StatusOs status);
+
+    long countByUsuarioCodigoAndClienteIdAndStatusIn(Integer loja, Integer clienteId, java.util.Collection<StatusOs> status);
+
+    @Query("select sum(o.total) from OrdemServico o where o.usuario.codigo = :loja and o.cliente.id = :cliente "
+            + "and o.status = org.example.stockhubspring.model.StatusOs.ENTREGUE")
+    java.math.BigDecimal somarEntregues(@Param("loja") Integer loja, @Param("cliente") Integer cliente);
+
+    @Query("select max(o.criadaEm) from OrdemServico o where o.usuario.codigo = :loja and o.cliente.id = :cliente")
+    java.time.LocalDateTime ultimaAbertura(@Param("loja") Integer loja, @Param("cliente") Integer cliente);
+
+    @Query("select o from OrdemServico o join fetch o.equipamento where o.usuario.codigo = :loja "
+            + "and o.cliente.id = :cliente order by o.numero desc")
+    List<OrdemServico> doCliente(@Param("loja") Integer loja, @Param("cliente") Integer cliente, Pageable pageable);
+
+    /** Quantas OS cada cliente da lista tem (uma consulta para a página inteira). */
+    @Query("select o.cliente.id as clienteId, count(o) as total from OrdemServico o where o.usuario.codigo = :loja "
+            + "and o.cliente.id in :ids group by o.cliente.id")
+    List<ContagemCliente> contarPorClientes(@Param("loja") Integer loja, @Param("ids") java.util.Collection<Integer> ids);
+
+    interface ContagemCliente {
+        Integer getClienteId();
+
+        long getTotal();
+    }
 }

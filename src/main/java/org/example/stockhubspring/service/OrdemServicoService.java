@@ -136,6 +136,9 @@ public class OrdemServicoService {
         if (cliente == null) {
             throw new RegraNegocioException("Escolha um cliente da lista. Se ele ainda não existe, cadastre em Clientes.");
         }
+        if (!cliente.isAtivo()) {
+            throw new RegraNegocioException("Este cliente está inativo. Reative o cadastro em Clientes para abrir uma ordem.");
+        }
         String descricao = Textos.limpar(equipamentoDescricao);
         if (descricao == null) {
             throw new RegraNegocioException("Informe o equipamento ou veículo, por exemplo \"Notebook Dell\" ou \"Fiat Uno\".");
