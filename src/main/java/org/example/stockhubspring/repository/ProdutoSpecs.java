@@ -35,6 +35,19 @@ public final class ProdutoSpecs {
         };
     }
 
+    /**
+     * Nome contendo o termo, sem diferenciar caixa nem acento (busca rápida). O banco aplica
+     * translate() ao nome; o termo recebe a mesma tabela em {@link Textos#semAcento}. Curingas
+     * digitados (% e _) são literais, como em {@link #comBusca}.
+     */
+    public static Specification<Produto> nomeContendoSemAcento(String termo) {
+        return (root, query, cb) -> {
+            var nomeSimples = cb.lower(cb.function("translate", String.class, root.get("nome"),
+                    cb.literal(Textos.ACENTUADAS), cb.literal(Textos.SEM_ACENTO)));
+            return cb.like(nomeSimples, Textos.padraoLike(Textos.semAcento(termo)), Textos.ESCAPE_LIKE);
+        };
+    }
+
     public static Specification<Produto> daCategoria(Integer categoriaId) {
         return (root, query, cb) -> cb.equal(root.get("categoria").get("id"), categoriaId);
     }

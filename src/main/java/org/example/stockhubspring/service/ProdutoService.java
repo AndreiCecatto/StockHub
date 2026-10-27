@@ -40,6 +40,9 @@ public class ProdutoService {
     public static final int TAMANHO_MAXIMO_PAGINA = ProdutoFiltro.TAMANHO_MAXIMO;
     /** Máximo de linhas de uma exportação CSV de produtos (proteção de memória). */
     public static final int LIMITE_EXPORTACAO = 10_000;
+    public static final int BUSCA_TERMO_MINIMO = 2;
+    public static final int BUSCA_LIMITE_PADRAO = 8;
+    public static final int BUSCA_LIMITE_MAXIMO = 20;
 
     private final ProdutoRepository produtoRepository;
     private final CategoriaRepository categoriaRepository;
@@ -119,6 +122,24 @@ public class ProdutoService {
         Sort ordem = Sort.by(Sort.Order.asc("quantidade"), Sort.Order.asc("nome").ignoreCase(), Sort.Order.asc("id"));
         return Paginas.buscar(pagina, tamanho, TAMANHO_MAXIMO_PAGINA, ordem,
                 pageable -> produtoRepository.findAll(spec, pageable));
+    }
+
+    /**
+     * Busca rápida por nome (caixa e acento ignorados), só produtos ativos da loja, em ordem de nome,
+     * com a categoria já carregada. Termo com menos de 2 caracteres (após trim) devolve lista vazia;
+     * o limite fica entre 1 e {@link #BUSCA_LIMITE_MAXIMO}.
+     */
+    @Transactional(readOnly = true)
+    public List<Produto> buscarRapido(String termo, int limite, Integer usuarioCodigo) {
+        String limpo = Textos.limpar(termo);
+        if (limpo == null || limpo.length() < BUSCA_TERMO_MINIMO) {
+            return List.of();
+        }
+        int tamanho = Math.max(1, Math.min(limite, BUSCA_LIMITE_MAXIMO));
+        Specification<Produto> spec = ProdutoSpecs.ativosDoUsuario(usuarioCodigo)
+                .and(ProdutoSpecs.nomeContendoSemAcento(limpo));
+        Sort ordem = Sort.by(Sort.Order.asc("nome").ignoreCase(), Sort.Order.asc("id"));
+        return produtoRepository.findAll(spec, PageRequest.of(0, tamanho, ordem)).getContent();
     }
 
     /** Produtos ativos em ordem de nome, para o seletor da tela de movimentação. */
