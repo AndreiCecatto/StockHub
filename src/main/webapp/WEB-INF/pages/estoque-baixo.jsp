@@ -137,7 +137,7 @@
                                         <span class="v3r-rank sh-mono"><c:out value="${(paginaAtual - 1) * 100 + st.count}" /></span>
                                     </td>
                                     <td role="cell" class="v3r-celula-produto">
-                                        <a class="v3r-nome" href="<c:out value='${ctx}/produtos/${produto.id}'/>"><c:out value="${produto.nome}" /></a>
+                                        <a class="v3r-nome" href="<c:out value='${ctx}/produtos/${produto.id}'/>" data-sh-peek data-sh-peek-titulo="<c:out value='${produto.nome}'/>"><c:out value="${produto.nome}" /></a>
                                         <span class="v3r-cat"><c:out value="${produto.categoria.nome}" /></span>
                                     </td>
                                     <td role="cell" class="v3r-tela" data-label="Situação"><sh:badgeEstoque nivel="${produto.nivelEstoque}" /></td>

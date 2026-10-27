@@ -116,7 +116,7 @@
                                 <c:if test="${totalUn > 0}"><c:set var="pt" value="${produto.quantidade * 100 / totalUn}" /></c:if>
                                 <tr role="row" class="${produto.nivelEstoque == 'SEM_ESTOQUE' ? 'sh-linha--sem' : (produto.nivelEstoque == 'BAIXO' ? 'sh-linha--baixo' : '')}">
                                     <td role="cell" class="v3r-celula-produto">
-                                        <a class="v3r-nome" href="<c:out value='${ctx}/produtos/${produto.id}'/>"><c:out value="${produto.nome}" /></a>
+                                        <a class="v3r-nome" href="<c:out value='${ctx}/produtos/${produto.id}'/>" data-sh-peek data-sh-peek-titulo="<c:out value='${produto.nome}'/>"><c:out value="${produto.nome}" /></a>
                                         <span class="v3r-cat"><c:out value="${produto.categoria.nome}" /></span>
                                     </td>
                                     <td role="cell" class="v3r-tela" data-label="Situação"><sh:badgeEstoque nivel="${produto.nivelEstoque}" /></td>

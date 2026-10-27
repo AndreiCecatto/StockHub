@@ -426,7 +426,7 @@
                             <time class="v3e-hora sh-mono" datetime="<c:out value='${fn:substring(dt, 0, 16)}'/>"><span class="visually-hidden">às </span><c:out value="${fn:substring(dt, 11, 16)}" /></time>
                             <span class="v3e-tipo"><span class="sh-badge sh-badge--${tCls}"><i class="bi bi-${tIcone}" aria-hidden="true"></i><c:out value="${tRotulo}" /></span></span>
                             <div class="v3e-prod">
-                                <a class="v3e-prod__nome" href="<c:out value='${ctx}/produtos/${mov.produto.id}'/>"><c:out value="${mov.produto.nome}" /></a>
+                                <a class="v3e-prod__nome" href="<c:out value='${ctx}/produtos/${mov.produto.id}'/>" data-sh-peek data-sh-peek-titulo="<c:out value='${mov.produto.nome}'/>"><c:out value="${mov.produto.nome}" /></a>
                                 <c:if test="${not empty mov.observacao}">
                                     <p class="v3e-obs"><c:out value="${mov.observacao}" /></p>
                                 </c:if>
