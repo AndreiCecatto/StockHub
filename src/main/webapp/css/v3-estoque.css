@@ -23,8 +23,9 @@
   }
 }
 
-/* O console acompanha a rolagem do histórico, se couber na altura da janela */
-@media (min-width: 1100px) and (min-height: 900px) {
+/* O console só acompanha a rolagem se couber inteiro na janela (com a prévia e os motivos ele tem ~1000 px).
+   Nas janelas menores a página rola normalmente e a barra de confirmar (.v3e-enviar) fica grudada na base da janela. */
+@media (min-width: 1100px) and (min-height: 1100px) {
   .v3e-console {
     position: sticky;
     top: calc(var(--sh-topbar-h) + var(--sh-space-4));
@@ -63,8 +64,42 @@
 }
 
 .v3e-enviar {
+  /* Barra de confirmar: fica grudada na base da janela enquanto o formulário está na tela
+     (no celular, acima da barra inferior) e assenta no fim do console quando se chega nele. */
+  position: sticky;
+  bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  z-index: 3;
   display: grid;
   gap: var(--sh-space-2);
+  margin: 0 calc(var(--sh-space-5) * -1) calc(var(--sh-space-5) * -1);
+  padding: var(--sh-space-3) var(--sh-space-5) var(--sh-space-4);
+  border-top: 1px solid var(--sh-border);
+  border-radius: 0 0 var(--sh-radius-lg) var(--sh-radius-lg);
+  background: var(--sh-surface);
+}
+
+@media (min-width: 992px) {
+  .v3e-enviar {
+    bottom: 0;
+  }
+}
+
+/* O campo focado não pode ficar escondido atrás da barra de confirmar */
+.v3e-form :is(input, textarea, button, select, [role="combobox"]) {
+  scroll-margin-bottom: 140px;
+}
+
+.v3e-resumo {
+  margin: 0;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.v3e-resumo[hidden] {
+  display: none;
 }
 
 .v3e-dica-teclas {

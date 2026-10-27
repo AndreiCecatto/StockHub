@@ -258,6 +258,8 @@
                             </div>
 
                             <div class="v3e-enviar">
+                                <%-- Resumo do que será lançado, sempre junto do botão (só com JS; o saldo completo fica na prévia) --%>
+                                <p class="v3e-resumo" id="resumo-lancamento" hidden></p>
                                 <button type="submit" class="btn btn-primary btn-lg w-100">
                                     <i class="bi bi-check2" aria-hidden="true"></i>
                                     <span id="rotulo-botao">Registrar movimentação</span>

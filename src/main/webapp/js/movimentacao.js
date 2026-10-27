@@ -228,7 +228,7 @@
     }
   }
 
-  function atualizarPrevia() {
+  function atualizarPreviaBase() {
     if (!previa) {
       return;
     }
@@ -314,6 +314,38 @@
       fala += ' ' + limite;
     }
     falar(fala);
+  }
+
+  /** Resumo curto junto do botão Confirmar: produto, tipo, variação e saldo antes e depois (lido da prévia). */
+  var resumo = document.getElementById('resumo-lancamento');
+  var NOMES_TIPO = { ENTRADA: 'Entrada', SAIDA: 'Saída', AJUSTE: 'Ajuste' };
+
+  function atualizarResumo() {
+    if (!resumo) {
+      return;
+    }
+    var produto = produtoAtual();
+    var tipo = tipoAtual();
+    var texto;
+    if (!produto) {
+      texto = 'Escolha um produto para ver o resumo.';
+    } else {
+      var depois = previaDepois.textContent;
+      texto = produto.nome + ' · ' + (NOMES_TIPO[tipo] || tipo);
+      if (depois !== '—') {
+        var delta = previaDelta.textContent;
+        texto += (delta ? ' ' + delta : '') + ' · saldo ' + previaAntes.textContent + ' → ' + depois;
+      } else {
+        texto += ' · saldo ' + previaAntes.textContent;
+      }
+    }
+    resumo.textContent = texto;
+    resumo.hidden = false;
+  }
+
+  function atualizarPrevia() {
+    atualizarPreviaBase();
+    atualizarResumo();
   }
 
   /* ---------- Motivos rápidos ---------- */
