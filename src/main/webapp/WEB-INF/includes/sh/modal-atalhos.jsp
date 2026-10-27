@@ -20,6 +20,12 @@
                     <dd>Novo produto (em Categorias, nova categoria)</dd>
                     <dt><kbd class="sh-tecla">m</kbd></dt>
                     <dd>Movimentar estoque</dd>
+                    <dt><kbd class="sh-tecla">E</kbd> / <kbd class="sh-tecla">S</kbd> / <kbd class="sh-tecla">A</kbd></dt>
+                    <dd>Em Movimentações, escolher o tipo: Entrada, Saída ou Ajuste</dd>
+                    <dt><kbd class="sh-tecla">F</kbd></dt>
+                    <dd>Em Movimentações, filtrar o livro-razão</dd>
+                    <dt><kbd class="sh-tecla">J</kbd> / <kbd class="sh-tecla">K</kbd> e <kbd class="sh-tecla">Enter</kbd></dt>
+                    <dd>Nas listas, descer e subir entre as linhas; Enter abre o item</dd>
                     <dt><kbd class="sh-tecla">g</kbd> depois <kbd class="sh-tecla">i</kbd></dt>
                     <dd>Ir para Início</dd>
                     <dt><kbd class="sh-tecla">g</kbd> depois <kbd class="sh-tecla">p</kbd></dt>
