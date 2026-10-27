@@ -61,6 +61,7 @@
                                         <td role="cell" data-label="Cliente">
                                             <c:out value="${o.cliente.nome}" />
                                             <span class="os-sub"><c:out value="${o.equipamento.descricao}" /><c:if test="${not empty o.equipamento.identificador}"> (<c:out value="${o.equipamento.identificador}" />)</c:if></span>
+                                            <c:if test="${not empty o.equipamento.placa or not empty o.equipamento.modelo}"><span class="os-sub"><sh:veiculo equipamento="${o.equipamento}" /></span></c:if>
                                         </td>
                                         <td role="cell" data-label="Situação"><span class="os-status os-status--${fn:toLowerCase(o.status.name())}"><c:out value="${o.status.rotulo}" /></span></td>
                                         <td role="cell" data-label="Responsável"><c:out value="${empty o.responsavel ? '—' : o.responsavel.nome}" /></td>

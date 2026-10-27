@@ -39,6 +39,7 @@
         <h2>Cliente e equipamento</h2>
         <p class="mb-1"><strong><c:out value="${os.cliente.nome}" /></strong> · <sh:documentoBr valor="${os.cliente.documento}" /></p>
         <p class="mb-1"><c:out value="${os.equipamento.descricao}" /><c:if test="${not empty os.equipamento.identificador}"> · <c:out value="${os.equipamento.identificador}" /></c:if></p>
+        <c:if test="${not empty os.equipamento.placa or not empty os.equipamento.modelo}"><p class="mb-1"><sh:veiculo equipamento="${os.equipamento}" /></p></c:if>
         <c:if test="${not empty os.responsavel}"><p class="mb-1">Responsável: <c:out value="${os.responsavel.nome}" /></p></c:if>
 
         <h2>Defeito relatado</h2>

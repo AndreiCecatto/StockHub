@@ -124,7 +124,7 @@
                                     <c:forEach var="o" items="${resumo.ultimas}">
                                         <tr role="row">
                                             <td role="cell"><a class="os-numero" href="${ctx}/os/${o.id}">OS <c:out value="${o.numero}" /></a></td>
-                                            <td role="cell" data-label="Equipamento"><c:out value="${o.equipamento.descricao}" /></td>
+                                            <td role="cell" data-label="Equipamento"><c:out value="${o.equipamento.descricao}" /><c:if test="${not empty o.equipamento.placa or not empty o.equipamento.modelo}"><span class="os-sub d-block"><sh:veiculo equipamento="${o.equipamento}" /></span></c:if></td>
                                             <td role="cell" data-label="Situação"><span class="os-status os-status--${fn:toLowerCase(o.status.name())}"><c:out value="${o.status.rotulo}" /></span></td>
                                             <td role="cell" data-label="Aberta em"><sh:dataHora valor="${o.criadaEm}" soData="true" /></td>
                                             <td role="cell" data-label="Total" class="text-end os-dinheiro"><fmt:formatNumber value="${o.total}" type="currency" currencySymbol="R$ " /></td>

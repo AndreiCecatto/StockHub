@@ -72,6 +72,7 @@
                             <p class="os-sub mb-3">
                                 <strong><c:out value="${os.cliente.nome}" /></strong> ·
                                 <c:out value="${os.equipamento.descricao}" /><c:if test="${not empty os.equipamento.identificador}"> (<c:out value="${os.equipamento.identificador}" />)</c:if>
+                                <c:if test="${not empty os.equipamento.placa or not empty os.equipamento.modelo}"><br><sh:veiculo equipamento="${os.equipamento}" /></c:if>
                             </p>
                             <div class="row g-3">
                                 <div class="col-12">
@@ -111,6 +112,7 @@
                     <dl class="os-dados">
                         <div><dt>Cliente</dt><dd><c:out value="${os.cliente.nome}" /></dd></div>
                         <div><dt>Equipamento</dt><dd><c:out value="${os.equipamento.descricao}" /><c:if test="${not empty os.equipamento.identificador}"> (<c:out value="${os.equipamento.identificador}" />)</c:if></dd></div>
+                        <c:if test="${not empty os.equipamento.placa or not empty os.equipamento.modelo}"><div><dt>Veículo</dt><dd><sh:veiculo equipamento="${os.equipamento}" rotulo="false" /></dd></div></c:if>
                         <div><dt>Responsável</dt><dd><c:out value="${empty os.responsavel ? '—' : os.responsavel.nome}" /></dd></div>
                         <div><dt>Garantia</dt><dd><c:out value="${os.garantiaDias}" /> dias</dd></div>
                         <div class="os-dados__largo"><dt>Defeito relatado</dt><dd><c:out value="${os.defeito}" /></dd></div>
