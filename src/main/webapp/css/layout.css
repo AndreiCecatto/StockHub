@@ -1,5 +1,5 @@
 /*
- * StockHub (direção A "Edição"): estrutura da página (seção "v3: central de operações" de docs/design-system.md).
+ * StockHub: estrutura da página (seções 12 e 17 de docs/design-system.md).
  * Barra lateral enxuta (recolhível), barra superior com migalhas e BARRA DE COMANDO central, barra inferior no celular,
  * cabeçalho da página, grade de conteúdo, barra de ações de formulário e a transição entre páginas (View Transitions).
  * As telas de entrada ficam em css/entrar.css; o início, em css/inicio.css.
@@ -204,6 +204,11 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
   display: flex;
   min-height: 100vh;
   min-height: 100dvh;
+  /* Luz ambiente: dois halos de acento bem suaves, fixos, que dão algo para o vidro desfocar */
+  background-image:
+    radial-gradient(60% 46% at 88% -12%, color-mix(in srgb, var(--sh-accent) 11%, transparent), transparent 70%),
+    radial-gradient(46% 38% at -6% 104%, color-mix(in srgb, var(--sh-accent) 7%, transparent), transparent 70%);
+  background-attachment: fixed;
 }
 
 .sh-coluna {
@@ -284,9 +289,11 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
     flex: 0 0 var(--sh-lateral-w);
     width: var(--sh-lateral-w);
     padding: var(--sh-space-4) var(--sh-space-3) var(--sh-space-3);
-    background-color: var(--sh-side-bg);
+    background-color: var(--sh-glass);
     color: var(--sh-side-text);
-    border-right: 1px solid var(--sh-border);
+    border-right: 1px solid var(--sh-glass-borda);
+    -webkit-backdrop-filter: var(--sh-glass-blur);
+    backdrop-filter: var(--sh-glass-blur);
     overflow-x: hidden;
     overflow-y: auto;
     transition: width var(--sh-t-3) var(--sh-ease-out), flex-basis var(--sh-t-3) var(--sh-ease-out);
@@ -306,9 +313,6 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
   min-height: 40px;
   padding: 0 var(--sh-space-2);
   margin-bottom: var(--sh-space-4);
-  padding-bottom: var(--sh-space-4);
-  box-sizing: content-box;
-  border-bottom: 3px double var(--sh-border);
   color: var(--sh-text);
   text-decoration: none;
 }
@@ -339,26 +343,24 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
 }
 
 .sh-marca__nome {
-  font-family: var(--sh-font-serif);
-  font-size: 1.375rem;
-  font-weight: 700;
+  font-size: 1.125rem;
+  font-weight: 650;
   line-height: 1;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.03em;
 }
 
 .sh-nav__grupo + .sh-nav__grupo {
   margin-top: var(--sh-space-5);
 }
 
-/* Títulos de grupo: caixa-alta pequena com tracking aberto, como o menu do cabeçalho da direção A (único uso de caixa-alta no sistema) */
+/* Títulos de grupo: texto pequeno e discreto, sem caixa-alta */
 .sh-nav__titulo {
   margin: 0 0 var(--sh-space-1);
   padding: 0 var(--sh-space-3);
   color: var(--sh-side-muted);
-  font-size: var(--sh-fs-micro);
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 .sh-nav__lista {
@@ -374,15 +376,22 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 36px;
+  min-height: 38px;
   padding: 6px var(--sh-space-3);
   border-radius: var(--sh-radius-sm);
   color: var(--sh-side-text);
   font-size: var(--sh-text-md);
-  font-weight: 500;
-  letter-spacing: -0.006em;
+  font-weight: 520;
+  letter-spacing: -0.008em;
   text-decoration: none;
-  transition: background-color var(--sh-t-1) var(--sh-ease), color var(--sh-t-1) var(--sh-ease);
+  transition: background-color var(--sh-t-2) var(--sh-spring), color var(--sh-t-2) var(--sh-spring),
+    transform var(--sh-t-2) var(--sh-spring);
+}
+
+.sh-nav__link > .bi,
+.sh-nav__link > .sh-nav__rotulo {
+  position: relative;
+  z-index: 1;
 }
 
 .sh-nav__link .bi {
@@ -390,38 +399,49 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
   font-size: 1.0625rem;
   line-height: 1;
   color: var(--sh-text-subtle);
-  transition: color var(--sh-t-1) var(--sh-ease);
+  transition: color var(--sh-t-2) var(--sh-spring), transform var(--sh-t-2) var(--sh-spring);
 }
 
 .sh-nav__link:hover:not([aria-current="page"]) {
-  background: var(--sh-surface-2);
+  background: color-mix(in srgb, var(--sh-surface-2) 80%, transparent);
   color: var(--sh-text);
 }
 
 .sh-nav__link:hover:not([aria-current="page"]) .bi {
-  color: var(--sh-text-muted);
+  color: var(--sh-accent-text);
+  transform: translateX(1px) scale(1.06);
 }
 
-/* Item atual: sem cartão nem sombra; tinta cheia, peso 600, filete de acento à esquerda e ícone em acento */
+/* Item atual: pílula com brilho do acento (o marcador é a pílula; a forma, o peso e o ícone em acento reforçam além da cor) */
 .sh-nav__link[aria-current="page"] {
-  background: var(--sh-side-active-bg);
   color: var(--sh-text);
-  font-weight: 600;
+  font-weight: 620;
 }
 
 .sh-nav__link[aria-current="page"] .bi {
   color: var(--sh-accent-text);
 }
 
-/* Marcador do item atual: filete de acento. Só existe no item atual; na transição entre páginas ele
+/* Marcador do item atual: a pílula que fica atrás do item. Só existe no item atual; na transição entre páginas ele
    desliza do item antigo para o novo. */
 .sh-nav__marcador {
   position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--sh-accent) 16%, var(--sh-surface)) 0%, var(--sh-accent-soft) 100%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sh-accent) 28%, transparent),
+    0 4px 16px -6px color-mix(in srgb, var(--sh-accent) 55%, transparent);
+}
+
+.sh-nav__marcador::before {
+  content: "";
+  position: absolute;
   left: 0;
-  top: 8px;
-  bottom: 8px;
+  top: 9px;
+  bottom: 9px;
   width: 3px;
-  border-radius: 0 2px 2px 0;
+  border-radius: 0 3px 3px 0;
   background: var(--sh-side-marker);
 }
 
@@ -449,7 +469,7 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
 }
 
 .sh-lateral__alternar:hover {
-  background: var(--sh-surface-2);
+  background: color-mix(in srgb, var(--sh-surface-2) 70%, transparent);
   color: var(--sh-text);
 }
 
@@ -512,10 +532,23 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   border-bottom: 1px solid var(--sh-glass-borda);
 }
 
+/* Hairline com gradiente embaixo da barra: o acento aparece no meio e some nas pontas */
+.sh-topbar::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 1px;
+  background: var(--sh-hairline);
+  opacity: .55;
+  pointer-events: none;
+}
+
 @supports (backdrop-filter: blur(1px)) {
   .sh-topbar {
-    -webkit-backdrop-filter: saturate(1.5) blur(16px);
-    backdrop-filter: saturate(1.5) blur(16px);
+    -webkit-backdrop-filter: var(--sh-glass-blur);
+    backdrop-filter: var(--sh-glass-blur);
   }
 }
 
@@ -533,7 +566,6 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   flex: 0 0 auto;
   min-height: 44px;
   color: var(--sh-text);
-  font-family: var(--sh-font-serif);
   font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -619,9 +651,9 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   min-width: 0;
   min-height: 40px;
   padding: 0 var(--sh-space-2) 0 var(--sh-space-3);
-  border: 1px solid var(--sh-border-strong);
-  border-radius: var(--sh-radius);
-  background: var(--sh-surface);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-sm);
+  background: color-mix(in srgb, var(--sh-surface) 80%, transparent);
   box-shadow: var(--sh-shadow-1);
   color: var(--sh-text-subtle);
   font: inherit;
@@ -632,7 +664,7 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
 }
 
 .sh-paleta-gatilho:hover {
-  border-color: var(--sh-text-subtle);
+  border-color: color-mix(in srgb, var(--sh-accent) 55%, var(--sh-border));
   color: var(--sh-text);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--sh-accent) 12%, transparent), var(--sh-shadow-1);
 }
@@ -733,7 +765,7 @@ kbd.sh-tecla,
 }
 
 .sh-usuario:hover {
-  background: var(--sh-surface-2);
+  background: color-mix(in srgb, var(--sh-surface-2) 80%, transparent);
 }
 
 .sh-usuario__inicial {
@@ -744,10 +776,11 @@ kbd.sh-tecla,
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--sh-text);
-  color: var(--sh-bg);
+  background: linear-gradient(135deg, var(--sh-accent) 0%, color-mix(in srgb, var(--sh-accent) 60%, #000) 100%);
+  box-shadow: 0 2px 10px -2px color-mix(in srgb, var(--sh-accent) 60%, transparent);
+  color: #fff;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 650;
 }
 
 .sh-usuario__nome {
@@ -843,8 +876,8 @@ kbd.sh-tecla,
 
 @supports (backdrop-filter: blur(1px)) {
   .sh-inferior {
-    -webkit-backdrop-filter: saturate(1.5) blur(16px);
-    backdrop-filter: saturate(1.5) blur(16px);
+    -webkit-backdrop-filter: var(--sh-glass-blur);
+    backdrop-filter: var(--sh-glass-blur);
   }
 }
 
@@ -910,11 +943,11 @@ kbd.sh-tecla,
   width: 48px;
   height: 32px;
   margin-top: -10px;
-  border-radius: var(--sh-radius-lg);
-  background: var(--sh-accent);
-  box-shadow: var(--sh-shadow-1);
+  border-radius: var(--sh-radius-sm);
+  background: linear-gradient(135deg, var(--sh-accent) 0%, color-mix(in srgb, var(--sh-accent) 70%, #000) 100%);
+  box-shadow: var(--sh-glow-forte);
   color: #fff;
-  transition: transform var(--sh-t-1) var(--sh-ease-out), background-color var(--sh-t-1) var(--sh-ease);
+  transition: transform var(--sh-t-2) var(--sh-spring), background-color var(--sh-t-1) var(--sh-ease);
 }
 
 .sh-inferior__item--principal:active .sh-inferior__icone {
@@ -1014,9 +1047,9 @@ kbd.sh-tecla,
 .sh-page-header__titulo {
   margin: 0;
   font-size: var(--sh-fs-pagina);
-  font-weight: 700;
+  font-weight: 650;
   line-height: var(--sh-lh-titulo);
-  letter-spacing: var(--sh-track-display);
+  letter-spacing: -0.032em;
   overflow-wrap: anywhere;
   text-wrap: balance;
 }
@@ -1060,8 +1093,8 @@ kbd.sh-tecla,
 
 @supports (backdrop-filter: blur(1px)) {
   .sh-form-actions {
-    -webkit-backdrop-filter: saturate(1.5) blur(16px);
-    backdrop-filter: saturate(1.5) blur(16px);
+    -webkit-backdrop-filter: var(--sh-glass-blur);
+    backdrop-filter: var(--sh-glass-blur);
   }
 }
 
