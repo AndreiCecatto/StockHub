@@ -17,7 +17,7 @@ public enum TelaPersonalizavel {
 
     /** Trecho da URL: "inicio" ou "produtos". */
     public String slug() {
-        return name().toLowerCase();
+        return name().toLowerCase(java.util.Locale.ROOT);
     }
 
     /** Converte o trecho da URL; devolve null se desconhecido. */

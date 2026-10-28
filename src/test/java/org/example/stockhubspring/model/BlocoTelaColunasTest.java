@@ -82,6 +82,19 @@ class BlocoTelaColunasTest {
         assertThat(TelaPersonalizavel.deSlug(" produtos ")).isEqualTo(TelaPersonalizavel.PRODUTOS);
     }
 
+    @Test
+    @DisplayName("slug não depende do Locale padrão (tr-TR não vira 'ınıcıo')")
+    void slugIndependeDoLocale() {
+        java.util.Locale original = java.util.Locale.getDefault();
+        try {
+            java.util.Locale.setDefault(java.util.Locale.forLanguageTag("tr-TR"));
+            assertThat(TelaPersonalizavel.INICIO.slug()).isEqualTo("inicio");
+            assertThat(TelaPersonalizavel.deSlug("inicio")).isEqualTo(TelaPersonalizavel.INICIO);
+        } finally {
+            java.util.Locale.setDefault(original);
+        }
+    }
+
     @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(strings = {"  ", "INICIO", "Produtos", "usuarios", "../etc", "<script>alert(1)</script>"})
