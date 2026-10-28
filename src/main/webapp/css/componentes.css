@@ -1,6 +1,6 @@
 /*
- * StockHub v3: componentes (seção "v3: central de operações" de docs/design-system.md). Prefixo sh- sobre o Bootstrap 5.3.
- * Acabamento: bordas hairline (1 px), raios de 6 a 16 px, sombra só em sobreposições (menu, toast, modal, painel).
+ * StockHub: componentes (seções 12 e 17 de docs/design-system.md). Prefixo sh- sobre o Bootstrap 5.3.
+ * Acabamento: bordas hairline (1 px), raios de 10 a 18 px, sombras suaves em camadas, vidro nas camadas flutuantes.
  * O movimento (entradas, esqueletos, barras) fica em css/movimento.css; o kit de rolagem, em css/rolagem.css;
  * o painel lateral "peek", em css/peek.css. Cores sempre por tokens.css.
  */
@@ -2004,93 +2004,217 @@ a:not(.btn):not(.nav-link):not(.dropdown-item):not([class*="sh-"]) {
   }
 }
 
-/* ============================== Direção A "Edição": listas e tabelas (fatia 4) ==============================
- * Protótipo direcao-a-edicao.html; decisões em docs/design-system.md, seção 17. Cabeçalho de página em serifa com
- * subtítulo, tabela sem caixa (cabeçalho em caixa-alta, filete entre linhas), nome em serifa, números em fonte
- * monoespaçada tabular à direita, tag de estoque com forma + texto, mini barra de saldo, paginação discreta.
- * Só tokens; nenhum valor de cor novo. As regras de tabela do computador ficam em min-width: 768px para não
- * mexer nos cartões do celular (.sh-table--cards). */
 
+/* ============================== Base viva e séria (seção 17 de docs/design-system.md) ==============================
+ * Camada final dos componentes: cartões com raio generoso e sombras em camadas, botões com gradiente sutil e brilho
+ * do acento, campos com anel luminoso, tabela dentro de cartão, abas em pílula, selos tonais, camadas flutuantes em
+ * vidro. Só tokens; a lógica de estados (forma + texto + cor) dos selos e das linhas de estoque continua como estava. */
+
+/* ---------- Botões ---------- */
+.btn {
+  --bs-btn-font-weight: 560;
+  transition: background-color var(--sh-t-2) var(--sh-spring), border-color var(--sh-t-2) var(--sh-spring),
+    color var(--sh-t-2) var(--sh-spring), transform var(--sh-t-2) var(--sh-spring),
+    box-shadow var(--sh-t-3) var(--sh-spring);
+}
+
+.btn:hover:not(:disabled):not(.disabled) {
+  transform: translateY(-1px);
+}
+
+.btn:active:not(:disabled):not(.disabled) {
+  transform: translateY(0) scale(.98);
+}
+
+.btn-primary {
+  background-image: linear-gradient(180deg, color-mix(in srgb, #fff 16%, var(--sh-accent)) 0%, var(--sh-accent) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), 0 1px 2px rgba(14, 19, 32, .18),
+    0 6px 16px -8px color-mix(in srgb, var(--sh-accent) 70%, transparent);
+}
+
+.btn-primary:hover:not(:disabled):not(.disabled) {
+  background-image: linear-gradient(180deg, color-mix(in srgb, #fff 12%, var(--sh-accent-hover)) 0%, var(--sh-accent-hover) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), 0 1px 2px rgba(14, 19, 32, .2), var(--sh-glow-forte);
+}
+
+.btn-outline-secondary {
+  --bs-btn-border-color: var(--sh-border);
+  --bs-btn-hover-border-color: color-mix(in srgb, var(--sh-accent) 45%, var(--sh-border));
+  --bs-btn-active-border-color: color-mix(in srgb, var(--sh-accent) 45%, var(--sh-border));
+  --bs-btn-disabled-border-color: var(--sh-border);
+  --bs-btn-bg: color-mix(in srgb, var(--sh-surface) 85%, transparent);
+  box-shadow: var(--sh-shadow-1);
+}
+
+.btn-outline-secondary:hover:not(:disabled):not(.disabled) {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sh-accent) 10%, transparent), var(--sh-shadow-1);
+}
+
+.btn-ghost:hover:not(:disabled):not(.disabled) {
+  background: color-mix(in srgb, var(--sh-surface-2) 85%, transparent);
+}
+
+/* ---------- Campos ---------- */
+.form-control,
+.form-select {
+  border-color: var(--sh-border);
+  border-radius: var(--sh-radius-sm);
+  background-color: color-mix(in srgb, var(--sh-surface) 92%, transparent);
+  box-shadow: inset 0 1px 2px rgba(14, 19, 32, .04);
+  transition: border-color var(--sh-t-2) var(--sh-spring), box-shadow var(--sh-t-3) var(--sh-spring),
+    background-color var(--sh-t-2) var(--sh-spring);
+}
+
+.form-control:hover:not(:disabled):not([readonly]),
+.form-select:hover:not(:disabled) {
+  border-color: var(--sh-border-strong);
+}
+
+.input-group-text {
+  border-color: var(--sh-border);
+}
+
+.form-check-input {
+  transition: background-color var(--sh-t-2) var(--sh-spring), border-color var(--sh-t-2) var(--sh-spring),
+    box-shadow var(--sh-t-3) var(--sh-spring);
+}
+
+/* ---------- Cartões ---------- */
+.sh-card,
+.sh-metric,
+.sh-table-wrap {
+  border-color: var(--sh-border);
+  border-radius: var(--sh-radius);
+  background-color: var(--sh-surface);
+  box-shadow: var(--sh-shadow-card);
+}
+
+.sh-card,
+.sh-metric {
+  background-image: linear-gradient(180deg, color-mix(in srgb, var(--sh-accent) 3%, var(--sh-surface)) 0%, var(--sh-surface) 55%);
+}
+
+.sh-card__cab {
+  border-bottom-color: var(--sh-border);
+}
+
+.sh-card__titulo {
+  font-weight: 620;
+  letter-spacing: -0.02em;
+}
+
+.sh-metric {
+  transition: transform var(--sh-t-3) var(--sh-spring), box-shadow var(--sh-t-3) var(--sh-spring),
+    border-color var(--sh-t-2) var(--sh-spring);
+}
+
+a.sh-metric:hover,
+button.sh-metric:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--sh-accent) 40%, var(--sh-border));
+  background-color: var(--sh-surface);
+  box-shadow: var(--sh-shadow-card-hover);
+}
+
+.sh-metric:hover {
+  background-color: var(--sh-surface);
+}
+
+.sh-metric__icone {
+  background: var(--sh-accent-soft);
+  color: var(--sh-accent-text);
+}
+
+.sh-metric__valor {
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+
+/* ---------- Cabeçalho da página ---------- */
 .sh-page-header {
   align-items: flex-end;
   margin-bottom: var(--sh-space-6);
 }
 
 .sh-page-header__titulo {
-  font-size: clamp(2rem, 3.4vw, 2.75rem);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  font-size: clamp(1.75rem, 1.35rem + 1.2vw, 2.375rem);
+  line-height: 1.1;
+  letter-spacing: -0.034em;
 }
 
 .sh-page-header__desc {
-  max-width: 54ch;
+  max-width: 62ch;
   margin-top: var(--sh-space-2);
   color: var(--sh-text-muted);
-  font-size: 1.0625rem;
+  font-size: var(--sh-text-lg);
 }
 
-/* Lista sem caixa: a tabela deixa de ser um cartão (a faixa de filtros e as linhas fazem a estrutura) */
+/* ---------- Listas e tabelas: a tabela vive dentro de um cartão ---------- */
 .sh-table-wrap {
   overflow-x: auto;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+  border: 1px solid var(--sh-border);
 }
 
 .sh-card.sh-lista {
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius);
+  background-color: var(--sh-surface);
+  overflow: hidden;
 }
 
 .sh-lista > .sh-card__cab {
-  padding: 0 0 var(--sh-space-3);
-  border-bottom: 0;
+  padding: var(--sh-space-4);
+  border-bottom: 1px solid var(--sh-border);
 }
 
 .sh-lista > .sh-card__cab .sh-card__titulo {
-  color: var(--sh-text-muted);
-  font-size: var(--sh-text-md);
-  font-weight: 600;
-  letter-spacing: 0;
+  color: var(--sh-text);
+  font-size: var(--sh-text-lg);
+  font-weight: 620;
+  letter-spacing: -0.02em;
+}
+
+.sh-lista .sh-table-wrap {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
 }
 
 @media (min-width: 768px) {
   .sh-table th {
-    padding: 14px 12px 10px 0;
+    padding: 12px 14px;
     border-bottom: 1px solid var(--sh-border);
-    background: transparent;
+    background: color-mix(in srgb, var(--sh-surface-2) 60%, var(--sh-surface));
     color: var(--sh-text-muted);
-    font-size: 0.71875rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0;
     line-height: 1.2;
-    text-transform: uppercase;
+    text-transform: none;
   }
 
   .sh-table td {
     height: auto;
     min-height: 52px;
-    padding: 13px 12px 13px 0;
-    border-bottom: 1px solid var(--sh-border);
+    padding: 12px 14px;
+    border-bottom: 1px solid color-mix(in srgb, var(--sh-border) 75%, transparent);
   }
 
   .sh-table tbody tr:last-child td {
-    border-bottom: 1px solid var(--sh-border);
-  }
-
-  .sh-table th:first-child,
-  .sh-table td:first-child {
-    padding-left: 12px;
-  }
-
-  .sh-table th:last-child,
-  .sh-table td:last-child {
-    padding-right: 12px;
+    border-bottom: 0;
   }
 }
 
-/* Números: monoespaçados, tabulares, à direita */
+.sh-table tbody tr {
+  transition: background-color var(--sh-t-2) var(--sh-spring);
+}
+
+.sh-table tbody tr:hover {
+  background: color-mix(in srgb, var(--sh-accent) 5%, var(--sh-surface));
+}
+
+/* Números: sans tabular, à direita */
 .sh-table th.sh-col-num,
 .sh-table th.text-end {
   text-align: right;
@@ -2099,11 +2223,11 @@ a:not(.btn):not(.nav-link):not(.dropdown-item):not([class*="sh-"]) {
 .sh-table td.sh-col-num,
 .sh-table td.sh-mono,
 .sh-table td.text-end {
-  font-family: var(--sh-font-codigo);
-  font-size: 0.9375rem;
+  font-family: var(--sh-font);
+  font-size: var(--sh-text-base);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.012em;
 }
 
 .sh-table td.sh-col-num,
@@ -2111,21 +2235,15 @@ a:not(.btn):not(.nav-link):not(.dropdown-item):not([class*="sh-"]) {
   text-align: right;
 }
 
-/* Tag de situação do estoque: forma + texto, sem fundo (a cor só reforça). Nos selos sem ícone (ex.: Ativa e
-   Desativada da equipe) a forma vem de um marcador: círculo = normal, triângulo = baixo, octógono = sem estoque. */
-.sh-table .sh-badge--normal,
-.sh-table .sh-badge--baixo,
-.sh-table .sh-badge--sem {
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+/* Selos de situação: pílula tonal com forma + texto + cor. Nos selos sem ícone (Ativa, Desativada) a forma vem de um
+   marcador: círculo = normal, triângulo = baixo, octógono = sem estoque. */
+.sh-badge {
+  padding: 2px 10px;
+  border-radius: var(--sh-radius-pill);
+  font-weight: 600;
 }
 
-.sh-table .sh-badge:not(:has(.bi))::before {
+.sh-badge:not(:has(.bi))::before {
   content: "";
   flex: none;
   width: 8px;
@@ -2133,79 +2251,86 @@ a:not(.btn):not(.nav-link):not(.dropdown-item):not([class*="sh-"]) {
   background: currentColor;
 }
 
-.sh-table .sh-badge--normal:not(:has(.bi))::before {
+.sh-badge--normal:not(:has(.bi))::before {
   border-radius: 50%;
 }
 
-.sh-table .sh-badge--baixo:not(:has(.bi))::before {
+.sh-badge--baixo:not(:has(.bi))::before {
   clip-path: polygon(50% 0, 100% 100%, 0 100%);
 }
 
-.sh-table .sh-badge--sem:not(:has(.bi))::before {
+.sh-badge--sem:not(:has(.bi))::before {
   clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
 }
 
 /* Mini barra de saldo: fina, com o marcador do mínimo ainda visível */
 .sh-table .sh-meter {
-  height: 4px;
+  height: 5px;
   min-width: 64px;
-  border-radius: 2px;
+  border-radius: var(--sh-radius-pill);
 }
 
-/* Paginação discreta: sem caixas, a página atual em negrito e sublinhada */
+/* ---------- Paginação ---------- */
 .sh-paginacao {
-  padding: var(--sh-space-4) 12px;
-  border-top: 0;
+  padding: var(--sh-space-4);
+  border-top: 1px solid var(--sh-border);
   color: var(--sh-text-muted);
 }
 
 .sh-paginacao .pagination {
   --bs-pagination-bg: transparent;
   --bs-pagination-border-color: transparent;
+  --bs-pagination-border-radius: var(--sh-radius-sm);
   --bs-pagination-hover-bg: var(--sh-surface-2);
   --bs-pagination-hover-border-color: transparent;
   --bs-pagination-disabled-bg: transparent;
   --bs-pagination-disabled-border-color: transparent;
-  --bs-pagination-active-bg: transparent;
-  --bs-pagination-active-color: var(--sh-text);
+  --bs-pagination-active-bg: var(--sh-accent-soft);
+  --bs-pagination-active-color: var(--sh-accent-text);
   --bs-pagination-active-border-color: transparent;
   --bs-pagination-disabled-color: var(--sh-text-subtle);
 }
 
 .sh-paginacao .sh-pag-numero .page-link {
-  font-family: var(--sh-font-codigo);
+  font-family: var(--sh-font);
   font-size: var(--sh-text-sm);
+  font-variant-numeric: tabular-nums;
 }
 
 .sh-paginacao .page-item.active .page-link {
   font-weight: 700;
-  box-shadow: inset 0 -2px 0 var(--sh-accent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sh-accent) 35%, transparent);
 }
 
-/* Abas de filtro (faixa com filete de tinta embaixo; a aba atual leva sublinhado de acento além do peso) */
+/* ---------- Abas de filtro: controle segmentado em pílula ---------- */
 .sh-abas {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 0 var(--sh-space-6);
-  border-bottom: 1px solid var(--sh-text);
+  align-items: center;
+  gap: 2px;
+  max-width: 100%;
+  padding: 4px;
+  border: 1px solid var(--sh-border);
+  border-radius: calc(var(--sh-radius-sm) + 4px);
+  background: color-mix(in srgb, var(--sh-surface-2) 75%, transparent);
 }
 
 .sh-aba {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: var(--sh-alvo);
-  padding: 0;
+  min-height: calc(var(--sh-alvo) - 4px);
+  padding: 0 14px;
   border: 0;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
+  border-radius: var(--sh-radius-sm);
   background: transparent;
   color: var(--sh-text-muted);
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 560;
   text-decoration: none;
   cursor: pointer;
+  transition: background-color var(--sh-t-2) var(--sh-spring), color var(--sh-t-2) var(--sh-spring),
+    box-shadow var(--sh-t-3) var(--sh-spring);
 }
 
 .sh-aba:hover {
@@ -2213,38 +2338,83 @@ a:not(.btn):not(.nav-link):not(.dropdown-item):not([class*="sh-"]) {
 }
 
 .sh-aba[aria-current="page"] {
-  border-bottom-color: var(--sh-accent);
-  color: var(--sh-text);
+  background: var(--sh-surface);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sh-accent) 30%, var(--sh-border)), var(--sh-shadow-1);
+  color: var(--sh-accent-text);
+  font-weight: 650;
 }
 
 .sh-aba__n {
-  font-family: var(--sh-font-codigo);
+  font-family: var(--sh-font);
   font-size: 0.78rem;
-  font-weight: 500;
+  font-weight: 560;
   font-variant-numeric: tabular-nums;
 }
 
-/* ============================== Direção A "Edição": mensagens em linha (fatia 5) ==============================
- * Alerta e resumo de erros deixam de ser caixas: fundo tonal discreto, filete de 3 px à esquerda e ícone + texto.
- * O texto continua na cor do estado (pares da seção 17, todos >= 4,5:1 sobre o fundo tonal). */
+/* ---------- Mensagens: alerta e resumo de erros são caixas tonais com ícone e texto ---------- */
 .sh-alert,
 .sh-resumo-erros {
-  border-width: 0 0 0 3px;
+  border-width: 1px;
   border-style: solid;
-  border-radius: 0 var(--sh-radius-sm) var(--sh-radius-sm) 0;
+  border-radius: var(--sh-radius-sm);
 }
 
 .sh-resumo-erros {
   padding: var(--sh-space-3) var(--sh-space-4);
-  border-left-color: var(--sh-danger-fg);
+  border-color: var(--sh-danger-border);
 }
-
-.sh-alert--success { border-left-color: var(--sh-success-fg); }
-.sh-alert--warning { border-left-color: var(--sh-warning-fg); }
-.sh-alert--danger { border-left-color: var(--sh-danger-fg); }
-.sh-alert--info { border-left-color: var(--sh-info-fg); }
 
 .sh-resumo-erros a {
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+/* ---------- Camadas flutuantes em vidro ---------- */
+.dropdown-menu,
+.modal-content,
+.offcanvas,
+.sh-toast {
+  border-color: var(--sh-glass-borda);
+  background-color: color-mix(in srgb, var(--sh-surface) 90%, transparent);
+  box-shadow: var(--sh-shadow-pop);
+}
+
+.modal-content {
+  border-radius: var(--sh-radius-lg);
+  box-shadow: var(--sh-shadow-modal);
+}
+
+.dropdown-menu {
+  --bs-dropdown-border-radius: var(--sh-radius);
+  --bs-dropdown-link-hover-bg: var(--sh-surface-2);
+  --bs-dropdown-link-active-bg: var(--sh-accent-soft);
+  --bs-dropdown-link-active-color: var(--sh-accent-text);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .dropdown-menu,
+  .modal-content,
+  .offcanvas,
+  .sh-toast {
+    -webkit-backdrop-filter: var(--sh-glass-blur);
+    backdrop-filter: var(--sh-glass-blur);
+  }
+}
+
+/* ---------- Detalhes ---------- */
+::selection {
+  background: color-mix(in srgb, var(--sh-accent) 28%, transparent);
+}
+
+code.sh-codigo,
+.sh-mono {
+  letter-spacing: -0.005em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:hover:not(:disabled):not(.disabled),
+  a.sh-metric:hover,
+  button.sh-metric:hover {
+    transform: none;
+  }
 }
