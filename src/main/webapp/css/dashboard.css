@@ -2,10 +2,10 @@
  * StockHub: início ("capa do dia"). Prefixo "db-".
  * Ideia: o início se lê como a primeira página do jornal da loja, não como um painel de cartões.
  *   1. Uma frase grande diz o estado do estoque; o resto do texto da página existe para agir sobre ela.
- *   2. A "prateleira" é o único elemento em caixa: cada produto é uma marca (círculo = em dia,
+ *   2. A "prateleira" é uma marca por produto (círculo = em dia,
  *      triângulo = abaixo do mínimo, octógono = sem estoque), problemas à esquerda, e o tamanho da marca
  *      cresce com a gravidade. O estado nunca depende só da cor: forma + legenda em texto.
- *   3. O restante fica sem caixa: seções separadas por fio, listas com divisores, linha do tempo vertical.
+ *   3. Tudo sem cartão (direção A, "Edição"): filetes de tinta, serifa nos números e na manchete, tags com forma + texto.
  * Cores e medidas só por tokens (css/tokens.css). Movimento: uma única entrada da prateleira (transform e
  * opacity), zerada em prefers-reduced-motion.
  */
@@ -589,6 +589,7 @@
   gap: var(--sh-space-1) var(--sh-space-2);
   color: var(--sh-text-subtle);
   font-size: var(--sh-text-sm);
+  letter-spacing: 0.04em;
 }
 
 .db-evento__etiqueta {
@@ -695,11 +696,12 @@
 
 .db-etapa__n {
   display: block;
-  font-size: 1.75rem;
+  font-family: var(--sh-font-serif);
+  font-size: 2rem;
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1.1;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .db-etapa__nome {
@@ -791,6 +793,8 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--sh-text);
+  font-family: var(--sh-font-serif);
+  font-size: var(--sh-text-lg);
   font-weight: 600;
   text-decoration: none;
 }
@@ -1080,7 +1084,7 @@
 /* Cabeçalho do gráfico com o mesmo fio das outras seções */
 .db-grafico__cab {
   padding-top: var(--sh-space-4);
-  border-top: 1px solid var(--sh-border);
+  border-top: 1px solid var(--sh-text);
 }
 
 /* A data vem em minúsculas ("terça-feira, 27 de outubro"): só a primeira letra sobe */
