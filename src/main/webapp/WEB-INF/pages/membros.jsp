@@ -17,7 +17,7 @@
     <jsp:body>
         <sh:cabecalhoPagina titulo="Equipe" descricao="As pessoas que usam a loja. Cada uma entra com o próprio e-mail e senha." />
 
-        <section class="sh-card sh-secao" aria-labelledby="titulo-equipe">
+        <section class="sh-card sh-secao sh-lista" aria-labelledby="titulo-equipe">
             <div class="sh-card__cab">
                 <h2 class="sh-card__titulo" id="titulo-equipe">Pessoas da loja</h2>
             </div>
