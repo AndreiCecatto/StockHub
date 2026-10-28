@@ -7,7 +7,7 @@
     Só dono e gerente chegam aqui (SecurityConfig).
     Dados do PersonalizacaoController: blocosInicio e blocosProdutos (BlocoTela: name, rotulo, descricao, moduloExigido; só os
     aplicáveis à loja), estadoBlocos e estadoColunas (Map código -> visível); flash: mensagem, erro (saem pelo layout).
-    Sem CSS próprio: usa só classes já existentes (sh-*, db-*, form-check, btn).
+    Direção A (fatia 5): lista de blocos em linhas (css/formularios.css: .sh-opcoes, .sh-opcao), título da seção em serifa.
 --%>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 
@@ -18,21 +18,25 @@
         <form method="post" action="${ctx}/conta/personalizacao/inicio" data-sh-bloquear data-sh-enviando="Salvando…">
             <input type="hidden" name="<c:out value='${_csrf.parameterName}'/>" value="<c:out value='${_csrf.token}'/>" />
 
-            <section class="sh-card sh-secao" aria-labelledby="titulo-blocos">
+            <section class="sh-card sh-secao sh-secao-form" aria-labelledby="titulo-blocos">
                 <div class="sh-card__cab">
                     <h2 class="sh-card__titulo" id="titulo-blocos">Blocos do início</h2>
                 </div>
                 <div class="sh-card__corpo">
-                    <p class="db-sub">O que não estiver marcado fica oculto do início, para todas as pessoas da loja. A frase do dia e os primeiros passos sempre aparecem.</p>
-                    <c:forEach var="b" items="${blocosInicio}">
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" name="blocos" id="bloco-<c:out value='${b.name()}'/>"
-                                value="<c:out value='${b.name()}'/>" aria-describedby="desc-<c:out value='${b.name()}'/>"
-                                ${estadoBlocos[b.name()] ? 'checked' : ''}>
-                            <label class="form-check-label fw-semibold" for="bloco-<c:out value='${b.name()}'/>"><c:out value="${b.rotulo}" /></label>
-                            <div class="db-sub" id="desc-<c:out value='${b.name()}'/>"><c:out value="${b.descricao}" /></div>
-                        </div>
-                    </c:forEach>
+                    <p class="sh-secao-form__sub">O que não estiver marcado fica oculto do início, para todas as pessoas da loja. A frase do dia e os primeiros passos sempre aparecem.</p>
+                    <ul class="sh-opcoes">
+                        <c:forEach var="b" items="${blocosInicio}">
+                            <li class="sh-opcao">
+                                <input class="form-check-input" type="checkbox" name="blocos" id="bloco-<c:out value='${b.name()}'/>"
+                                    value="<c:out value='${b.name()}'/>" aria-describedby="desc-<c:out value='${b.name()}'/>"
+                                    ${estadoBlocos[b.name()] ? 'checked' : ''}>
+                                <div class="sh-opcao__texto">
+                                    <label class="form-check-label sh-opcao__nome" for="bloco-<c:out value='${b.name()}'/>"><c:out value="${b.rotulo}" /></label>
+                                    <span class="sh-opcao__desc" id="desc-<c:out value='${b.name()}'/>"><c:out value="${b.descricao}" /></span>
+                                </div>
+                            </li>
+                        </c:forEach>
+                    </ul>
                 </div>
             </section>
 
@@ -48,21 +52,25 @@
         <form method="post" action="${ctx}/conta/personalizacao/produtos" data-sh-bloquear data-sh-enviando="Salvando…">
             <input type="hidden" name="<c:out value='${_csrf.parameterName}'/>" value="<c:out value='${_csrf.token}'/>" />
 
-            <section class="sh-card sh-secao" aria-labelledby="titulo-produtos">
+            <section class="sh-card sh-secao sh-secao-form" aria-labelledby="titulo-produtos">
                 <div class="sh-card__cab">
                     <h2 class="sh-card__titulo" id="titulo-produtos">Lista de produtos</h2>
                 </div>
                 <div class="sh-card__corpo">
-                    <p class="db-sub">Escolha quais colunas aparecem na lista de produtos, para todas as pessoas da loja. Nome, saldo e ações sempre aparecem.</p>
-                    <c:forEach var="b" items="${blocosProdutos}">
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" name="blocos" id="col-<c:out value='${b.name()}'/>"
-                                value="<c:out value='${b.name()}'/>" aria-describedby="desc-col-<c:out value='${b.name()}'/>"
-                                ${estadoColunas[b.name()] ? 'checked' : ''}>
-                            <label class="form-check-label fw-semibold" for="col-<c:out value='${b.name()}'/>"><c:out value="${b.rotulo}" /></label>
-                            <div class="db-sub" id="desc-col-<c:out value='${b.name()}'/>"><c:out value="${b.descricao}" /></div>
-                        </div>
-                    </c:forEach>
+                    <p class="sh-secao-form__sub">Escolha quais colunas aparecem na lista de produtos, para todas as pessoas da loja. Nome, saldo e ações sempre aparecem.</p>
+                    <ul class="sh-opcoes">
+                        <c:forEach var="b" items="${blocosProdutos}">
+                            <li class="sh-opcao">
+                                <input class="form-check-input" type="checkbox" name="blocos" id="col-<c:out value='${b.name()}'/>"
+                                    value="<c:out value='${b.name()}'/>" aria-describedby="desc-col-<c:out value='${b.name()}'/>"
+                                    ${estadoColunas[b.name()] ? 'checked' : ''}>
+                                <div class="sh-opcao__texto">
+                                    <label class="form-check-label sh-opcao__nome" for="col-<c:out value='${b.name()}'/>"><c:out value="${b.rotulo}" /></label>
+                                    <span class="sh-opcao__desc" id="desc-col-<c:out value='${b.name()}'/>"><c:out value="${b.descricao}" /></span>
+                                </div>
+                            </li>
+                        </c:forEach>
+                    </ul>
                 </div>
             </section>
 
