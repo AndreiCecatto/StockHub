@@ -1103,3 +1103,147 @@ Feedback: o início tinha "muita cara de dashboard de IA" (quatro cartões iguai
 - **Por tipo de loja, só com `<sh:modulo>`:** `OS` mostra o fluxo das ordens (Orçamento a Concluída, contagens) e as OS em andamento, e troca o botão primário por "Nova ordem de serviço"; `VENDAS` mostra o atalho Clientes e quantas das últimas movimentações foram vendas.
 - **Backend (mínimo):** `DashboardController` passou a enviar `movimentacoesRecentes` e, só com o módulo OS, `osPorStatus` e `osAndamento` (teste em `DashboardEErrosWebTest`).
 - **Sem cartões:** seções separadas por fio, listas com divisores; gráfico de 14 dias e últimos produtos mantidos, sem caixa.
+
+
+## 17. Direção A "Edição" (27/10/2026), fatias 1 e 2: tokens e estrutura
+
+Decisões do dono: manter a barra lateral (adaptada à linguagem A); escuro quente (marrom do protótipo `direcao-a-edicao.html`); raios 8/6 e quase sem sombra no claro; login, início e cadastro acompanham a paleta (composição e animação preservadas, só cor e fonte mudam). **Esta seção substitui os valores de cor, raio e sombra da seção 12.2 e da seção 14**; nomes de tokens, ordem de carregamento e a regra "os três blocos de tema iguais entre si" não mudaram.
+
+**Paleta.** Papel quente (`#F5F0E6`) com tinta marrom (`#26221C`) e **um** acento, azul-tinta (`#1D3F8F`). O escuro é marrom quente (`#221E19`), sem cinza azulado. Valores do protótipo (bg, bg2, ink, mut, rule, acc, dan, warn, ok) mantidos; o que o protótipo não tinha foi derivado e calculado: superfície um tom mais clara que o fundo no claro (`#FBF8F2`) para os campos se destacarem, escala de texto em três níveis, fundos tonais quentes, medidores, botões sólidos e informação (ciano-petróleo, para a Saída da movimentação não virar azul de ação). Os três blocos (claro, `[data-bs-theme="dark"]`, `@media` sem JavaScript) foram regenerados da mesma tabela; o escuro dos dois últimos é idêntico (conferido por script).
+
+| Papel | Claro | Escuro |
+|---|---|---|
+| `--sh-bg` (fundo da página e da barra lateral) | `#F5F0E6` | `#221E19` |
+| `--sh-surface` (cartões, campos, tabelas) | `#FBF8F2` | `#2A251F` |
+| `--sh-surface-2` | `#EDE6D6` | `#342E26` |
+| `--sh-border` (hairline decorativa) | `#D6CCB8` | `#41392F` |
+| `--sh-border-strong` (borda de campo, 3:1) | `#8A7F6B` | `#8A7F6D` |
+| `--sh-text` | `#26221C` | `#EDE6D8` |
+| `--sh-text-muted` | `#574E41` | `#BDB4A3` |
+| `--sh-text-subtle` | `#6B6254` | `#A89F8F` |
+| `--sh-accent` (botão, marca) | `#1D3F8F` | `#4A6BCC` |
+| `--sh-accent-hover` | `#152F6D` | `#3E5CB4` |
+| `--sh-accent-text` (links, ícones, marcador do menu) | `#1D3F8F` | `#8FAAF2` |
+| `--sh-accent-soft` | `#E3E7F0` | `#2A3150` |
+| `--sh-focus` | `#1D3F8F` | `#8FAAF2` |
+| Normal: texto | `#2F6B3F` | `#86C095` |
+| Normal: fundo | `#E4EBD9` | `#243424` |
+| Baixo: texto | `#7F5200` | `#E3AE4D` |
+| Baixo: fundo | `#F6E8C4` | `#3A2D12` |
+| Sem estoque e erro: texto | `#B3321F` | `#EE8A76` |
+| Sem estoque e erro: fundo | `#F7E1D9` | `#40231D` |
+| Saída e informação: texto | `#0B6478` | `#7CCDE4` |
+| Saída e informação: fundo | `#DDEBEA` | `#1E3036` |
+| Medidor Normal / Baixo / Sem | `#3B7D4C` / `#A8630A` / `#B3321F` | `#6DB580` / `#E3AE4D` / `#EE7B66` |
+| Trilho do medidor | `#DDD3BE` | `#41392F` |
+
+**Tipografia.** Pilha do sistema, sem fonte nova. Serifa (`--sh-font-serif`: Iowan Old Style, Palatino, Georgia) **só** em: marca (barra lateral e barra superior), `h1`, `.sh-titulo-pagina`, `.sh-titulo-secao-v3`, `.sh-page-header__titulo`, `.sh-serif` e números de métrica (`.sh-metric__valor`). Todo o resto continua em `--sh-font`; códigos em `--sh-font-codigo`.
+
+**Raios e sombra.** `--sh-radius-xs/sm/radius/lg` = **4 / 6 / 8 / 10 px** (teclas e detalhes, controles, cartões e tabelas, painéis e diálogos). `--sh-shadow-1` e `--sh-shadow-card` valem `none` nos dois temas (a hairline `--sh-border` separa); só o que flutua (`--sh-shadow-pop`, `--sh-shadow-modal`) tem sombra, com tinta marrom no claro. Novo token `--sh-backdrop` (`#1A1713`) para o véu de modais e painéis.
+
+**Barra lateral (fatia 2, `css/layout.css`; `includes/sh/lateral.jsp` não precisou mudar).** Mesma cor do fundo, hairline à direita. Marca em serifa com filete duplo embaixo (como o cabeçalho do protótipo). Títulos de grupo em caixa-alta pequena com tracking aberto (único uso de caixa-alta no sistema, vindo do menu do protótipo). Item atual: sem cartão e sem sombra; texto em tinta, peso 600, ícone e filete de 3 px em `--sh-accent-text` (`--sh-side-marker`; o filete continua deslizando entre as páginas pela View Transition). `--sh-side-active-bg` passou a `transparent`. Hover só nos itens não atuais.
+
+**Telas de entrada e apresentação.** O palco do login (`css/entrar.css`) e as seções escuras da apresentação (`--ap-escuro-bg`) usam o marrom `#1A1713` nos dois temas; texto `#EDE6D8`, secundário `#BDB4A3`, acento `#8FAAF2`. Gráficos de `css/analises.css`: série 1 e classe A = `--sh-accent-text`; B e C = o mesmo azul misturado com a superfície (`color-mix`); série 2 = laranja queimado (`#B4531B` claro, `#E5894F` escuro). Contrastes da rampa: B 4,0:1 e C 2,2:1 (claro), B 4,2:1 e C 2,6:1 (escuro) contra a superfície. **O validador de paleta da skill dataviz não foi reexecutado** (a distância entre as duas séries depende do matiz, não da luminosidade, principalmente no escuro: 1,15:1 de luminosidade entre elas; sempre há legenda e rótulos).
+
+**Contrastes** (WCAG 2.x, calculados por script em `scratchpad`, fora do repositório; todos passam). O medidor e o anel de foco foram conferidos contra surface, bg e trilho. A marca no escuro (`#4A6BCC`) foi clareada em relação ao protótipo (`#8FAAF2` com texto escuro) para continuar com texto branco e passar 3:1 contra o fundo.
+
+**Tema claro** (mínimo 4,5:1 para texto; 3:1 para bordas de campo, foco, medidores e elementos gráficos)
+
+| Par | Cores | Razão | Mín. | Resultado |
+|---|---|---|---|---|
+| texto / bg | `#26221C` sobre `#F5F0E6` | 13.92:1 | 4,5 | passa |
+| texto / surface | `#26221C` sobre `#FBF8F2` | 14.92:1 | 4,5 | passa |
+| texto / surface2 | `#26221C` sobre `#EDE6D6` | 12.72:1 | 4,5 | passa |
+| texto secundário / bg | `#574E41` sobre `#F5F0E6` | 7.19:1 | 4,5 | passa |
+| texto secundário / surface | `#574E41` sobre `#FBF8F2` | 7.70:1 | 4,5 | passa |
+| texto secundário / surface2 | `#574E41` sobre `#EDE6D6` | 6.57:1 | 4,5 | passa |
+| texto terciário e placeholder / bg | `#6B6254` sobre `#F5F0E6` | 5.28:1 | 4,5 | passa |
+| texto terciário e placeholder / surface | `#6B6254` sobre `#FBF8F2` | 5.66:1 | 4,5 | passa |
+| texto terciário e placeholder / surface2 | `#6B6254` sobre `#EDE6D6` | 4.83:1 | 4,5 | passa |
+| borda de campo / surface (3:1) | `#8A7F6B` sobre `#FBF8F2` | 3.72:1 | 3 | passa |
+| borda de campo / bg (3:1) | `#8A7F6B` sobre `#F5F0E6` | 3.47:1 | 3 | passa |
+| borda de campo / surface2 (3:1) | `#8A7F6B` sobre `#EDE6D6` | 3.17:1 | 3 | passa |
+| marca (quadrado de acento) / bg (3:1) | `#1D3F8F` sobre `#F5F0E6` | 8.56:1 | 3 | passa |
+| marcador do menu (accent-text) / bg (3:1) | `#1D3F8F` sobre `#F5F0E6` | 8.56:1 | 3 | passa |
+| texto branco / botão primário | `#FFFFFF` sobre `#1D3F8F` | 9.72:1 | 4,5 | passa |
+| texto branco / primário hover | `#FFFFFF` sobre `#152F6D` | 12.66:1 | 4,5 | passa |
+| link de acento / surface | `#1D3F8F` sobre `#FBF8F2` | 9.17:1 | 4,5 | passa |
+| link de acento / bg | `#1D3F8F` sobre `#F5F0E6` | 8.56:1 | 4,5 | passa |
+| link de acento / surface2 | `#1D3F8F` sobre `#EDE6D6` | 7.82:1 | 4,5 | passa |
+| link de acento / accent-soft | `#1D3F8F` sobre `#E3E7F0` | 7.85:1 | 4,5 | passa |
+| anel de foco / surface (3:1) | `#1D3F8F` sobre `#FBF8F2` | 9.17:1 | 3 | passa |
+| anel de foco / bg (3:1) | `#1D3F8F` sobre `#F5F0E6` | 8.56:1 | 3 | passa |
+| Normal/sucesso: texto / fundo tonal | `#2F6B3F` sobre `#E4EBD9` | 5.21:1 | 4,5 | passa |
+| Normal/sucesso: texto / surface | `#2F6B3F` sobre `#FBF8F2` | 6.01:1 | 4,5 | passa |
+| Normal/sucesso: texto / bg | `#2F6B3F` sobre `#F5F0E6` | 5.61:1 | 4,5 | passa |
+| Baixo/aviso: texto / fundo tonal | `#7F5200` sobre `#F6E8C4` | 5.55:1 | 4,5 | passa |
+| Baixo/aviso: texto / surface | `#7F5200` sobre `#FBF8F2` | 6.37:1 | 4,5 | passa |
+| Baixo/aviso: texto / bg | `#7F5200` sobre `#F5F0E6` | 5.95:1 | 4,5 | passa |
+| Sem estoque/erro: texto / fundo tonal | `#B3321F` sobre `#F7E1D9` | 4.93:1 | 4,5 | passa |
+| Sem estoque/erro: texto / surface | `#B3321F` sobre `#FBF8F2` | 5.84:1 | 4,5 | passa |
+| Sem estoque/erro: texto / bg | `#B3321F` sobre `#F5F0E6` | 5.45:1 | 4,5 | passa |
+| Saída/info: texto / fundo tonal | `#0B6478` sobre `#DDEBEA` | 5.52:1 | 4,5 | passa |
+| Saída/info: texto / surface | `#0B6478` sobre `#FBF8F2` | 6.37:1 | 4,5 | passa |
+| branco / sucesso sólido | `#FFFFFF` sobre `#2F6B3F` | 6.37:1 | 4,5 | passa |
+| branco / perigo sólido | `#FFFFFF` sobre `#B3321F` | 6.19:1 | 4,5 | passa |
+| branco / sucesso sólido hover | `#FFFFFF` sobre `#245631` | 8.57:1 | 4,5 | passa |
+| branco / perigo sólido hover | `#FFFFFF` sobre `#962A19` | 7.95:1 | 4,5 | passa |
+| medidor Normal / trilho (3:1) | `#3B7D4C` sobre `#DDD3BE` | 3.35:1 | 3 | passa |
+| medidor Baixo / trilho (3:1) | `#A8630A` sobre `#DDD3BE` | 3.17:1 | 3 | passa |
+| medidor Sem estoque / trilho (3:1) | `#B3321F` sobre `#DDD3BE` | 4.17:1 | 3 | passa |
+| medidor Normal / surface (3:1) | `#3B7D4C` sobre `#FBF8F2` | 4.69:1 | 3 | passa |
+| medidor Baixo / surface (3:1) | `#A8630A` sobre `#FBF8F2` | 4.45:1 | 3 | passa |
+| medidor Sem estoque / surface (3:1) | `#B3321F` sobre `#FBF8F2` | 5.84:1 | 3 | passa |
+
+**Tema escuro** (mínimo 4,5:1 para texto; 3:1 para bordas de campo, foco, medidores e elementos gráficos)
+
+| Par | Cores | Razão | Mín. | Resultado |
+|---|---|---|---|---|
+| texto / bg | `#EDE6D8` sobre `#221E19` | 13.34:1 | 4,5 | passa |
+| texto / surface | `#EDE6D8` sobre `#2A251F` | 12.23:1 | 4,5 | passa |
+| texto / surface2 | `#EDE6D8` sobre `#342E26` | 10.81:1 | 4,5 | passa |
+| texto secundário / bg | `#BDB4A3` sobre `#221E19` | 8.06:1 | 4,5 | passa |
+| texto secundário / surface | `#BDB4A3` sobre `#2A251F` | 7.39:1 | 4,5 | passa |
+| texto secundário / surface2 | `#BDB4A3` sobre `#342E26` | 6.53:1 | 4,5 | passa |
+| texto terciário e placeholder / bg | `#A89F8F` sobre `#221E19` | 6.33:1 | 4,5 | passa |
+| texto terciário e placeholder / surface | `#A89F8F` sobre `#2A251F` | 5.80:1 | 4,5 | passa |
+| texto terciário e placeholder / surface2 | `#A89F8F` sobre `#342E26` | 5.13:1 | 4,5 | passa |
+| borda de campo / surface (3:1) | `#8A7F6D` sobre `#2A251F` | 3.86:1 | 3 | passa |
+| borda de campo / bg (3:1) | `#8A7F6D` sobre `#221E19` | 4.21:1 | 3 | passa |
+| borda de campo / surface2 (3:1) | `#8A7F6D` sobre `#342E26` | 3.41:1 | 3 | passa |
+| marca (quadrado de acento) / bg (3:1) | `#4A6BCC` sobre `#221E19` | 3.37:1 | 3 | passa |
+| marcador do menu (accent-text) / bg (3:1) | `#8FAAF2` sobre `#221E19` | 7.26:1 | 3 | passa |
+| texto branco / botão primário | `#FFFFFF` sobre `#4A6BCC` | 4.92:1 | 4,5 | passa |
+| texto branco / primário hover | `#FFFFFF` sobre `#3E5CB4` | 6.19:1 | 4,5 | passa |
+| link de acento / surface | `#8FAAF2` sobre `#2A251F` | 6.65:1 | 4,5 | passa |
+| link de acento / bg | `#8FAAF2` sobre `#221E19` | 7.26:1 | 4,5 | passa |
+| link de acento / surface2 | `#8FAAF2` sobre `#342E26` | 5.88:1 | 4,5 | passa |
+| link de acento / accent-soft | `#8FAAF2` sobre `#2A3150` | 5.56:1 | 4,5 | passa |
+| anel de foco / surface (3:1) | `#8FAAF2` sobre `#2A251F` | 6.65:1 | 3 | passa |
+| anel de foco / bg (3:1) | `#8FAAF2` sobre `#221E19` | 7.26:1 | 3 | passa |
+| Normal/sucesso: texto / fundo tonal | `#86C095` sobre `#243424` | 6.27:1 | 4,5 | passa |
+| Normal/sucesso: texto / surface | `#86C095` sobre `#2A251F` | 7.22:1 | 4,5 | passa |
+| Normal/sucesso: texto / bg | `#86C095` sobre `#221E19` | 7.88:1 | 4,5 | passa |
+| Baixo/aviso: texto / fundo tonal | `#E3AE4D` sobre `#3A2D12` | 6.67:1 | 4,5 | passa |
+| Baixo/aviso: texto / surface | `#E3AE4D` sobre `#2A251F` | 7.54:1 | 4,5 | passa |
+| Baixo/aviso: texto / bg | `#E3AE4D` sobre `#221E19` | 8.23:1 | 4,5 | passa |
+| Sem estoque/erro: texto / fundo tonal | `#EE8A76` sobre `#40231D` | 5.78:1 | 4,5 | passa |
+| Sem estoque/erro: texto / surface | `#EE8A76` sobre `#2A251F` | 6.17:1 | 4,5 | passa |
+| Sem estoque/erro: texto / bg | `#EE8A76` sobre `#221E19` | 6.73:1 | 4,5 | passa |
+| Saída/info: texto / fundo tonal | `#7CCDE4` sobre `#1E3036` | 7.65:1 | 4,5 | passa |
+| Saída/info: texto / surface | `#7CCDE4` sobre `#2A251F` | 8.47:1 | 4,5 | passa |
+| branco / sucesso sólido | `#FFFFFF` sobre `#2F7A47` | 5.26:1 | 4,5 | passa |
+| branco / perigo sólido | `#FFFFFF` sobre `#C23B2B` | 5.31:1 | 4,5 | passa |
+| branco / sucesso sólido hover | `#FFFFFF` sobre `#27663B` | 6.89:1 | 4,5 | passa |
+| branco / perigo sólido hover | `#FFFFFF` sobre `#AD3425` | 6.37:1 | 4,5 | passa |
+| medidor Normal / trilho (3:1) | `#6DB580` sobre `#41392F` | 4.63:1 | 3 | passa |
+| medidor Baixo / trilho (3:1) | `#E3AE4D` sobre `#41392F` | 5.63:1 | 3 | passa |
+| medidor Sem estoque / trilho (3:1) | `#EE7B66` sobre `#41392F` | 4.14:1 | 3 | passa |
+| medidor Normal / surface (3:1) | `#6DB580` sobre `#2A251F` | 6.20:1 | 3 | passa |
+| medidor Baixo / surface (3:1) | `#E3AE4D` sobre `#2A251F` | 7.54:1 | 3 | passa |
+| medidor Sem estoque / surface (3:1) | `#EE7B66` sobre `#2A251F` | 5.54:1 | 3 | passa |
+| palco do login: texto / palco | `#EDE6D8` sobre `#1A1713` | 14.38:1 | 4,5 | passa |
+| palco do login: texto secundário / palco | `#BDB4A3` sobre `#1A1713` | 8.69:1 | 4,5 | passa |
+| palco do login: acento e foco / palco (3:1) | `#8FAAF2` sobre `#1A1713` | 7.82:1 | 3 | passa |
+
+**Verificação:** app real na porta 8087 com a loja de teste "Oficina - Mecânica" (dono): `/login`, `/cadastro`, `/` e as telas autenticadas (início, produtos, movimentações, categorias, estoque baixo, unidades, valor do estoque, análises, equipe, clientes, OS, NF-e) responderam 200 e os seis CSS carregaram com os valores novos. O tema escolhido é aplicado só no navegador (`localStorage` + `data-bs-theme`), então claro e escuro servem o mesmo HTML. **Não visto em navegador:** a aparência real (lateral, serifa, palco do login, gráficos, foco), a transição entre páginas e o `color-mix` dos gráficos; as telas das fatias seguintes (início, produtos, formulários) ainda usam CSS próprio e podem ter hex antigos.
