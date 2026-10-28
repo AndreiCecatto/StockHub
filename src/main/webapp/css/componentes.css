@@ -2223,3 +2223,28 @@ a:not(.btn):not(.nav-link):not(.dropdown-item):not([class*="sh-"]) {
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
+
+/* ============================== Direção A "Edição": mensagens em linha (fatia 5) ==============================
+ * Alerta e resumo de erros deixam de ser caixas: fundo tonal discreto, filete de 3 px à esquerda e ícone + texto.
+ * O texto continua na cor do estado (pares da seção 17, todos >= 4,5:1 sobre o fundo tonal). */
+.sh-alert,
+.sh-resumo-erros {
+  border-width: 0 0 0 3px;
+  border-style: solid;
+  border-radius: 0 var(--sh-radius-sm) var(--sh-radius-sm) 0;
+}
+
+.sh-resumo-erros {
+  padding: var(--sh-space-3) var(--sh-space-4);
+  border-left-color: var(--sh-danger-fg);
+}
+
+.sh-alert--success { border-left-color: var(--sh-success-fg); }
+.sh-alert--warning { border-left-color: var(--sh-warning-fg); }
+.sh-alert--danger { border-left-color: var(--sh-danger-fg); }
+.sh-alert--info { border-left-color: var(--sh-info-fg); }
+
+.sh-resumo-erros a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
