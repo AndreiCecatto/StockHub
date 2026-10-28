@@ -231,10 +231,10 @@ class PersonalizacaoServiceTest {
     }
 
     @Test
-    @DisplayName("tela PRODUTOS ainda não tem blocos: salvar vazio não grava e marcar bloco do início é recusado")
+    @DisplayName("tela PRODUTOS: salvar vazio grava só as 4 colunas comuns (loja sem ramo) e marcar bloco do início é recusado")
     void telaSemBlocos() {
         service.salvar(LOJA, PapelMembro.DONO, MEMBRO, TelaPersonalizavel.PRODUTOS, Set.of());
-        verify(repository, never()).gravar(anyInt(), anyString(), anyString(), anyBoolean(), any());
+        verify(repository, times(4)).gravar(anyInt(), eq("PRODUTOS"), anyString(), eq(false), any());
 
         assertThatThrownBy(() -> service.salvar(LOJA, PapelMembro.DONO, MEMBRO, TelaPersonalizavel.PRODUTOS,
                 Set.of("ATALHOS")))

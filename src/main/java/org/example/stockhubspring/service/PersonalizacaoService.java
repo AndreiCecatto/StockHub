@@ -32,7 +32,7 @@ public class PersonalizacaoService {
     @Transactional(readOnly = true)
     public Map<String, Boolean> blocosVisiveis(Integer lojaCodigo, TelaPersonalizavel tela) {
         Map<String, Boolean> mapa = new LinkedHashMap<>();
-        for (BlocoTela bloco : BlocoTela.daTela(tela, tipoDaLoja(lojaCodigo))) {
+        for (BlocoTela bloco : BlocoTela.daTela(tela, tipoDaLoja(lojaCodigo), permitidosDaLoja(lojaCodigo))) {
             mapa.put(bloco.name(), true);
         }
         for (PreferenciaBloco p : repository.findByUsuarioCodigoAndTela(lojaCodigo, tela.name())) {
@@ -47,7 +47,7 @@ public class PersonalizacaoService {
     /** Blocos aplicáveis à loja, na ordem da tela (para a tela de personalização). */
     @Transactional(readOnly = true)
     public List<BlocoTela> blocosAplicaveis(Integer lojaCodigo, TelaPersonalizavel tela) {
-        return BlocoTela.daTela(tela, tipoDaLoja(lojaCodigo));
+        return BlocoTela.daTela(tela, tipoDaLoja(lojaCodigo), permitidosDaLoja(lojaCodigo));
     }
 
     /** Grava uma linha por bloco aplicável: marcado = visível, o resto oculto. Nunca apaga (RN-113). */
@@ -60,7 +60,7 @@ public class PersonalizacaoService {
         if (tela == null) {
             throw new RegraNegocioException("Tela inválida para personalizar.");
         }
-        List<BlocoTela> aplicaveis = BlocoTela.daTela(tela, tipoDaLoja(lojaCodigo));
+        List<BlocoTela> aplicaveis = BlocoTela.daTela(tela, tipoDaLoja(lojaCodigo), permitidosDaLoja(lojaCodigo));
         Set<BlocoTela> escolhidos = new java.util.HashSet<>();
         for (String codigo : marcados == null ? Set.<String>of() : marcados) {
             BlocoTela bloco = BlocoTela.de(codigo);
@@ -72,6 +72,11 @@ public class PersonalizacaoService {
         for (BlocoTela bloco : aplicaveis) {
             repository.gravar(lojaCodigo, tela.name(), bloco.name(), escolhidos.contains(bloco), membroId);
         }
+    }
+
+    /** Campos de ramo do subtipo ATUAL da loja, lido do banco (RN-117). */
+    private CamposRamo.Permitidos permitidosDaLoja(Integer lojaCodigo) {
+        return CamposRamo.permitidos(usuarioRepository.findSubtipoByCodigo(lojaCodigo).orElse(null));
     }
 
     private TipoLoja tipoDaLoja(Integer lojaCodigo) {
