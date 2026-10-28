@@ -134,7 +134,7 @@ class PersonalizacaoProdutosWebTest extends ControllerTestBase {
     }
 
     @Test
-    @DisplayName("GET /produtos publica camposRamo e colunas da loja")
+    @DisplayName("GET /produtos publica colunas da loja, sem camposRamo")
     void listaPublicaCamposEColunas() throws Exception {
         CamposRamo.Permitidos farmacia = CamposRamo.permitidos(Subtipo.FARMACIA);
         Map<String, Boolean> colunas = new LinkedHashMap<>();
@@ -147,7 +147,7 @@ class PersonalizacaoProdutosWebTest extends ControllerTestBase {
         mvc.perform(get("/produtos").with(logadoComo(7)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("produtos"))
-                .andExpect(model().attribute("camposRamo", farmacia))
+                .andExpect(model().attributeDoesNotExist("camposRamo"))
                 .andExpect(model().attribute("colunas", colunas));
         verify(personalizacaoService).blocosVisiveis(7, TelaPersonalizavel.PRODUTOS);
     }

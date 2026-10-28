@@ -103,7 +103,6 @@ public class ProdutoController {
         model.addAttribute("totalProdutosFiltro", resultado.getTotalElements());
         model.addAttribute("tamanho", filtro.tamanho());
         model.addAttribute("parametrosFiltros", montarParametros(filtro));
-        model.addAttribute("camposRamo", produtoService.camposPermitidos(usuario));
         model.addAttribute("colunas", personalizacaoService.blocosVisiveis(usuario.getCodigo(), TelaPersonalizavel.PRODUTOS));
         return "produtos";
     }
