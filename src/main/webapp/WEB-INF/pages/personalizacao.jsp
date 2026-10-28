@@ -40,7 +40,7 @@
                 </div>
             </section>
 
-            <div class="sh-form-actions">
+            <div class="sh-form-actions sh-form-actions--meio">
                 <a class="btn btn-outline-secondary" href="${ctx}/dashboard">Voltar ao início</a>
                 <button class="btn btn-primary" type="submit">
                     <i class="bi bi-check2-circle" aria-hidden="true"></i> Salvar o início

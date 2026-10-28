@@ -1098,6 +1098,13 @@ kbd.sh-tecla,
   }
 }
 
+/* Barra de ações que NÃO é a última da página (ex.: personalização, um formulário por seção): a margem
+   inferior negativa só existe para encostar a última barra no fim da página; numa barra do meio ela fazia a
+   barra cobrir o título da seção seguinte. Aqui o espaço é reservado de verdade. */
+.sh-form-actions--meio {
+  margin-bottom: var(--sh-space-8);
+}
+
 @media (max-width: 575.98px) {
   .sh-form-actions .btn {
     flex: 1 1 auto;
