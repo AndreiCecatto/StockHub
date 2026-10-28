@@ -299,3 +299,12 @@
 .sh-lista .os-nota {
   padding-inline: 0;
 }
+
+/* ============================== Direção A "Edição": formulário de nova OS (fatia 5) ==============================
+ * A placa em maiúsculas usa fonte de código (a máscara continua em js/os.js, data-os-placa); o campo segue o
+ * visual de formularios.css. */
+.form-control[data-os-placa] {
+  font-family: var(--sh-font-codigo);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}

@@ -806,3 +806,18 @@ html:not(.nfe-js) .nfe-painel[hidden] {
 .nfe-cobranca__lista li:last-child {
     border-bottom: 0;
 }
+
+/* ============================== Direção A "Edição": revisão e envio de NF-e (fatia 5) ==============================
+ * Confirmação do destinatário em linha (sem caixa) e opções do envio com raio 6; barra de ações segue
+ * .sh-form-actions. Os campos herdam formularios.css. */
+.nfe-seg__opcao {
+  border-radius: var(--sh-radius-sm);
+}
+
+.nfe-confirma__ok {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sh-space-2);
+  padding-left: var(--sh-space-3);
+  border-left: 3px solid var(--sh-success-fg);
+}

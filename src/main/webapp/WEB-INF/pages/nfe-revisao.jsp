@@ -408,7 +408,7 @@
 
             <%-- Confirmação do destinatário --%>
             <c:set var="eConf" value="${errosCampos['confirmouDestinatario']}" />
-            <section class="sh-card sh-secao nfe-confirma" aria-labelledby="nfe-titulo-confirma">
+            <section class="sh-card sh-secao sh-secao-form nfe-confirma" aria-labelledby="nfe-titulo-confirma">
                 <div class="sh-card__cab">
                     <h2 class="sh-card__titulo" id="nfe-titulo-confirma">Confirme que a nota é da sua loja</h2>
                 </div>

@@ -76,7 +76,7 @@
             <p class="mb-nota">Quem é desativado deixa de entrar na hora, mas o histórico dele continua guardado. Ninguém é excluído.</p>
         </section>
 
-        <section class="sh-card sh-secao" aria-labelledby="titulo-nova">
+        <section class="sh-card sh-secao sh-secao-form" aria-labelledby="titulo-nova">
             <div class="sh-card__cab">
                 <h2 class="sh-card__titulo" id="titulo-nova">Adicionar pessoa</h2>
             </div>

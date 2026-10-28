@@ -16,7 +16,7 @@
     <jsp:body>
         <sh:cabecalhoPagina titulo="Nova ordem de serviço" descricao="Comece pelo cliente e pelo defeito. As peças e os serviços entram depois, no orçamento." />
 
-        <section class="sh-card sh-secao" aria-labelledby="titulo-nova-os">
+        <section class="sh-card sh-secao sh-secao-form" aria-labelledby="titulo-nova-os">
             <div class="sh-card__cab">
                 <h2 class="sh-card__titulo" id="titulo-nova-os">Dados do atendimento</h2>
             </div>
@@ -49,7 +49,7 @@
                                 <c:choose>
                                     <c:when test="${camposRamo.temVeiculo}">
                                         <div class="col-12 col-md-4">
-                                            <label class="form-label" for="placa">Placa <span class="text-muted">(opcional)</span></label>
+                                            <label class="form-label" for="placa">Placa <span class="sh-opcional">(opcional)</span></label>
                                             <input id="placa" class="form-control text-uppercase" type="text" name="placa" maxlength="8"
                                                 pattern="[A-Za-z]{3}-?[0-9]{4}|[A-Za-z]{3}[0-9][A-Za-z][0-9]{2}" title="Formato ABC-1234 ou ABC1D23"
                                                 autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="placa-dica"
@@ -57,12 +57,12 @@
                                             <div class="form-text" id="placa-dica">Formato ABC-1234 ou ABC1D23 (Mercosul).</div>
                                         </div>
                                         <div class="col-12 col-md-8">
-                                            <label class="form-label" for="modelo">Modelo <span class="text-muted">(opcional)</span></label>
+                                            <label class="form-label" for="modelo">Modelo <span class="sh-opcional">(opcional)</span></label>
                                             <input id="modelo" class="form-control" type="text" name="modelo" maxlength="80"
                                                 autocomplete="off" value="<c:out value='${modeloDigitado}'/>" placeholder="Ex.: Fiat Uno 2012 ou Honda CG 160">
                                         </div>
                                         <div class="col-12 col-md-8">
-                                            <label class="form-label" for="equipamento">Descrição do veículo <span class="text-muted">(opcional)</span></label>
+                                            <label class="form-label" for="equipamento">Descrição do veículo <span class="sh-opcional">(opcional)</span></label>
                                             <input id="equipamento" class="form-control" type="text" name="equipamento" maxlength="255"
                                                 autocomplete="off" aria-describedby="equipamento-dica" value="<c:out value='${equipamentoDigitado}'/>">
                                             <div class="form-text" id="equipamento-dica">Se ficar em branco, usamos o modelo como descrição.</div>
@@ -79,13 +79,13 @@
                                 <div class="col-12 col-md-4">
                                     <c:choose>
                                         <c:when test="${camposRamo.temVeiculo}">
-                                            <label class="form-label" for="identificador">Chassi ou nº de série <span class="text-muted">(opcional)</span></label>
+                                            <label class="form-label" for="identificador">Chassi ou nº de série <span class="sh-opcional">(opcional)</span></label>
                                             <input id="identificador" class="form-control" type="text" name="identificador" maxlength="60"
                                                 autocomplete="off" aria-describedby="identificador-dica" value="<c:out value='${identificadorDigitado}'/>">
                                             <div class="form-text" id="identificador-dica">Chassi do veículo ou número de série de uma peça.</div>
                                         </c:when>
                                         <c:otherwise>
-                                            <label class="form-label" for="identificador">Placa ou série <span class="text-muted">(opcional)</span></label>
+                                            <label class="form-label" for="identificador">Placa ou série <span class="sh-opcional">(opcional)</span></label>
                                             <input id="identificador" class="form-control" type="text" name="identificador" maxlength="60"
                                                 autocomplete="off" value="<c:out value='${identificadorDigitado}'/>">
                                         </c:otherwise>
@@ -102,7 +102,7 @@
                                         value="<c:out value='${empty garantiaDigitada ? 0 : garantiaDigitada}'/>">
                                 </div>
                                 <div class="col-12 col-md-8">
-                                    <label class="form-label" for="observacoes">Observações <span class="text-muted">(opcional)</span></label>
+                                    <label class="form-label" for="observacoes">Observações <span class="sh-opcional">(opcional)</span></label>
                                     <input id="observacoes" class="form-control" type="text" name="observacoes" maxlength="1000"
                                         autocomplete="off" value="<c:out value='${observacoesDigitadas}'/>">
                                 </div>

@@ -31,7 +31,7 @@
                 <ul></ul>
             </div>
 
-            <section class="sh-card sh-secao" aria-labelledby="cli-quem">
+            <section class="sh-card sh-secao sh-secao-form" aria-labelledby="cli-quem">
                 <div class="sh-card__cab"><h2 class="sh-card__titulo" id="cli-quem">Quem é o cliente</h2></div>
                 <div class="sh-card__corpo">
                     <div class="row g-3">
@@ -77,7 +77,7 @@
                 </div>
             </section>
 
-            <section class="sh-card sh-secao" aria-labelledby="cli-contato">
+            <section class="sh-card sh-secao sh-secao-form" aria-labelledby="cli-contato">
                 <div class="sh-card__cab"><h2 class="sh-card__titulo" id="cli-contato">Como falar com ele</h2></div>
                 <div class="sh-card__corpo">
                     <div class="row g-3">
@@ -102,7 +102,7 @@
                 </div>
             </section>
 
-            <section class="sh-card sh-secao" aria-labelledby="cli-endereco">
+            <section class="sh-card sh-secao sh-secao-form" aria-labelledby="cli-endereco">
                 <div class="sh-card__cab"><h2 class="sh-card__titulo" id="cli-endereco">Onde mora ou fica</h2></div>
                 <div class="sh-card__corpo">
                     <div class="row g-3">
@@ -149,7 +149,7 @@
                 </div>
             </section>
 
-            <section class="sh-card sh-secao" aria-labelledby="cli-outros">
+            <section class="sh-card sh-secao sh-secao-form" aria-labelledby="cli-outros">
                 <div class="sh-card__cab"><h2 class="sh-card__titulo" id="cli-outros">Outras informações</h2></div>
                 <div class="sh-card__corpo">
                     <div class="row g-3">
