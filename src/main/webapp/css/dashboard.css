@@ -67,11 +67,7 @@
 }
 
 .db-capa__linha {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--sh-space-5) var(--sh-space-8);
+  display: block;
 }
 
 .db-capa__texto {
@@ -79,34 +75,52 @@
 }
 
 .db-data {
-  margin: 0 0 var(--sh-space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--sh-space-4);
+  margin: 0;
   color: var(--sh-text-muted);
-  font-size: var(--sh-text-md);
-  font-weight: 500;
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+/* Filete até a borda: o "dateline" de jornal */
+.db-data::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--sh-border-strong);
 }
 
 .db-data:empty {
   display: none;
 }
 
+/* Manchete: serifa; a palavra-chave em itálico na cor do acento */
 .db-titulo {
-  max-width: 21em;
-  margin: 0;
-  font-size: clamp(1.875rem, 1.1rem + 3.1vw, 3.125rem);
-  font-weight: 650;
-  line-height: 1.08;
-  letter-spacing: -0.038em;
+  max-width: 17em;
+  margin: var(--sh-space-4) 0 var(--sh-space-3);
+  font-size: clamp(2rem, 1.2rem + 3.4vw, 3.75rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
   text-wrap: balance;
   overflow-wrap: anywhere;
 }
 
+.db-titulo em {
+  color: var(--sh-accent-text);
+  font-style: italic;
+}
+
 .db-lead {
-  max-width: 40rem;
-  margin: var(--sh-space-3) 0 0;
+  max-width: 38em;
+  margin: 0 0 var(--sh-space-6);
   color: var(--sh-text-muted);
   font-size: var(--sh-fs-lead);
   line-height: 1.4;
-  letter-spacing: -0.012em;
 }
 
 .db-lead strong {
@@ -114,10 +128,35 @@
   font-weight: 600;
 }
 
+.db-lead .db-link {
+  color: var(--sh-text);
+  text-decoration-color: var(--sh-accent-text);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+/* Botões: primário sólido, secundário com contorno de tinta, "Novo produto" como link sublinhado */
 .db-acoes {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sh-space-2);
+  align-items: center;
+  gap: var(--sh-space-2) var(--sh-space-3);
+}
+
+.db-acoes .btn-outline-secondary {
+  border-color: var(--sh-text);
+  color: var(--sh-text);
+}
+
+.db-acoes .btn-outline-secondary:hover {
+  background: var(--sh-surface-2);
+}
+
+.db-acoes .btn-ghost {
+  color: var(--sh-accent-text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
 }
 
 /* ============================== Marcas (prateleira, legenda, fila) ============================== */

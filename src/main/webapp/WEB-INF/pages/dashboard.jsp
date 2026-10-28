@@ -66,17 +66,17 @@
                     <p class="db-data" data-sh-data-hoje></p>
                     <h1 class="db-titulo" id="titulo-capa">
                         <c:choose>
-                            <c:when test="${nTotal == 0}">Vamos cadastrar o primeiro produto.</c:when>
-                            <c:when test="${nReposicao == 0}">Tudo em dia, nenhum produto abaixo do mínimo.</c:when>
+                            <c:when test="${nTotal == 0}">Vamos cadastrar o <em>primeiro produto</em>.</c:when>
+                            <c:when test="${nReposicao == 0}"><em>Tudo em dia</em>, nenhum produto abaixo do mínimo.</c:when>
                             <c:when test="${nSem > 0 and nBaixo > 0}">
-                                <c:out value="${nSem}" /> <c:out value="${nSem == 1 ? 'produto acabou' : 'produtos acabaram'}" />
+                                <c:out value="${nSem}" /> <em><c:out value="${nSem == 1 ? 'produto acabou' : 'produtos acabaram'}" /></em>
                                 e <c:out value="${nBaixo}" /> <c:out value="${nBaixo == 1 ? 'está' : 'estão'}" /> abaixo do mínimo.
                             </c:when>
                             <c:when test="${nSem > 0}">
-                                <c:out value="${nSem}" /> <c:out value="${nSem == 1 ? 'produto acabou' : 'produtos acabaram'}" />.
+                                <c:out value="${nSem}" /> <em><c:out value="${nSem == 1 ? 'produto acabou' : 'produtos acabaram'}" /></em>.
                             </c:when>
                             <c:otherwise>
-                                <c:out value="${nBaixo}" /> <c:out value="${nBaixo == 1 ? 'produto está' : 'produtos estão'}" /> abaixo do mínimo.
+                                <c:out value="${nBaixo}" /> <c:out value="${nBaixo == 1 ? 'produto está' : 'produtos estão'}" /> <em>abaixo do mínimo</em>.
                             </c:otherwise>
                         </c:choose>
                     </h1>
