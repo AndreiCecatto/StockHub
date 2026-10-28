@@ -820,3 +820,69 @@ html:not(.nfe-js) .nfe-painel[hidden] {
   padding-left: var(--sh-space-3);
   border-left: 3px solid var(--sh-success-fg);
 }
+
+/* ============================== Seção 18.x: NF-e no nível das demais telas ==============================
+ * Resumo em três cartões separados (não mais faixa colada), itens da revisão como cartões, opções em pílula. */
+.nfe-resumo__lista {
+  gap: var(--sh-space-3);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.nfe-resumo__fig {
+  padding: var(--sh-space-4);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius);
+  background-color: var(--sh-surface);
+  background-image: linear-gradient(180deg, color-mix(in srgb, var(--sh-accent) 3%, var(--sh-surface)) 0%, var(--sh-surface) 55%);
+  box-shadow: var(--sh-shadow-card);
+}
+
+.nfe-resumo__fig--entra {
+  border-color: color-mix(in srgb, var(--sh-success-fg) 35%, var(--sh-border));
+  background-color: var(--sh-success-bg);
+  background-image: none;
+}
+
+.nfe-resumo__fig dd.sh-mono {
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+
+.nfe-item {
+  border-radius: var(--sh-radius-lg);
+  background-image: linear-gradient(180deg, color-mix(in srgb, var(--sh-accent) 3%, var(--sh-surface)) 0%, var(--sh-surface) 55%);
+  box-shadow: var(--sh-shadow-card);
+}
+
+.nfe-item--travado {
+  background-image: none;
+  box-shadow: none;
+}
+
+.nfe-item__numero {
+  border-radius: var(--sh-radius-pill);
+}
+
+.nfe-seg__opcao {
+  border-radius: var(--sh-radius-pill);
+}
+
+.nfe-confirma__ok {
+  padding: var(--sh-space-3) var(--sh-space-4);
+  border: 1px solid color-mix(in srgb, var(--sh-success-fg) 35%, var(--sh-border));
+  border-radius: var(--sh-radius);
+  background: var(--sh-success-bg);
+}
+
+.nfe-pendente {
+  border-radius: var(--sh-radius);
+  box-shadow: var(--sh-shadow-card);
+}
+
+.nfe-titulo-secao {
+  font-weight: 620;
+  letter-spacing: -0.02em;
+}

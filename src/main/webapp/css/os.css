@@ -307,3 +307,103 @@
   font-weight: 600;
   letter-spacing: 0.06em;
 }
+
+/* ============================== Seção 18.x: ordens de serviço no nível das demais telas ==============================
+ * Situação em pílula tonal também nas tabelas (forma + texto + cor), andamento em etapas arredondadas com a
+ * atual em destaque, dados em ladrilhos suaves e total em faixa. Sem alterar markup, data-* ou formulários. */
+.sh-table .os-status {
+  padding: 2px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--sh-radius-pill);
+  font-size: var(--sh-text-sm);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.sh-table .os-status--orcamento { border-color: var(--sh-warning-border); background: var(--sh-warning-bg); }
+.sh-table .os-status--aprovada { border-color: var(--sh-info-border); background: var(--sh-info-bg); }
+.sh-table .os-status--em_execucao { border-color: var(--sh-accent-soft); background: var(--sh-accent-soft); }
+.sh-table .os-status--concluida { border-color: var(--sh-success-border); background: var(--sh-success-bg); }
+.sh-table .os-status--entregue { border-color: var(--sh-border); background: var(--sh-surface-2); }
+.sh-table .os-status--cancelada { border-color: var(--sh-danger-border); background: var(--sh-danger-bg); }
+
+.sh-table .os-status--concluida::before,
+.sh-table .os-status--entregue::before {
+  border-radius: 50%;
+}
+
+.os-numero {
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+a.os-numero {
+  color: var(--sh-accent-text);
+  text-decoration: none;
+}
+
+a.os-numero:hover {
+  text-decoration: underline;
+}
+
+.os-passos {
+  gap: var(--sh-space-3);
+}
+
+.os-passo::before {
+  height: 6px;
+  transition: background-color var(--sh-t-2) var(--sh-spring);
+}
+
+.os-passo--feito::before {
+  background: linear-gradient(90deg, var(--sh-success-solid), color-mix(in srgb, var(--sh-success-solid) 75%, var(--sh-accent)));
+}
+
+.os-passo--atual::before {
+  background: var(--sh-accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--sh-accent) 55%, transparent);
+}
+
+.os-passo--atual .os-passo__nome {
+  color: var(--sh-accent-text);
+}
+
+.os-passo__nome {
+  padding-top: 2px;
+}
+
+.os-dados {
+  gap: var(--sh-space-3);
+}
+
+.os-dados > div {
+  min-width: 0;
+  padding: var(--sh-space-3) var(--sh-space-4);
+  border: 1px solid color-mix(in srgb, var(--sh-border) 70%, transparent);
+  border-radius: var(--sh-radius-sm);
+  background: color-mix(in srgb, var(--sh-surface-2) 55%, var(--sh-surface));
+}
+
+.os-totais {
+  border-top-color: var(--sh-border);
+}
+
+.os-totais__final {
+  padding: var(--sh-space-2) var(--sh-space-4);
+  border-radius: var(--sh-radius-sm);
+  background: var(--sh-accent-soft);
+}
+
+.os-totais__final dt,
+.os-totais__final dd {
+  color: var(--sh-accent-text);
+}
+
+@media (max-width: 575.98px) {
+  .os-passo::before {
+    width: 6px;
+  }
+  .os-passo {
+    padding-left: var(--sh-space-5);
+  }
+}
