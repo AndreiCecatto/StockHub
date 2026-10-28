@@ -1682,7 +1682,7 @@ a.sh-lista__nome:hover {
 }
 
 .modal-backdrop {
-  --bs-backdrop-bg: #101114;
+  --bs-backdrop-bg: var(--sh-backdrop);
   --bs-backdrop-opacity: .45;
 }
 
@@ -1732,7 +1732,7 @@ a.sh-lista__nome:hover {
 }
 
 .offcanvas-backdrop {
-  --bs-backdrop-bg: #101114;
+  --bs-backdrop-bg: var(--sh-backdrop);
   --bs-backdrop-opacity: .45;
 }
 

@@ -4,38 +4,39 @@
  * tokens.css (claro, escuro por data-bs-theme e escuro do sistema sem atributo).
  *
  * Cores dos gráficos (validadas com o validador de paleta da skill dataviz, contra a superfície do tema):
- *   duas séries (compras x saídas): azul e laranja, nos dois temas (pares adjacentes: CVD ΔE 24 a 27, visão normal 32 a 34);
- *   classes A, B e C: uma só matiz azul, da mais escura para a mais clara no claro e o inverso no escuro
- *   (rampa ordinal: ΔL >= 0,06, ponta clara >= 2:1 contra a superfície).
+ *   direção A: duas séries (compras x saídas) = azul-tinta do acento e laranja queimado (#B4531B claro, #E5894F escuro,
+ *   4,7:1 e 5,8:1 contra a superfície); o validador da skill dataviz NÃO foi reexecutado nesta troca de matiz.
+ *   classes A, B e C: o azul do acento misturado com a superfície (da mais escura para a mais clara no claro e o inverso
+ *   no escuro); contrastes calculados contra a superfície: B 4,0:1 e C 2,2:1 no claro; B 4,2:1 e C 2,6:1 no escuro.
  *   Alerta: o vermelho de status do sistema, sempre com ícone e texto (nunca só cor).
  * Prefixo: an.
  */
 
 :root,
 [data-bs-theme="light"] {
-  --an-s1: #2a78d6;
-  --an-s2: #eb6834;
-  --an-a: #184f95;
-  --an-b: #3987e5;
-  --an-c: #86b6ef;
+  --an-s1: var(--sh-accent-text);
+  --an-s2: #B4531B;
+  --an-a: var(--sh-accent-text);
+  --an-b: color-mix(in srgb, var(--sh-accent-text) 68%, var(--sh-surface));
+  --an-c: color-mix(in srgb, var(--sh-accent-text) 42%, var(--sh-surface));
   --an-alerta: var(--sh-danger-solid);
 }
 
 [data-bs-theme="dark"] {
-  --an-s1: #3987e5;
-  --an-s2: #d95926;
-  --an-a: #9ec5f4;
-  --an-b: #5598e7;
-  --an-c: #2a78d6;
+  --an-s1: var(--sh-accent-text);
+  --an-s2: #E5894F;
+  --an-a: var(--sh-accent-text);
+  --an-b: color-mix(in srgb, var(--sh-accent-text) 72%, var(--sh-surface));
+  --an-c: color-mix(in srgb, var(--sh-accent-text) 48%, var(--sh-surface));
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-bs-theme]) {
-    --an-s1: #3987e5;
-    --an-s2: #d95926;
-    --an-a: #9ec5f4;
-    --an-b: #5598e7;
-    --an-c: #2a78d6;
+    --an-s1: var(--sh-accent-text);
+    --an-s2: #E5894F;
+    --an-a: var(--sh-accent-text);
+    --an-b: color-mix(in srgb, var(--sh-accent-text) 72%, var(--sh-surface));
+    --an-c: color-mix(in srgb, var(--sh-accent-text) 48%, var(--sh-surface));
   }
 }
 

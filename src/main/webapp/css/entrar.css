@@ -2,15 +2,15 @@
  * StockHub v3: telas de entrada (login e cadastro). Palco escuro à esquerda (só em telas largas) com linhas de gráfico
  * abstratas que se desenham devagar, e o formulário à direita. No celular fica só o formulário.
  * O palco é escuro nos dois temas (é identidade, não conteúdo): as cores dele são constantes locais, com contraste conferido
- * (texto #F2F3F5 sobre #0B0C0E = 18:1; texto secundário #A9ADB5 = 8,9:1; ícones e anel de foco #8DB3FF = 9,6:1).
+ * (texto #EDE6D8 sobre #1A1713, texto secundário #BDB4A3 e ícones e anel de foco #8FAAF2: razões em docs/design-system.md, seção 17).
  * Cores do formulário só por tokens.css.
  */
 .sh-auth {
-  --palco-bg: #0B0C0E;
-  --palco-texto: #F2F3F5;
-  --palco-mudo: #A9ADB5;
-  --palco-acento: #8DB3FF;
-  --palco-fio: rgba(255, 255, 255, .07);
+  --palco-bg: #1A1713;
+  --palco-texto: #EDE6D8;
+  --palco-mudo: #BDB4A3;
+  --palco-acento: #8FAAF2;
+  --palco-fio: rgba(237, 230, 216, .09);
   display: flex;
   min-height: 100vh;
   min-height: 100dvh;
@@ -30,7 +30,7 @@
     max-width: 780px;
     padding: var(--sh-space-10) 56px var(--sh-space-12);
     background-color: var(--palco-bg);
-    background-image: radial-gradient(70% 55% at 12% 0%, rgba(45, 104, 214, .22), transparent 70%);
+    background-image: radial-gradient(70% 55% at 12% 0%, rgba(74, 107, 204, .24), transparent 70%);
     color: var(--palco-texto);
     overflow: hidden;
   }
