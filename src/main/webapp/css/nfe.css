@@ -32,6 +32,8 @@
   align-items: center;
   gap: var(--sh-space-2);
   margin: 0 0 var(--sh-space-3);
+  padding-bottom: var(--sh-space-2);
+  border-bottom: 1px solid var(--sh-text);
   font-size: var(--sh-text-lg);
   font-weight: 650;
   letter-spacing: var(--sh-track-titulo);
@@ -186,7 +188,10 @@
 
 /* ============================== Lista de notas ============================== */
 .nfe-nota-link {
-  font-weight: 650;
+  font-family: var(--sh-font-serif);
+  font-size: 1.03rem;
+  font-variant-numeric: lining-nums;
+  font-weight: 600;
   text-decoration: none;
 }
 

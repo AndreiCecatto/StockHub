@@ -3,8 +3,10 @@
  * Linha do tempo horizontal de status, situação em selos suaves, totais e página de impressão.
  */
 .os-numero {
-  font-variant-numeric: tabular-nums;
-  font-weight: 650;
+  font-family: var(--sh-font-serif);
+  font-size: 1.03rem;
+  font-variant-numeric: lining-nums;
+  font-weight: 600;
   color: var(--sh-text);
 }
 
@@ -37,16 +39,11 @@
 
 /* ------------------------------ filtro da lista ------------------------------ */
 .os-filtro {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sh-space-2);
-  padding: var(--sh-space-4) var(--sh-space-5);
-  border-bottom: 1px solid var(--sh-border);
+  padding: 0;
 }
 
 .os-filtro__contagem {
   color: var(--sh-text-muted);
-  font-variant-numeric: tabular-nums;
 }
 
 /* ------------------------------ passos ------------------------------ */
@@ -260,4 +257,45 @@
   .os-folha { padding: 0; max-width: none; }
   .os-folha__barra { display: none; }
   .os-passos { break-inside: avoid; }
+}
+
+/* ------------------------------ lista (direção A) ------------------------------ */
+/* Situação como tag na tabela: marcador + texto, sem fundo (o texto diz o estado; a cor só reforça) */
+.sh-table .os-status {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.sh-table .os-status::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: currentColor;
+}
+
+.sh-table .os-status--orcamento::before {
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.sh-table .os-status--cancelada::before {
+  clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
+}
+
+.sh-table .os-status--em_execucao::before,
+.sh-table .os-status--aprovada::before {
+  border-radius: 50%;
+}
+
+.sh-table .os-dinheiro {
+  font-family: var(--sh-font-codigo);
+}
+
+.sh-lista .os-nota {
+  padding-inline: 0;
 }

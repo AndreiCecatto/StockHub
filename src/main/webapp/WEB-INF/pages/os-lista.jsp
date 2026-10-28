@@ -19,15 +19,15 @@
             <a class="btn btn-primary" href="${ctx}/os/nova"><i class="bi bi-plus-lg" aria-hidden="true"></i> Nova ordem de serviço</a>
         </sh:cabecalhoPagina>
 
-        <section class="sh-card sh-secao" aria-labelledby="titulo-os">
+        <section class="sh-card sh-secao sh-lista" aria-labelledby="titulo-os">
             <div class="sh-card__cab">
                 <h2 class="sh-card__titulo" id="titulo-os">Suas ordens</h2>
             </div>
-            <nav class="os-filtro" aria-label="Filtrar por situação">
-                <a class="sh-chip" href="${ctx}/os" ${empty filtro ? 'aria-current="page"' : ''}>Todas</a>
+            <nav class="os-filtro sh-abas" aria-label="Filtrar por situação">
+                <a class="sh-aba" href="${ctx}/os" ${empty filtro ? 'aria-current="page"' : ''}>Todas</a>
                 <c:forEach var="s" items="${todosStatus}">
-                    <a class="sh-chip" href="${ctx}/os?status=${s.name()}" ${filtro == s ? 'aria-current="page"' : ''}>
-                        <c:out value="${s.rotulo}" /> <span class="os-filtro__contagem"><c:out value="${contagens[s]}" /></span>
+                    <a class="sh-aba" href="${ctx}/os?status=${s.name()}" ${filtro == s ? 'aria-current="page"' : ''}>
+                        <c:out value="${s.rotulo}" /> <span class="os-filtro__contagem sh-aba__n"><c:out value="${contagens[s]}" /></span>
                     </a>
                 </c:forEach>
             </nav>
