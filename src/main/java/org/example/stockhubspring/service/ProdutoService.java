@@ -306,10 +306,10 @@ public class ProdutoService {
 
     /**
      * Subtipo atual da LOJA (o código do usuário já é o da loja, inclusive para funcionários), lido do banco
-     * para não depender de valor velho na sessão após a troca em /conta. Sem registro, usa o que o objeto trouxe.
+     * para não depender de valor velho na sessão após a troca em /conta. O banco é a fonte: vazio/NULL = sem subtipo.
      */
     private Subtipo subtipoDaLoja(Usuario usuario) {
-        return usuarioRepository.findSubtipoByCodigo(usuario.getCodigo()).orElse(usuario.getSubtipo());
+        return usuarioRepository.findSubtipoByCodigo(usuario.getCodigo()).orElse(null);
     }
 
     /**

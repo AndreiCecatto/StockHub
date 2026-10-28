@@ -122,13 +122,11 @@ class OrdemServicoVeiculoTest {
     }
 
     @Test
-    @DisplayName("camposPermitidos cai no subtipo do usuário quando o banco não responde")
-    void camposFallback() {
+    @DisplayName("camposPermitidos sem subtipo no banco ignora a sessão e não libera campos")
+    void camposSemSubtipoNoBanco() {
         when(usuarioRepository.findSubtipoByCodigo(7)).thenReturn(Optional.empty());
         loja.setSubtipo(Subtipo.MECANICA);
-        assertThat(service.camposPermitidos(loja).temVeiculo()).isTrue();
-        loja.setSubtipo(Subtipo.MERCADO);
-        assertThat(service.camposPermitidos(loja).temVeiculo()).isFalse();
+        assertThat(service.camposPermitidos(loja)).isEqualTo(CamposRamo.Permitidos.NENHUM);
         loja.setSubtipo(null);
         assertThat(service.camposPermitidos(loja)).isEqualTo(CamposRamo.Permitidos.NENHUM);
     }

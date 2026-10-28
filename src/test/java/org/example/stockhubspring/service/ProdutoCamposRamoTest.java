@@ -68,6 +68,12 @@ class ProdutoCamposRamoTest {
     }
 
     /** Formulário com TODOS os campos por ramo preenchidos. */
+    /** O banco é a fonte do subtipo da loja: o repositório devolve o subtipo e o usuário da sessão também o traz. */
+    private void comSubtipo(Subtipo s) {
+        usuario.setSubtipo(s);
+        when(usuarioRepository.findSubtipoByCodigo(LOJA)).thenReturn(Optional.ofNullable(s));
+    }
+
     private ProdutoForm formCompleto() {
         ProdutoForm form = new ProdutoForm();
         form.setNome("Item");
@@ -112,7 +118,7 @@ class ProdutoCamposRamoTest {
     @Test
     @DisplayName("camposPermitidos(usuario) segue o subtipo da loja")
     void camposPermitidosDoUsuario() {
-        usuario.setSubtipo(Subtipo.FARMACIA);
+        comSubtipo(Subtipo.FARMACIA);
         assertThat(service.camposPermitidos(usuario).lote()).isTrue();
         assertThat(service.camposPermitidos(usuario).tamanho()).isFalse();
     }
@@ -122,7 +128,7 @@ class ProdutoCamposRamoTest {
     @Test
     @DisplayName("campos de outro ramo são ignorados: vestuário grava tamanho e cor, não lote/validade/série")
     void ignoraCampoDeOutroRamo() {
-        usuario.setSubtipo(Subtipo.VESTUARIO);
+        comSubtipo(Subtipo.VESTUARIO);
 
         Produto salvo = service.salvar(formCompleto(), usuario);
 
@@ -136,18 +142,18 @@ class ProdutoCamposRamoTest {
     @Test
     @DisplayName("farmácia grava lote e validade; mercado só validade; informática só número de série")
     void gravaOsCamposDoRamo() {
-        usuario.setSubtipo(Subtipo.FARMACIA);
+        comSubtipo(Subtipo.FARMACIA);
         Produto farmacia = service.salvar(formCompleto(), usuario);
         assertThat(farmacia.getLote()).isEqualTo("L-001");
         assertThat(farmacia.getDataValidade()).isEqualTo(LocalDate.of(2030, 5, 20));
         assertThat(farmacia.getTamanho()).isNull();
 
-        usuario.setSubtipo(Subtipo.MERCADO);
+        comSubtipo(Subtipo.MERCADO);
         Produto mercado = service.salvar(formCompleto(), usuario);
         assertThat(mercado.getDataValidade()).isEqualTo(LocalDate.of(2030, 5, 20));
         assertThat(mercado.getLote()).isNull();
 
-        usuario.setSubtipo(Subtipo.INFORMATICA);
+        comSubtipo(Subtipo.INFORMATICA);
         Produto info = service.salvar(formCompleto(), usuario);
         assertThat(info.getNumeroSerie()).isEqualTo("SN-123");
         assertThat(info.getDataValidade()).isNull();
@@ -163,7 +169,7 @@ class ProdutoCamposRamoTest {
         assertThat(semSubtipo.getDataValidade()).isNull();
         assertThat(semSubtipo.getNumeroSerie()).isNull();
 
-        usuario.setSubtipo(Subtipo.PAPELARIA);
+        comSubtipo(Subtipo.PAPELARIA);
         Produto papelaria = service.salvar(formCompleto(), usuario);
         assertThat(papelaria.getCor()).isNull();
         assertThat(papelaria.getNumeroSerie()).isNull();
@@ -172,7 +178,7 @@ class ProdutoCamposRamoTest {
     @Test
     @DisplayName("texto vazio ou só espaços vira null")
     void textoVazioViraNull() {
-        usuario.setSubtipo(Subtipo.VESTUARIO);
+        comSubtipo(Subtipo.VESTUARIO);
         ProdutoForm form = formCompleto();
         form.setTamanho("   ");
         form.setCor("");
@@ -186,7 +192,7 @@ class ProdutoCamposRamoTest {
     @Test
     @DisplayName("limites de tamanho: no máximo vale, um caractere a mais dá RegraNegocioException")
     void limitesDeTamanho() {
-        usuario.setSubtipo(Subtipo.VESTUARIO);
+        comSubtipo(Subtipo.VESTUARIO);
         ProdutoForm noLimite = formCompleto();
         noLimite.setTamanho("T".repeat(CamposRamo.TAMANHO_MAX));
         noLimite.setCor("C".repeat(CamposRamo.COR_MAX));
@@ -202,13 +208,13 @@ class ProdutoCamposRamoTest {
         assertThatThrownBy(() -> service.salvar(corGrande, usuario))
                 .isInstanceOf(RegraNegocioException.class).hasMessageContaining("40");
 
-        usuario.setSubtipo(Subtipo.FARMACIA);
+        comSubtipo(Subtipo.FARMACIA);
         ProdutoForm loteGrande = formCompleto();
         loteGrande.setLote("L".repeat(CamposRamo.LOTE_MAX + 1));
         assertThatThrownBy(() -> service.salvar(loteGrande, usuario))
                 .isInstanceOf(RegraNegocioException.class).hasMessageContaining("40");
 
-        usuario.setSubtipo(Subtipo.INFORMATICA);
+        comSubtipo(Subtipo.INFORMATICA);
         ProdutoForm serieGrande = formCompleto();
         serieGrande.setNumeroSerie("S".repeat(CamposRamo.NUMERO_SERIE_MAX + 1));
         assertThatThrownBy(() -> service.salvar(serieGrande, usuario))
@@ -218,7 +224,7 @@ class ProdutoCamposRamoTest {
     @Test
     @DisplayName("texto acima do máximo e validade fora da faixa em campo de OUTRO ramo são ignorados, sem erro")
     void valoresInvalidosDeOutroRamoNaoValidam() {
-        usuario.setSubtipo(Subtipo.VESTUARIO);
+        comSubtipo(Subtipo.VESTUARIO);
         ProdutoForm form = formCompleto();
         form.setNumeroSerie("S".repeat(500));
         form.setLote("L".repeat(500));
@@ -233,7 +239,7 @@ class ProdutoCamposRamoTest {
     @Test
     @DisplayName("validade: bordas 2000-01-01 e 2100-12-31 valem; fora da faixa dá erro; vazia é aceita")
     void faixaDaValidade() {
-        usuario.setSubtipo(Subtipo.MERCADO);
+        comSubtipo(Subtipo.MERCADO);
 
         for (LocalDate ok : new LocalDate[]{LocalDate.of(2000, 1, 1), LocalDate.of(2100, 12, 31)}) {
             ProdutoForm form = formCompleto();
@@ -263,7 +269,7 @@ class ProdutoCamposRamoTest {
         form.setTamanho("PP"); // a loja não usa mais tamanho depois da troca: não pode ser tocado
 
         // A loja era vestuário e virou farmácia: tamanho/cor deixam de valer
-        usuario.setSubtipo(Subtipo.FARMACIA);
+        comSubtipo(Subtipo.FARMACIA);
         Produto salvo = service.salvar(form, usuario);
 
         assertThat(salvo.getTamanho()).isEqualTo("G");
@@ -292,7 +298,7 @@ class ProdutoCamposRamoTest {
     @Test
     @DisplayName("campo permitido enviado vazio na edição limpa o valor (vira null)")
     void campoPermitidoVazioLimpa() {
-        usuario.setSubtipo(Subtipo.INFORMATICA);
+        comSubtipo(Subtipo.INFORMATICA);
         Produto produto = existente();
         produto.setNumeroSerie("SN-9");
         ProdutoForm form = formCompleto();
@@ -305,7 +311,7 @@ class ProdutoCamposRamoTest {
     @Test
     @DisplayName("produto antigo com todos os campos null segue funcionando na edição")
     void produtoAntigoComNulls() {
-        usuario.setSubtipo(Subtipo.VESTUARIO);
+        comSubtipo(Subtipo.VESTUARIO);
         Produto produto = existente();
         ProdutoForm form = ProdutoForm.de(produto);
         form.setCategoriaId(3);

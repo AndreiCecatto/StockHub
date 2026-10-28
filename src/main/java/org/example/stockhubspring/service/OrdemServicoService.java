@@ -439,7 +439,7 @@ public class OrdemServicoService {
     }
 
     private Subtipo subtipoDaLoja(Usuario usuario) {
-        return usuarioRepository.findSubtipoByCodigo(usuario.getCodigo()).orElse(usuario.getSubtipo());
+        return usuarioRepository.findSubtipoByCodigo(usuario.getCodigo()).orElse(null);
     }
 
     /** Tira espaços e hífen, passa para maiúsculas e confere AAA9999 ou Mercosul AAA9A99 (RN-105); vazio vira null. */
