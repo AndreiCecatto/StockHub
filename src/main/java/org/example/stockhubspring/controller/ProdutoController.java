@@ -5,10 +5,12 @@ import org.example.stockhubspring.dto.ProdutoFiltro;
 import org.example.stockhubspring.dto.ProdutoForm;
 import org.example.stockhubspring.exception.RegraNegocioException;
 import org.example.stockhubspring.model.Produto;
+import org.example.stockhubspring.model.TelaPersonalizavel;
 import org.example.stockhubspring.model.Usuario;
 import org.example.stockhubspring.service.CategoriaService;
 import org.example.stockhubspring.service.EstoqueService;
 import org.example.stockhubspring.service.ExportacaoService;
+import org.example.stockhubspring.service.PersonalizacaoService;
 import org.example.stockhubspring.service.ProdutoService;
 import org.example.stockhubspring.service.ProdutoService.ResultadoExclusao;
 import org.example.stockhubspring.service.UsuarioAtualService;
@@ -41,19 +43,22 @@ public class ProdutoController {
     private final ErrosFormulario errosFormulario;
     private final EstoqueService estoqueService;
     private final ExportacaoService exportacaoService;
+    private final PersonalizacaoService personalizacaoService;
 
     public ProdutoController(ProdutoService produtoService,
                              CategoriaService categoriaService,
                              UsuarioAtualService usuarioAtualService,
                              ErrosFormulario errosFormulario,
                              EstoqueService estoqueService,
-                             ExportacaoService exportacaoService) {
+                             ExportacaoService exportacaoService,
+                             PersonalizacaoService personalizacaoService) {
         this.produtoService = produtoService;
         this.categoriaService = categoriaService;
         this.usuarioAtualService = usuarioAtualService;
         this.errosFormulario = errosFormulario;
         this.estoqueService = estoqueService;
         this.exportacaoService = exportacaoService;
+        this.personalizacaoService = personalizacaoService;
     }
 
     /** Quantas movimentações recentes o detalhe do produto mostra. */
@@ -98,6 +103,8 @@ public class ProdutoController {
         model.addAttribute("totalProdutosFiltro", resultado.getTotalElements());
         model.addAttribute("tamanho", filtro.tamanho());
         model.addAttribute("parametrosFiltros", montarParametros(filtro));
+        model.addAttribute("camposRamo", produtoService.camposPermitidos(usuario));
+        model.addAttribute("colunas", personalizacaoService.blocosVisiveis(usuario.getCodigo(), TelaPersonalizavel.PRODUTOS));
         return "produtos";
     }
 
