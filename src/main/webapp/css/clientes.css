@@ -28,7 +28,7 @@
   align-items: flex-end;
   gap: var(--sh-space-2) var(--sh-space-6);
   padding-bottom: var(--sh-space-2);
-  border-bottom: 1px solid var(--sh-text);
+  border-bottom: 1px solid var(--sh-border);
 }
 
 .cli-filtros__grupo {
@@ -47,7 +47,6 @@
 }
 
 .cli-nome {
-  font-family: var(--sh-font-serif);
   font-size: 1.03rem;
   font-variant-numeric: lining-nums;
   text-decoration: none;

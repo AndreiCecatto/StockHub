@@ -41,7 +41,6 @@
 
 /* Direção A: nome da pessoa em serifa (o telefone dos clientes reaproveita .mb-nome e fica na pilha do sistema) */
 .sh-table .mb-nome:not(.cli-fone) {
-  font-family: var(--sh-font-serif);
   font-size: 1.03rem;
   font-variant-numeric: lining-nums;
 }

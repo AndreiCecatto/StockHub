@@ -3,7 +3,6 @@
  * Linha do tempo horizontal de status, situação em selos suaves, totais e página de impressão.
  */
 .os-numero {
-  font-family: var(--sh-font-serif);
   font-size: 1.03rem;
   font-variant-numeric: lining-nums;
   font-weight: 600;
@@ -221,7 +220,7 @@
   align-items: flex-start;
   gap: var(--sh-space-4);
   padding-bottom: var(--sh-space-4);
-  border-bottom: 2px solid var(--sh-text);
+  border-bottom: 1px solid var(--sh-border);
 }
 
 .os-folha table {
@@ -248,7 +247,7 @@
 
 .os-assinaturas div {
   padding-top: var(--sh-space-2);
-  border-top: 1px solid var(--sh-text);
+  border-top: 1px solid var(--sh-border);
   text-align: center;
   font-size: var(--sh-text-md);
 }
@@ -293,7 +292,7 @@
 }
 
 .sh-table .os-dinheiro {
-  font-family: var(--sh-font-codigo);
+  font-variant-numeric: tabular-nums;
 }
 
 .sh-lista .os-nota {
@@ -304,7 +303,7 @@
  * A placa em maiúsculas usa fonte de código (a máscara continua em js/os.js, data-os-placa); o campo segue o
  * visual de formularios.css. */
 .form-control[data-os-placa] {
-  font-family: var(--sh-font-codigo);
+  font-variant-numeric: tabular-nums;
   font-weight: 600;
   letter-spacing: 0.06em;
 }

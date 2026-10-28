@@ -890,7 +890,7 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--sh-space-3);
   padding: var(--sh-space-3) 0 var(--sh-space-4);
-  border-top: 1px solid var(--sh-text);
+  border-top: 1px solid var(--sh-border);
   background: transparent;
 }
 
@@ -979,8 +979,8 @@
     color: var(--sh-text-muted);
     font-size: 0.71875rem;
     font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    letter-spacing: 0;
+    text-transform: none;
   }
 
   .v3e-colunas[hidden] {
@@ -1011,8 +1011,8 @@
   color: var(--sh-text-muted);
   font-size: 0.78rem;
   font-weight: 500;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .v3e-dia:first-child .v3e-dia__titulo {
@@ -1084,7 +1084,6 @@
 
 .v3e-prod__nome {
   color: var(--sh-text);
-  font-family: var(--sh-font-serif);
   font-size: 1.03rem;
   font-weight: 600;
   font-variant-numeric: lining-nums;
@@ -1107,7 +1106,7 @@
 
 .v3e-qtd-col {
   text-align: right;
-  font-family: var(--sh-font-codigo);
+  font-family: var(--sh-font);
   font-size: 0.9375rem;
   font-weight: 650;
 }
@@ -1128,7 +1127,7 @@
   text-align: right;
   white-space: nowrap;
   color: var(--sh-text-muted);
-  font-family: var(--sh-font-codigo);
+  font-family: var(--sh-font);
   font-size: 0.9375rem;
 }
 
