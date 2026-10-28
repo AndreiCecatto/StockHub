@@ -162,6 +162,22 @@
                         </a>
                     </li>
                 </ul>
+                <%-- Barra segmentada: largura proporcional ao número de produtos (viewBox = total; sem style inline). Forma e texto vêm da legenda abaixo. --%>
+                <div class="db-segmentos">
+                    <svg class="db-segmentos__barra" viewBox="0 0 ${nTotal} 1" preserveAspectRatio="none" role="img"
+                        aria-label="${nSem} sem estoque, ${nBaixo} abaixo do mínimo, ${nNormal} em dia">
+                        <c:set var="xBaixo" value="${nSem}" />
+                        <c:set var="xNormal" value="${nSem + nBaixo}" />
+                        <c:if test="${nSem > 0}"><rect class="db-segmentos__sem" x="0" y="0" width="${nSem}" height="1" /></c:if>
+                        <c:if test="${nBaixo > 0}"><rect class="db-segmentos__baixo" x="${xBaixo}" y="0" width="${nBaixo}" height="1" /></c:if>
+                        <c:if test="${nNormal > 0}"><rect class="db-segmentos__normal" x="${xNormal}" y="0" width="${nNormal}" height="1" /></c:if>
+                    </svg>
+                    <p class="db-segmentos__legenda">
+                        <span class="db-tag db-tag--sem"><c:out value="${nSem}" /> sem estoque</span>
+                        <span class="db-tag db-tag--baixo"><c:out value="${nBaixo}" /> abaixo do mínimo</span>
+                        <span class="db-tag db-tag--ok"><c:out value="${nNormal}" /> em dia</span>
+                    </p>
+                </div>
                 </c:if>
             </c:if>
         </header>
@@ -213,9 +229,9 @@
                     <c:if test="${blocos['FAZER_AGORA']}">
                     <section class="db-secao" aria-labelledby="titulo-fazer">
                         <div class="db-secao__cab">
-                            <h2 class="db-h2" id="titulo-fazer">Fazer agora</h2>
+                            <h2 class="db-h2" id="titulo-fazer">A repor hoje</h2>
                             <c:if test="${nReposicao > 0}">
-                                <p class="db-sub">Do mais urgente para o menos.</p>
+                                <a class="db-link" href="${ctx}/estoque-baixo">Ver estoque baixo</a>
                             </c:if>
                         </div>
                         <c:choose>
@@ -234,20 +250,18 @@
                                         <c:if test="${sugestao < 1}"><c:set var="sugestao" value="1" /></c:if>
                                         <c:set var="nivel" value="${produto.nivelEstoque == 'SEM_ESTOQUE' ? 'sem' : 'baixo'}" />
                                         <li class="db-item db-item--${nivel}">
-                                            <span class="db-marca db-marca--${nivel}" aria-hidden="true"></span>
                                             <div class="db-item__corpo">
                                                 <a class="db-item__nome" href="<c:out value='${ctx}/produtos/${produto.id}'/>"
                                                     data-sh-peek data-sh-peek-titulo="<c:out value='${produto.nome}'/>"><c:out value="${produto.nome}" /></a>
                                                 <span class="db-item__estado">
-                                                    <c:choose>
-                                                        <c:when test="${nivel == 'sem'}"><strong>Sem estoque</strong></c:when>
-                                                        <c:otherwise><strong>Abaixo do mínimo</strong>: restam <span class="sh-mono"><c:out value="${produto.quantidade}" /></span></c:otherwise>
-                                                    </c:choose>
+                                                    <%-- Tag de estado: forma (octógono ou triângulo) + texto; a cor só reforça --%>
+                                                    <span class="db-tag db-tag--${nivel}"><c:out value="${nivel == 'sem' ? 'Sem estoque' : 'Abaixo do mínimo'}" /></span>
                                                     &middot; mínimo <span class="sh-mono"><c:out value="${produto.estoqueMinimo}" /></span>
                                                     &middot; <c:out value="${produto.categoria.nome}" />
                                                 </span>
                                                 <sh:medidorEstoque saldo="${produto.quantidade}" minimo="${produto.estoqueMinimo}" />
                                             </div>
+                                            <span class="db-item__saldo"><span class="visually-hidden">Saldo: </span><c:out value="${produto.quantidade}" /> un.</span>
                                             <%-- Reposição rápida: o mesmo POST da tela de movimentações (entrada), com a quantidade sugerida --%>
                                             <form class="db-repor" method="post" action="${ctx}/estoque/movimentar" data-sh-bloquear data-sh-enviando="Repondo…">
                                                 <input type="hidden" name="<c:out value='${_csrf.parameterName}'/>" value="<c:out value='${_csrf.token}'/>" />

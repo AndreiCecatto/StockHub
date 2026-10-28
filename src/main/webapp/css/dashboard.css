@@ -11,6 +11,7 @@
  */
 
 /* ============================== Estrutura ============================== */
+/* Sem cartões: cada seção abre com um filete de tinta e um título pequeno em caixa-alta, como as colunas de um jornal */
 .db-secao {
   min-width: 0;
   margin-bottom: var(--sh-space-12);
@@ -24,14 +25,16 @@
   gap: var(--sh-space-1) var(--sh-space-4);
   padding-top: var(--sh-space-4);
   margin-bottom: var(--sh-space-4);
-  border-top: 1px solid var(--sh-border);
+  border-top: 1px solid var(--sh-text);
 }
 
 .db-h2 {
   margin: 0;
-  font-size: var(--sh-text-lg);
-  font-weight: 650;
-  letter-spacing: -0.012em;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .db-sub {
@@ -45,14 +48,24 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Colunas: com dois blocos visíveis, filete vertical entre eles; com um só, ele ocupa a linha inteira */
 .db-colunas {
   display: grid;
-  gap: 0 var(--sh-space-12);
+  gap: 0;
 }
 
 @media (min-width: 992px) {
   .db-colunas--7-5 { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
   .db-colunas--8-4 { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); }
+
+  .db-colunas--7-5 > .db-secao:first-child,
+  .db-colunas--8-4 > .db-secao:first-child { padding-right: var(--sh-space-8); }
+
+  .db-colunas--7-5 > .db-secao + .db-secao,
+  .db-colunas--8-4 > .db-secao + .db-secao {
+    padding-left: var(--sh-space-8);
+    border-left: 1px solid var(--sh-border);
+  }
 }
 
 .db-link {
@@ -60,6 +73,32 @@
   font-weight: 600;
   text-underline-offset: 0.25em;
 }
+
+/* Tag de estado: forma + texto, a cor só reforça (octógono = sem estoque, triângulo = abaixo do mínimo, círculo = em dia) */
+.db-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--sh-text-sm);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.db-tag::before {
+  content: "";
+  flex: none;
+  width: 10px;
+  height: 10px;
+  background: currentColor;
+}
+
+.db-tag--sem { color: var(--sh-estoque-sem-fg); }
+.db-tag--sem::before { clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%); }
+.db-tag--baixo { color: var(--sh-estoque-baixo-fg); }
+.db-tag--baixo::before { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.db-tag--ok { color: var(--sh-estoque-normal-fg); }
+.db-tag--ok::before { border-radius: 50%; }
 
 /* ============================== Capa: data, frase, ações ============================== */
 .db-capa {
@@ -199,12 +238,11 @@
 }
 
 /* ============================== Prateleira ============================== */
+/* Sem cartão: um filete fino em cima e embaixo separa a prateleira da capa */
 .db-prateleira {
-  padding: var(--sh-space-6);
-  border: 1px solid var(--sh-border);
-  border-radius: var(--sh-radius-lg);
-  background: var(--sh-surface);
-  box-shadow: var(--sh-shadow-card);
+  padding: var(--sh-space-5) 0;
+  border-top: 1px solid var(--sh-border);
+  border-bottom: 1px solid var(--sh-border);
 }
 
 .db-prateleira__marcas {
@@ -290,20 +328,20 @@
   .db-prateleira__marcas .db-marca:nth-child(n+141) { animation-delay: 490ms; }
 }
 
-/* ============================== Livro-caixa: três números em linha, sem cartões ============================== */
+/* ============================== Totais: números grandes em serifa e barra segmentada ============================== */
 .db-livro {
   display: grid;
   gap: 0;
   margin: var(--sh-space-6) 0 0;
-  padding: 0;
+  padding: var(--sh-space-4) 0 0;
+  border-top: 1px solid var(--sh-text);
   list-style: none;
 }
 
 .db-livro a {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--sh-space-4);
+  flex-direction: column;
+  gap: 2px;
   padding: var(--sh-space-3) 0;
   border-bottom: 1px solid var(--sh-border);
   color: var(--sh-text);
@@ -317,12 +355,13 @@
 }
 
 .db-livro__valor {
-  font-size: 1.375rem;
+  font-family: var(--sh-font-serif);
+  font-size: clamp(1.75rem, 1.3rem + 1.4vw, 2.4rem);
   font-weight: 600;
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  order: 2;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: lining-nums tabular-nums;
+  overflow-wrap: anywhere;
 }
 
 .db-livro__rotulo {
@@ -334,38 +373,60 @@
   .db-livro {
     grid-template-columns: repeat(3, auto);
     justify-content: start;
-    gap: 0 var(--sh-space-10);
-    margin-top: var(--sh-space-8);
+    gap: 0 var(--sh-space-12);
   }
 
   .db-livro a {
-    flex-direction: column;
-    justify-content: flex-start;
-    gap: 2px;
-    padding: 0 0 0 var(--sh-space-4);
+    padding: 0;
     border-bottom: 0;
-    border-left: 2px solid var(--sh-border);
-  }
-
-  .db-livro__valor {
-    order: 0;
-    font-size: 1.75rem;
   }
 }
 
-/* ============================== Fazer agora ============================== */
+/* Barra segmentada: o svg usa viewBox = total de produtos; o traço da cor do fundo faz o vão entre os trechos */
+.db-segmentos {
+  max-width: 34rem;
+  margin-top: var(--sh-space-5);
+}
+
+.db-segmentos__barra {
+  display: block;
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--sh-meter-track);
+}
+
+.db-segmentos__barra rect {
+  stroke: var(--sh-bg);
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+}
+
+.db-segmentos__sem { fill: var(--sh-meter-sem); }
+.db-segmentos__baixo { fill: var(--sh-meter-baixo); }
+.db-segmentos__normal { fill: var(--sh-meter-normal); }
+
+.db-segmentos__legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sh-space-1) var(--sh-space-4);
+  margin: var(--sh-space-2) 0 0;
+}
+
+/* ============================== A repor hoje (coluna) ============================== */
 .db-fila {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/* Linha de livro: nome em serifa, tag de estado, saldo com pontilhado e a reposição */
 .db-item {
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
-    "marca corpo"
-    ". acao";
+    "corpo saldo"
+    "acao acao";
   align-items: start;
   gap: var(--sh-space-2) var(--sh-space-3);
   padding: var(--sh-space-4) 0;
@@ -374,11 +435,6 @@
 
 .db-item:last-child {
   border-bottom: 0;
-}
-
-.db-item .db-marca {
-  grid-area: marca;
-  margin-top: 2px;
 }
 
 .db-item__corpo {
@@ -392,9 +448,10 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--sh-text);
-  font-size: var(--sh-text-lg);
+  font-family: var(--sh-font-serif);
+  font-size: var(--sh-text-xl);
   font-weight: 600;
-  letter-spacing: -0.012em;
+  line-height: 1.2;
   text-decoration: none;
 }
 
@@ -406,17 +463,20 @@
 
 .db-item__estado {
   display: block;
-  margin-top: 1px;
+  margin-top: 2px;
   color: var(--sh-text-muted);
   font-size: var(--sh-text-md);
 }
 
-.db-item__estado strong {
-  font-weight: 650;
+.db-item__saldo {
+  grid-area: saldo;
+  font-family: var(--sh-font-codigo);
+  font-size: var(--sh-text-base);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
 }
-
-.db-item--sem .db-item__estado strong { color: var(--sh-estoque-sem-fg); }
-.db-item--baixo .db-item__estado strong { color: var(--sh-estoque-baixo-fg); }
 
 .db-item .sh-meter {
   display: block;
@@ -445,13 +505,10 @@
 
 @media (min-width: 576px) {
   .db-item {
-    grid-template-columns: 22px minmax(0, 1fr) auto;
-    grid-template-areas: "marca corpo acao";
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas: "corpo saldo acao";
     align-items: center;
-  }
-
-  .db-item .db-marca {
-    margin-top: 0;
+    column-gap: var(--sh-space-4);
   }
 }
 
