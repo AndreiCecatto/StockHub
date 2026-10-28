@@ -1048,60 +1048,29 @@ fieldset:disabled .btn {
   color: var(--sh-text);
 }
 
-/* Controle segmentado: uma faixa com filete, sem fundo cinza (a opção marcada leva sublinhado de acento) */
-.sh-seg {
-  gap: 0;
-  padding: 0;
-  border: 0;
-  border-bottom: 1px solid var(--sh-border);
-  border-radius: 0;
-  background: transparent;
-}
-
-.sh-seg > label {
-  min-height: 44px;
-  margin-bottom: -1px;
-  padding: 0 16px;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-}
-
-.sh-seg > input:checked + label {
-  border-bottom-color: var(--sh-accent-text);
-  background: transparent;
-  box-shadow: none;
-  color: var(--sh-text);
-  font-weight: 700;
-}
-
-.sh-seg > label:hover {
-  color: var(--sh-text);
-}
-
 /* ============================== Grupos de campos (formulário em páginas) ==============================
- * .sh-secao-form: o grupo não é um cartão; é uma faixa com filete em cima e título em serifa. */
+ * .sh-secao-form: cada grupo é um cartão arredondado com título limpo (seção 17 do design-system.md). */
 .sh-card.sh-secao-form {
-  border: 0;
-  border-top: 1px solid var(--sh-border);
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-lg);
+  background: var(--sh-surface);
+  box-shadow: var(--sh-shadow-card);
 }
 
 .sh-secao-form > .sh-card__cab {
-  padding: var(--sh-space-4) 0 var(--sh-space-1);
+  padding: var(--sh-space-4) var(--sh-space-5) 0;
   border-bottom: 0;
 }
 
 .sh-secao-form .sh-card__titulo {
-  font-size: 1.375rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.2;
+  font-size: var(--sh-text-lg);
+  font-weight: 650;
+  letter-spacing: var(--sh-track-titulo);
+  line-height: 1.25;
 }
 
 .sh-secao-form > .sh-card__corpo {
-  padding: var(--sh-space-3) 0 0;
+  padding: var(--sh-space-3) var(--sh-space-5) var(--sh-space-5);
 }
 
 /* Mensagem de ajuda de uma seção (personalização, por exemplo) */
@@ -1252,4 +1221,44 @@ fieldset:disabled .btn {
   .btn:active:not(:disabled):not(.disabled) {
     transform: none;
   }
+}
+
+/* ============================== Interruptores da personalização (estilo iOS) ============================== */
+/* Texto à esquerda, interruptor à direita; no DOM o input vem primeiro (ordem de tabulação) */
+.sh-opcao.form-switch {
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+  padding: var(--sh-space-3) var(--sh-space-1);
+  border-radius: var(--sh-radius);
+  transition: background-color var(--sh-t-2) var(--sh-ease);
+}
+
+.sh-opcao.form-switch:hover {
+  background: var(--sh-surface-2);
+}
+
+.sh-opcao.form-switch .form-check-input {
+  flex: none;
+  margin: 0;
+  width: 50px;
+  height: 30px;
+  background-size: 24px;
+}
+
+.sh-opcao.form-switch .form-check-input:checked {
+  background-size: 24px;
+}
+
+.sh-opcao.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 3px var(--sh-bg), 0 0 0 5px var(--sh-focus);
+}
+
+.sh-opcoes {
+  border-top: 0;
+}
+
+.sh-opcao {
+  border-bottom-color: color-mix(in srgb, var(--sh-border) 70%, transparent);
 }

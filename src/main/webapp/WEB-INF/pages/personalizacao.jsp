@@ -7,7 +7,7 @@
     Só dono e gerente chegam aqui (SecurityConfig).
     Dados do PersonalizacaoController: blocosInicio e blocosProdutos (BlocoTela: name, rotulo, descricao, moduloExigido; só os
     aplicáveis à loja), estadoBlocos e estadoColunas (Map código -> visível); flash: mensagem, erro (saem pelo layout).
-    Direção A (fatia 5): lista de blocos em linhas (css/formularios.css: .sh-opcoes, .sh-opcao), título da seção em serifa.
+    Linhas com interruptor estilo iOS (input checkbox com role="switch"; css/formularios.css: .sh-opcoes, .sh-opcao, .form-switch).
 --%>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 
@@ -26,8 +26,8 @@
                     <p class="sh-secao-form__sub">O que não estiver marcado fica oculto do início, para todas as pessoas da loja. A frase do dia e os primeiros passos sempre aparecem.</p>
                     <ul class="sh-opcoes">
                         <c:forEach var="b" items="${blocosInicio}">
-                            <li class="sh-opcao">
-                                <input class="form-check-input" type="checkbox" name="blocos" id="bloco-<c:out value='${b.name()}'/>"
+                            <li class="sh-opcao form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" name="blocos" id="bloco-<c:out value='${b.name()}'/>"
                                     value="<c:out value='${b.name()}'/>" aria-describedby="desc-<c:out value='${b.name()}'/>"
                                     ${estadoBlocos[b.name()] ? 'checked' : ''}>
                                 <div class="sh-opcao__texto">
@@ -60,8 +60,8 @@
                     <p class="sh-secao-form__sub">Escolha quais colunas aparecem na lista de produtos, para todas as pessoas da loja. Nome, saldo e ações sempre aparecem.</p>
                     <ul class="sh-opcoes">
                         <c:forEach var="b" items="${blocosProdutos}">
-                            <li class="sh-opcao">
-                                <input class="form-check-input" type="checkbox" name="blocos" id="col-<c:out value='${b.name()}'/>"
+                            <li class="sh-opcao form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" name="blocos" id="col-<c:out value='${b.name()}'/>"
                                     value="<c:out value='${b.name()}'/>" aria-describedby="desc-col-<c:out value='${b.name()}'/>"
                                     ${estadoColunas[b.name()] ? 'checked' : ''}>
                                 <div class="sh-opcao__texto">

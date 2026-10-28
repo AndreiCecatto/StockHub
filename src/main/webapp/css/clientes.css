@@ -127,38 +127,7 @@
   }
 }
 
-/* ------------------------------ filtros como abas (direção A) ------------------------------ */
-/* Situação e Ordens de serviço: os mesmos rádios, apresentados como abas com sublinhado de acento.
-   A aba marcada fica em negrito e sublinhada (não depende só da cor). */
-.cli-filtros .sh-seg {
-  gap: var(--sh-space-6);
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-
-.cli-filtros .sh-seg > label {
-  min-height: var(--sh-alvo);
-  padding: 0;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-  margin-bottom: -3px;
-  font-size: 0.875rem;
-}
-
-.cli-filtros .sh-seg > label:hover {
-  color: var(--sh-text);
-}
-
-.cli-filtros .sh-seg > input:checked + label {
-  border-bottom-color: var(--sh-accent);
-  background: transparent;
-  box-shadow: none;
-  color: var(--sh-text);
-  font-weight: 700;
-}
-
+/* Filtros: o controle segmentado em pílula (.sh-seg) vem de formularios.css */
 .cli-filtros__grupo--ordem {
   margin-left: auto;
   padding-bottom: var(--sh-space-1);
