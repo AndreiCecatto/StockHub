@@ -325,7 +325,7 @@
                                                 direcaoAtual="${direcao}" urlBase="${urlOrdem}" numerico="true" classe="v3-c-preco" />
                                         </c:if>
                                         <sh:colunaOrdenavel campo="quantidade" rotulo="Saldo" ordenacaoAtual="${ordenacao}"
-                                            direcaoAtual="${direcao}" urlBase="${urlOrdem}" classe="v3-c-saldo" />
+                                            direcaoAtual="${direcao}" urlBase="${urlOrdem}" numerico="true" classe="v3-c-saldo" />
                                         <c:if test="${verSituacao}"><th scope="col" role="columnheader" class="v3-c-sit">Situação</th></c:if>
                                         <c:if test="${verTamanho}"><th scope="col" role="columnheader" class="v3-c-ramo">Tamanho</th></c:if>
                                         <c:if test="${verCor}"><th scope="col" role="columnheader" class="v3-c-ramo">Cor</th></c:if>

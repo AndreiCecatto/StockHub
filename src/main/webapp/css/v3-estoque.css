@@ -858,9 +858,9 @@
 /* ============================== Livro-razão: cartão ============================== */
 .v3e-razao-card {
   min-width: 0;
-  border: 1px solid var(--sh-border);
-  border-radius: var(--sh-radius-lg);
-  background: var(--sh-surface);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   overflow: clip; /* recorta os cantos sem criar rolagem (o título do dia continua "grudando") */
 }
 
@@ -870,7 +870,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--sh-space-3) var(--sh-space-4);
-  padding: var(--sh-space-5) var(--sh-space-5) var(--sh-space-4);
+  padding: var(--sh-space-3) 0 var(--sh-space-4);
 }
 
 .v3e-razao-card__desc {
@@ -889,9 +889,9 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--sh-space-3);
-  padding: var(--sh-space-4) var(--sh-space-5);
-  border-top: 1px solid var(--sh-border);
-  background: var(--sh-surface-2);
+  padding: var(--sh-space-3) 0 var(--sh-space-4);
+  border-top: 1px solid var(--sh-text);
+  background: transparent;
 }
 
 .v3e-filtros__produto,
@@ -945,7 +945,7 @@
   align-items: center;
   gap: var(--sh-space-2) var(--sh-space-3);
   margin: 0;
-  padding: var(--sh-space-2) var(--sh-space-5);
+  padding: var(--sh-space-2) 0;
   border-top: 1px solid var(--sh-border);
   color: var(--sh-text-muted);
   font-size: var(--sh-text-sm);
@@ -974,14 +974,13 @@
     display: grid;
     grid-template-columns: var(--v3e-colunas);
     column-gap: var(--sh-space-3);
-    padding: var(--sh-space-2) var(--sh-space-5);
-    border-top: 1px solid var(--sh-border);
+    padding: 14px 12px 10px;
     border-bottom: 1px solid var(--sh-border);
-    color: var(--sh-text-subtle);
-    font-size: var(--sh-fs-micro);
-    font-weight: 600;
-    letter-spacing: var(--sh-track-rotulo);
-    text-transform: none;
+    color: var(--sh-text-muted);
+    font-size: 0.71875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
   }
 
   .v3e-colunas[hidden] {
@@ -1006,13 +1005,14 @@
   align-items: baseline;
   gap: var(--sh-space-2);
   margin: 0;
-  padding: var(--sh-space-2) var(--sh-space-5);
-  border-top: 1px solid var(--sh-border);
+  padding: var(--sh-space-3) 12px var(--sh-space-2);
   border-bottom: 1px solid var(--sh-border);
-  background: var(--sh-surface-2);
+  background: var(--sh-bg);
   color: var(--sh-text-muted);
-  font-size: var(--sh-text-md);
+  font-size: 0.78rem;
   font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
 }
 
 .v3e-dia:first-child .v3e-dia__titulo {
@@ -1049,7 +1049,7 @@
   grid-template-columns: var(--v3e-colunas);
   column-gap: var(--sh-space-3);
   align-items: baseline;
-  padding: 10px var(--sh-space-5);
+  padding: 12px 12px;
   border-top: 1px solid var(--sh-border);
   font-size: var(--sh-text-md);
   transition: background-color var(--sh-t-1) var(--sh-ease);
@@ -1084,8 +1084,10 @@
 
 .v3e-prod__nome {
   color: var(--sh-text);
+  font-family: var(--sh-font-serif);
+  font-size: 1.03rem;
   font-weight: 600;
-  letter-spacing: var(--sh-track-corpo);
+  font-variant-numeric: lining-nums;
   text-decoration: none;
   overflow-wrap: anywhere;
 }
@@ -1105,7 +1107,8 @@
 
 .v3e-qtd-col {
   text-align: right;
-  font-size: var(--sh-text-base);
+  font-family: var(--sh-font-codigo);
+  font-size: 0.9375rem;
   font-weight: 650;
 }
 
@@ -1125,7 +1128,8 @@
   text-align: right;
   white-space: nowrap;
   color: var(--sh-text-muted);
-  font-size: var(--sh-text-base);
+  font-family: var(--sh-font-codigo);
+  font-size: 0.9375rem;
 }
 
 .v3e-saldo .bi {
@@ -1164,13 +1168,13 @@
   .v3e-saldo { grid-area: saldo; }
 
   .v3e-dia__titulo {
-    padding-inline: var(--sh-space-4);
+    padding-inline: 12px;
   }
 
   .v3e-razao-card__cab,
   .v3e-filtros,
   .v3e-ativos {
-    padding-inline: var(--sh-space-4);
+    padding-inline: 0;
   }
 }
 

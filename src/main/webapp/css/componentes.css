@@ -2003,3 +2003,223 @@ a:not(.btn):not(.nav-link):not(.dropdown-item):not([class*="sh-"]) {
     scrollbar-color: var(--sh-border-strong) transparent;
   }
 }
+
+/* ============================== Direção A "Edição": listas e tabelas (fatia 4) ==============================
+ * Protótipo direcao-a-edicao.html; decisões em docs/design-system.md, seção 17. Cabeçalho de página em serifa com
+ * subtítulo, tabela sem caixa (cabeçalho em caixa-alta, filete entre linhas), nome em serifa, números em fonte
+ * monoespaçada tabular à direita, tag de estoque com forma + texto, mini barra de saldo, paginação discreta.
+ * Só tokens; nenhum valor de cor novo. As regras de tabela do computador ficam em min-width: 768px para não
+ * mexer nos cartões do celular (.sh-table--cards). */
+
+.sh-page-header {
+  align-items: flex-end;
+  margin-bottom: var(--sh-space-6);
+}
+
+.sh-page-header__titulo {
+  font-size: clamp(2rem, 3.4vw, 2.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.sh-page-header__desc {
+  max-width: 54ch;
+  margin-top: var(--sh-space-2);
+  color: var(--sh-text-muted);
+  font-size: 1.0625rem;
+}
+
+/* Lista sem caixa: a tabela deixa de ser um cartão (a faixa de filtros e as linhas fazem a estrutura) */
+.sh-table-wrap {
+  overflow-x: auto;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.sh-card.sh-lista {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.sh-lista > .sh-card__cab {
+  padding: 0 0 var(--sh-space-3);
+  border-bottom: 0;
+}
+
+.sh-lista > .sh-card__cab .sh-card__titulo {
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+@media (min-width: 768px) {
+  .sh-table th {
+    padding: 14px 12px 10px 0;
+    border-bottom: 1px solid var(--sh-border);
+    background: transparent;
+    color: var(--sh-text-muted);
+    font-size: 0.71875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .sh-table td {
+    height: auto;
+    min-height: 52px;
+    padding: 13px 12px 13px 0;
+    border-bottom: 1px solid var(--sh-border);
+  }
+
+  .sh-table tbody tr:last-child td {
+    border-bottom: 1px solid var(--sh-border);
+  }
+
+  .sh-table th:first-child,
+  .sh-table td:first-child {
+    padding-left: 12px;
+  }
+
+  .sh-table th:last-child,
+  .sh-table td:last-child {
+    padding-right: 12px;
+  }
+}
+
+/* Números: monoespaçados, tabulares, à direita */
+.sh-table th.sh-col-num,
+.sh-table th.text-end {
+  text-align: right;
+}
+
+.sh-table td.sh-col-num,
+.sh-table td.sh-mono,
+.sh-table td.text-end {
+  font-family: var(--sh-font-codigo);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.sh-table td.sh-col-num,
+.sh-table td.text-end {
+  text-align: right;
+}
+
+/* Tag de situação do estoque: forma + texto, sem fundo (a cor só reforça). Nos selos sem ícone (ex.: Ativa e
+   Desativada da equipe) a forma vem de um marcador: círculo = normal, triângulo = baixo, octógono = sem estoque. */
+.sh-table .sh-badge--normal,
+.sh-table .sh-badge--baixo,
+.sh-table .sh-badge--sem {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.sh-table .sh-badge:not(:has(.bi))::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: currentColor;
+}
+
+.sh-table .sh-badge--normal:not(:has(.bi))::before {
+  border-radius: 50%;
+}
+
+.sh-table .sh-badge--baixo:not(:has(.bi))::before {
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.sh-table .sh-badge--sem:not(:has(.bi))::before {
+  clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
+}
+
+/* Mini barra de saldo: fina, com o marcador do mínimo ainda visível */
+.sh-table .sh-meter {
+  height: 4px;
+  min-width: 64px;
+  border-radius: 2px;
+}
+
+/* Paginação discreta: sem caixas, a página atual em negrito e sublinhada */
+.sh-paginacao {
+  padding: var(--sh-space-4) 12px;
+  border-top: 0;
+  color: var(--sh-text-muted);
+}
+
+.sh-paginacao .pagination {
+  --bs-pagination-bg: transparent;
+  --bs-pagination-border-color: transparent;
+  --bs-pagination-hover-bg: var(--sh-surface-2);
+  --bs-pagination-hover-border-color: transparent;
+  --bs-pagination-disabled-bg: transparent;
+  --bs-pagination-disabled-border-color: transparent;
+  --bs-pagination-active-bg: transparent;
+  --bs-pagination-active-color: var(--sh-text);
+  --bs-pagination-active-border-color: transparent;
+  --bs-pagination-disabled-color: var(--sh-text-subtle);
+}
+
+.sh-paginacao .sh-pag-numero .page-link {
+  font-family: var(--sh-font-codigo);
+  font-size: var(--sh-text-sm);
+}
+
+.sh-paginacao .page-item.active .page-link {
+  font-weight: 700;
+  box-shadow: inset 0 -2px 0 var(--sh-accent);
+}
+
+/* Abas de filtro (faixa com filete de tinta embaixo; a aba atual leva sublinhado de acento além do peso) */
+.sh-abas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0 var(--sh-space-6);
+  border-bottom: 1px solid var(--sh-text);
+}
+
+.sh-aba {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--sh-alvo);
+  padding: 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: transparent;
+  color: var(--sh-text-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.sh-aba:hover {
+  color: var(--sh-text);
+}
+
+.sh-aba[aria-current="page"] {
+  border-bottom-color: var(--sh-accent);
+  color: var(--sh-text);
+}
+
+.sh-aba__n {
+  font-family: var(--sh-font-codigo);
+  font-size: 0.78rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}

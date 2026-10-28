@@ -31,18 +31,18 @@ html.v3-js .v3-so-semjs {
 /* ============================== Filtros ============================== */
 .v3-filtros {
   display: grid;
-  gap: var(--sh-space-4);
+  gap: var(--sh-space-3);
   margin-bottom: var(--sh-space-4);
-  padding: var(--sh-space-4);
-  border: 1px solid var(--sh-border);
-  border-radius: var(--sh-radius);
-  background: var(--sh-surface);
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .v3-filtros__busca {
   display: flex;
   align-items: center;
   gap: var(--sh-space-2);
+  max-width: 460px;
 }
 
 .v3-busca {
@@ -93,7 +93,9 @@ html.v3-js .v3-so-semjs {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: var(--sh-space-4);
+  gap: var(--sh-space-2) var(--sh-space-4);
+  padding-bottom: var(--sh-space-2);
+  border-bottom: 1px solid var(--sh-text);
 }
 
 .v3-grupo {
@@ -157,17 +159,55 @@ html.v3-js .v3-so-semjs {
   }
 }
 
-/* Chips de situação do estoque: rádios apresentados como chips (selecionado = visto + cor) */
+/* Situação do estoque como abas (direção A): rádios apresentados como faixa com sublinhado de acento.
+   A aba marcada tem sublinhado e peso 700 além da cor; a forma do ícone (círculo, triângulo, octógono) é mantida. */
+.v3-grupo--chips {
+  margin-right: auto;
+}
+
+.v3-grupo--chips .v3-legenda {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.v3-grupo--chips .sh-chips {
+  gap: 0 var(--sh-space-6);
+}
+
 .sh-prod-chip {
   position: relative;
   display: inline-flex;
 }
 
-.sh-prod-chip__input:checked + .sh-chip {
-  border-color: var(--sh-accent);
-  background: var(--sh-accent-soft);
-  color: var(--sh-accent-text);
+.sh-prod-chip .sh-chip {
+  min-height: var(--sh-alvo);
+  padding: 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  margin-bottom: -3px;
+  background: transparent;
+  color: var(--sh-text-muted);
+  font-size: 0.875rem;
   font-weight: 600;
+  cursor: pointer;
+}
+
+.sh-prod-chip .sh-chip:hover {
+  background: transparent;
+  color: var(--sh-text);
+}
+
+.sh-prod-chip__input:checked + .sh-chip {
+  border-bottom-color: var(--sh-accent);
+  background: transparent;
+  color: var(--sh-text);
+  font-weight: 700;
 }
 
 .sh-prod-chip__input:focus-visible + .sh-chip {
@@ -175,16 +215,8 @@ html.v3-js .v3-so-semjs {
   outline-offset: 2px;
 }
 
-.sh-prod-chip .sh-chip {
-  cursor: pointer;
-}
-
 .sh-prod-chip__visto {
   display: none;
-}
-
-.sh-prod-chip__input:checked + .sh-chip .sh-prod-chip__visto {
-  display: inline-block;
 }
 
 .v3-chip-ico {
@@ -201,10 +233,6 @@ html.v3-js .v3-so-semjs {
 
 .v3-chip-ico--sem {
   color: var(--sh-estoque-sem-fg);
-}
-
-.sh-prod-chip__input:checked + .sh-chip .v3-chip-ico {
-  display: none;
 }
 
 /* ============================== Barra de resultados ============================== */
@@ -394,8 +422,28 @@ html.v3-js .v3-so-semjs {
   padding-right: var(--sh-space-3);
 }
 
+/* Computador (direção A): sem recuo à esquerda; só a primeira coluna tem 12 px, onde fica a barra de alerta */
+@media (min-width: 768px) {
+  .v3-tabela th,
+  .v3-tabela td {
+    padding-left: 0;
+    padding-right: 12px;
+  }
+
+  .v3-tabela td {
+    height: auto;
+    min-height: 60px;
+  }
+
+  .v3-tabela .v3-mono {
+    font-family: var(--sh-font-codigo);
+    font-weight: 600;
+  }
+}
+
 html[data-v3-densidade="compacta"] .v3-tabela td {
   height: 46px;
+  min-height: 46px;
 }
 
 html[data-v3-densidade="compacta"] .v3-tabela .sh-prod-desc {
@@ -512,8 +560,11 @@ html[data-v3-densidade="compacta"] .v3-tabela .sh-prod-desc {
   line-clamp: 2;
   overflow: hidden;
   color: var(--sh-text);
+  font-family: var(--sh-font-serif);
+  font-size: 1.03rem;
   font-weight: 600;
-  line-height: 1.35;
+  font-variant-numeric: lining-nums;
+  line-height: 1.25;
   text-decoration: none;
   overflow-wrap: anywhere;
 }
@@ -544,7 +595,7 @@ a.v3-prod-nome:hover {
   display: grid;
   gap: 6px;
   min-width: 0;
-  justify-items: start;
+  justify-items: end;
 }
 
 .v3-saldo-fixo {
@@ -556,6 +607,7 @@ a.v3-prod-nome:hover {
   align-items: center;
   gap: var(--sh-space-2);
   width: 100%;
+  max-width: 190px;
   min-height: 6px;
 }
 
