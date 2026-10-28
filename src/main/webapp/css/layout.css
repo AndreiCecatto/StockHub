@@ -1,5 +1,5 @@
 /*
- * StockHub v3 "central de operações": estrutura da página (seção "v3: central de operações" de docs/design-system.md).
+ * StockHub (direção A "Edição"): estrutura da página (seção "v3: central de operações" de docs/design-system.md).
  * Barra lateral enxuta (recolhível), barra superior com migalhas e BARRA DE COMANDO central, barra inferior no celular,
  * cabeçalho da página, grade de conteúdo, barra de ações de formulário e a transição entre páginas (View Transitions).
  * As telas de entrada ficam em css/entrar.css; o início, em css/inicio.css.
@@ -306,6 +306,9 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
   min-height: 40px;
   padding: 0 var(--sh-space-2);
   margin-bottom: var(--sh-space-4);
+  padding-bottom: var(--sh-space-4);
+  box-sizing: content-box;
+  border-bottom: 3px double var(--sh-border);
   color: var(--sh-text);
   text-decoration: none;
 }
@@ -336,23 +339,26 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
 }
 
 .sh-marca__nome {
-  font-size: 1.0625rem;
+  font-family: var(--sh-font-serif);
+  font-size: 1.375rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  line-height: 1;
+  letter-spacing: -0.01em;
 }
 
 .sh-nav__grupo + .sh-nav__grupo {
   margin-top: var(--sh-space-5);
 }
 
+/* Títulos de grupo: caixa-alta pequena com tracking aberto, como o menu do cabeçalho da direção A (único uso de caixa-alta no sistema) */
 .sh-nav__titulo {
   margin: 0 0 var(--sh-space-1);
   padding: 0 var(--sh-space-3);
   color: var(--sh-side-muted);
   font-size: var(--sh-fs-micro);
-  font-weight: 600;
-  letter-spacing: var(--sh-track-rotulo);
-  text-transform: none;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .sh-nav__lista {
@@ -387,18 +393,18 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
   transition: color var(--sh-t-1) var(--sh-ease);
 }
 
-.sh-nav__link:hover {
+.sh-nav__link:hover:not([aria-current="page"]) {
   background: var(--sh-surface-2);
   color: var(--sh-text);
 }
 
-.sh-nav__link:hover .bi {
+.sh-nav__link:hover:not([aria-current="page"]) .bi {
   color: var(--sh-text-muted);
 }
 
+/* Item atual: sem cartão nem sombra; tinta cheia, peso 600, filete de acento à esquerda e ícone em acento */
 .sh-nav__link[aria-current="page"] {
   background: var(--sh-side-active-bg);
-  box-shadow: 0 0 0 1px var(--sh-border), var(--sh-shadow-1);
   color: var(--sh-text);
   font-weight: 600;
 }
@@ -415,7 +421,7 @@ html.sh-saindo:not([data-sh-vt]) .sh-main {
   top: 8px;
   bottom: 8px;
   width: 3px;
-  border-radius: 0 3px 3px 0;
+  border-radius: 0 2px 2px 0;
   background: var(--sh-side-marker);
 }
 
@@ -527,9 +533,10 @@ html[data-sh-lateral="recolhida"] .sh-nav__grupo + .sh-nav__grupo {
   flex: 0 0 auto;
   min-height: 44px;
   color: var(--sh-text);
-  font-size: 1.0625rem;
+  font-family: var(--sh-font-serif);
+  font-size: 1.25rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   text-decoration: none;
 }
 
