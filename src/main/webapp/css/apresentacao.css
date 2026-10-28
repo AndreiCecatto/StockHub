@@ -7,13 +7,13 @@
  * de cada peça (--sh-de, --sh-ate, --sh-saida) e se monta a "pilha" de variantes que se trocam (troca de selo, de número).
  * Estado final = padrão: sem JavaScript, com menos movimento e no celular (cenas viram blocos comuns) vale o final.
  * Movimento só em transform e opacity (exceção do kit: traço SVG). Cores só por tokens (a única cor própria é o fundo
- * das seções escuras, #1A1713, um degrau abaixo do marrom do tema escuro).
+ * das seções escuras, #0A0B0D, um degrau abaixo do grafite do tema escuro).
  */
 
 .ap-pagina {
   --ap-topo: 64px;
   --ap-raio: 28px;
-  --ap-escuro-bg: #1A1713;
+  --ap-escuro-bg: #0A0B0D;
   --ap-gutter: clamp(20px, 5vw, 48px);
 }
 

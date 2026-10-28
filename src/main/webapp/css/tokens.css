@@ -1,21 +1,18 @@
 /*
- * StockHub, direção A "Edição": tokens de design (seção 17 de docs/design-system.md; a base v3 está na seção 12).
- * Papel quente no claro, marrom quente no escuro, azul-tinta como único acento, serifa só em marca, títulos e números de destaque.
+ * StockHub, base visual "limpa, viva e séria" (seção 17 de docs/design-system.md; a base estrutural está na seção 12).
+ * Superfícies frias e neutras, UM acento índigo com brilho sutil em foco e item ativo, só tipografia sem serifa (Inter),
+ * raios generosos (controles 10, cartões 14, painéis 18), sombras em camadas, vidro discreto e movimento com spring.
  * Ordem de carregamento: Bootstrap, Bootstrap Icons, tokens.css, layout.css, componentes.css, movimento.css,
  * rolagem.css, peek.css, paleta.css (e entrar.css, inicio.css etc. por tela).
  *
  * Os nomes --sh-* da v1/v2 foram mantidos (as telas ainda não migradas continuam funcionando com os valores novos).
- * Tokens novos da v3: --sh-surface-2 (já existia) e --sh-surface-3 (derivado), --sh-font-mono, --sh-fs-* (escala fluida),
- * --sh-track-*, --sh-t-1..4 (durações), --sh-ease-*, --sh-shadow-1/pop/modal, --sh-scrim, --sh-glass*,
- * --sh-radius-* (4 a 10 px; controles 6, cartões 8) e os do kit de rolagem (ver css/rolagem.css).
  *
- * Os valores de cor dos dois temas aparecem em três blocos (GERADOS por um script a partir de uma só tabela de
- * paleta, a mesma da tabela de contraste do design-system.md; ao mudar um valor, mude nos três):
+ * Os valores de cor dos dois temas aparecem em três blocos (gerados de uma só tabela de paleta, a mesma da tabela de
+ * contraste do design-system.md; ao mudar um valor, mude nos três):
  *   1. :root / [data-bs-theme="light"]   tema claro (padrão)
- *   2. [data-bs-theme="dark"]            tema escuro "marrom quente" (js/tema-init.js define o atributo antes de pintar)
+ *   2. [data-bs-theme="dark"]            tema escuro "grafite azulado" (js/tema-init.js define o atributo antes de pintar)
  *   3. @media (prefers-color-scheme: dark) com :root:not([data-bs-theme])
  *                                        mesmo escuro, para quem está sem JavaScript
- * Todos os pares de contraste foram calculados (tabela na seção v3 do design-system.md).
  */
 
 /* ---------- Fontes locais (subset latino, variáveis) ---------- */
@@ -51,8 +48,6 @@
   --sh-font-codigo: "Geist Mono", ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
   /* Legado v2: a fonte de display deixou de existir; o nome aponta para a Inter para as telas antigas não quebrarem */
   --sh-font-display: var(--sh-font);
-  /* Direção A "Edição": serifa do sistema (sem fonte nova), SÓ em marca, h1/h2 de página, nomes de destaque e números de métrica */
-  --sh-font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
 
   /* Escala da interface (raiz em 16 px; corpo em 15 px) */
   --sh-text-sm: 0.8125rem;
@@ -102,15 +97,15 @@
   --sh-space-24: 96px;
   --sh-gutter: 16px;
 
-  /* Raios da direção A: 4 (teclas, detalhes), 6 (controles), 8 (cartões e tabelas), 10 (painéis e diálogos) */
-  --sh-radius-xs: 4px;
-  --sh-radius-sm: 6px;
-  --sh-radius: 8px;
-  --sh-radius-lg: 10px;
+  /* Raios generosos: 7 (teclas, detalhes), 10 (controles), 14 (cartões e tabelas), 18 (painéis e diálogos) */
+  --sh-radius-xs: 7px;
+  --sh-radius-sm: 10px;
+  --sh-radius: 14px;
+  --sh-radius-lg: 18px;
   --sh-radius-pill: 999px;
   --sh-radius-folha: var(--sh-radius); /* legado v2 */
 
-  /* Movimento v3: 120 / 180 / 240 / 400 ms, sempre com desaceleração (sem overshoot, sem bounce) */
+  /* Movimento: 120 / 180 / 240 / 400 ms, easing com desaceleração tipo spring (cubic-bezier(.2,.8,.2,1)) */
   --sh-t-1: 120ms;
   --sh-t-2: 180ms;
   --sh-t-3: 240ms;
@@ -124,15 +119,16 @@
   --sh-ease-out-forte: cubic-bezier(.16, 1, .3, 1);
   --sh-ease-in: cubic-bezier(.4, 0, 1, 1);
   --sh-ease: cubic-bezier(.4, 0, .2, 1);
-  --sh-ease-mola: var(--sh-ease-out); /* legado v2: a "mola" virou desaceleração simples */
+  --sh-ease-mola: cubic-bezier(.34, 1.4, .5, 1); /* mola curta (overshoot mínimo), só em microinterações */
+  --sh-spring: cubic-bezier(.2, .8, .2, 1);
   --sh-stagger: 40ms;
   --sh-dist-entrada: 6px; /* deslocamento das entradas (fade + translateY de 4 a 8 px) */
 
   /* Alvo de toque mínimo (44 px no celular, 36 px no desktop com mouse) */
   --sh-alvo: 44px;
 
-  /* Véu atrás de modais e painéis (marrom quase preto da direção A, igual nos dois temas; a opacidade vem do Bootstrap) */
-  --sh-backdrop: #1A1713;
+  /* Véu atrás de modais e painéis (azul quase preto, igual nos dois temas; a opacidade vem do Bootstrap) */
+  --sh-backdrop: #05070D;
 
   /* Estrutura */
   --sh-lateral-w: 232px;
@@ -152,12 +148,18 @@
   --sh-surface-3: color-mix(in srgb, var(--sh-surface-2) 82%, var(--sh-border));
   --sh-glass: var(--sh-bg);
   --sh-glass-borda: var(--sh-border);
+  --sh-glass-blur: saturate(180%) blur(18px);
 
-  /* Barra lateral: a mesma cor do fundo, separada por uma linha fina; item atual = texto em tinta + filete de acento (sem cartão) */
+  /* Gradientes sutis: destaque de superfície (cartão em evidência) e hairline com gradiente (borda que some nas pontas) */
+  --sh-grad-destaque: linear-gradient(160deg, color-mix(in srgb, var(--sh-accent) 9%, var(--sh-surface)) 0%, var(--sh-surface) 62%);
+  --sh-hairline: linear-gradient(90deg, transparent, color-mix(in srgb, var(--sh-accent) 38%, var(--sh-border)) 50%, transparent);
+  --sh-brilho-topo: linear-gradient(180deg, color-mix(in srgb, #fff 55%, transparent), transparent 40%);
+
+  /* Barra lateral: vidro sobre o fundo; item atual = pílula com brilho do acento */
   --sh-side-bg: var(--sh-bg);
   --sh-side-text: var(--sh-text-muted);
   --sh-side-muted: var(--sh-text-subtle);
-  --sh-side-active-bg: transparent;
+  --sh-side-active-bg: var(--sh-accent-soft);
   --sh-side-marker: var(--sh-accent-text);
 
   /* Legado v2 (papel, terracota, kraft, mascote): valores neutros só para as telas antigas não quebrarem.
@@ -174,11 +176,11 @@
   --sh-pauta: var(--sh-border);
 }
 
-/* Vidro fosco: só onde agrega (barra superior e paleta). Sem suporte, a cor sólida acima continua valendo. */
+/* Vidro fosco: só onde agrega (barra superior, lateral e camadas flutuantes). Sem suporte, a cor sólida acima continua valendo. */
 @supports (backdrop-filter: blur(1px)) {
   :root {
-    --sh-glass: color-mix(in srgb, var(--sh-bg) 72%, transparent);
-    --sh-glass-borda: color-mix(in srgb, var(--sh-border) 80%, transparent);
+    --sh-glass: color-mix(in srgb, var(--sh-bg) 70%, transparent);
+    --sh-glass-borda: color-mix(in srgb, var(--sh-border) 75%, transparent);
   }
 }
 
@@ -187,150 +189,158 @@
 [data-bs-theme="light"] {
   color-scheme: light;
 
-  /* Neutros, acento (azul-tinta da direção A "Edição") e foco */
-  --sh-bg: #F5F0E6;
-  --sh-surface: #FBF8F2;
-  --sh-surface-2: #EDE6D6;
-  --sh-border: #D6CCB8;
-  --sh-border-strong: #8A7F6B;
-  --sh-text: #26221C;
-  --sh-text-muted: #574E41;
-  --sh-text-subtle: #6B6254;
-  --sh-accent: #1D3F8F;
-  --sh-accent-hover: #152F6D;
-  --sh-accent-text: #1D3F8F;
-  --sh-accent-soft: #E3E7F0;
-  --sh-focus: #1D3F8F;
+  /* Neutros (frios), acento índigo e foco */
+  --sh-bg: #F4F6FA;
+  --sh-surface: #FFFFFF;
+  --sh-surface-2: #ECEFF5;
+  --sh-border: #DDE2EC;
+  --sh-border-strong: #76809A;
+  --sh-text: #0E1320;
+  --sh-text-muted: #434B5E;
+  --sh-text-subtle: #566078;
+  --sh-accent: #4A5AE8;
+  --sh-accent-hover: #3B49CC;
+  --sh-accent-text: #3B49CC;
+  --sh-accent-soft: #E9ECFF;
+  --sh-focus: #4A5AE8;
+  --sh-accent-rgb: 74, 90, 232;
 
   /* Semânticas: texto, fundo tonal e borda decorativa */
-  --sh-success-fg: #2F6B3F;
-  --sh-success-bg: #E4EBD9;
-  --sh-success-border: #B3C7A6;
-  --sh-warning-fg: #7F5200;
-  --sh-warning-bg: #F6E8C4;
-  --sh-warning-border: #DDBE78;
-  --sh-danger-fg: #B3321F;
-  --sh-danger-bg: #F7E1D9;
-  --sh-danger-border: #E3B0A3;
+  --sh-success-fg: #0F7A45;
+  --sh-success-bg: #E2F5EA;
+  --sh-success-border: #A6D8BB;
+  --sh-warning-fg: #7A4100;
+  --sh-warning-bg: #FCEFCF;
+  --sh-warning-border: #E8C679;
+  --sh-danger-fg: #B3261E;
+  --sh-danger-bg: #FCE9E7;
+  --sh-danger-border: #EDA7A1;
   --sh-info-fg: #0B6478;
-  --sh-info-bg: #DDEBEA;
-  --sh-info-border: #9CC5CA;
+  --sh-info-bg: #E1F2F6;
+  --sh-info-border: #9CCBD6;
 
   /* Botões sólidos (texto branco): só para confirmar ação */
-  --sh-danger-solid: #B3321F;
-  --sh-danger-solid-hover: #962A19;
-  --sh-success-solid: #2F6B3F;
-  --sh-success-solid-hover: #245631;
+  --sh-danger-solid: #C0261B;
+  --sh-danger-solid-hover: #A31F15;
+  --sh-success-solid: #15803D;
+  --sh-success-solid-hover: #106A32;
 
   /* Medidor de saldo, barra de saúde e gráficos */
-  --sh-meter-track: #DDD3BE;
-  --sh-meter-normal: #3B7D4C;
-  --sh-meter-baixo: #A8630A;
-  --sh-meter-sem: #B3321F;
+  --sh-meter-track: #DDE2EC;
+  --sh-meter-normal: #1F8A4F;
+  --sh-meter-baixo: #B45F08;
+  --sh-meter-sem: #C42B1F;
 
-  /* Sobreposições: quase sem sombra (a hairline separa); só o que flutua tem sombra */
-  --sh-shadow-1: none;
-  --sh-shadow-card: none;
-  --sh-shadow-pop: 0 0 0 1px rgba(38, 34, 28, .08), 0 2px 4px rgba(38, 34, 28, .06), 0 12px 32px -4px rgba(38, 34, 28, .16);
-  --sh-shadow-modal: 0 0 0 1px rgba(38, 34, 28, .08), 0 4px 8px rgba(38, 34, 28, .06), 0 32px 72px -8px rgba(38, 34, 28, .32);
-  --sh-scrim: rgba(34, 30, 25, .42);
+  /* Elevação em camadas (cartão, flutuante, modal), brilho do acento e véu */
+  --sh-shadow-1: 0 1px 2px rgba(14, 19, 32, .05);
+  --sh-shadow-card: 0 0 0 1px rgba(14, 19, 32, .04), 0 1px 2px rgba(14, 19, 32, .04), 0 8px 24px -10px rgba(14, 19, 32, .10);
+  --sh-shadow-card-hover: 0 0 0 1px rgba(74, 90, 232, .16), 0 2px 4px rgba(14, 19, 32, .05), 0 16px 36px -12px rgba(14, 19, 32, .18);
+  --sh-shadow-pop: 0 0 0 1px rgba(14, 19, 32, .06), 0 2px 4px rgba(14, 19, 32, .05), 0 14px 36px -6px rgba(14, 19, 32, .18);
+  --sh-shadow-modal: 0 0 0 1px rgba(14, 19, 32, .06), 0 4px 8px rgba(14, 19, 32, .06), 0 36px 80px -10px rgba(14, 19, 32, .34);
+  --sh-glow: 0 0 0 4px rgba(74, 90, 232, .20);
+  --sh-glow-forte: 0 6px 22px -4px rgba(74, 90, 232, .45);
+  --sh-scrim: rgba(10, 14, 26, .42);
 
   /* Trios RGB e variáveis que o Bootstrap 5.3 usa em foco, links e utilitários */
-  --bs-primary-rgb: 29, 63, 143;
-  --bs-success-rgb: 47, 107, 63;
-  --bs-warning-rgb: 168, 99, 10;
-  --bs-danger-rgb: 179, 50, 31;
+  --bs-primary-rgb: 74, 90, 232;
+  --bs-success-rgb: 21, 128, 61;
+  --bs-warning-rgb: 180, 95, 8;
+  --bs-danger-rgb: 192, 38, 27;
   --bs-info-rgb: 11, 100, 120;
-  --bs-body-bg-rgb: 245, 240, 230;
-  --bs-body-color-rgb: 38, 34, 28;
-  --bs-link-color-rgb: 29, 63, 143;
-  --bs-link-hover-color-rgb: 21, 47, 109;
-  --bs-success-text-emphasis: #2F6B3F;
-  --bs-success-bg-subtle: #E4EBD9;
+  --bs-body-bg-rgb: 244, 246, 250;
+  --bs-body-color-rgb: 14, 19, 32;
+  --bs-link-color-rgb: 59, 73, 204;
+  --bs-link-hover-color-rgb: 59, 73, 204;
+  --bs-success-text-emphasis: #0F7A45;
+  --bs-success-bg-subtle: #E2F5EA;
   --bs-success-border-subtle: var(--sh-success-border);
-  --bs-warning-text-emphasis: #7F5200;
-  --bs-warning-bg-subtle: #F6E8C4;
+  --bs-warning-text-emphasis: #7A4100;
+  --bs-warning-bg-subtle: #FCEFCF;
   --bs-warning-border-subtle: var(--sh-warning-border);
-  --bs-danger-text-emphasis: #B3321F;
-  --bs-danger-bg-subtle: #F7E1D9;
+  --bs-danger-text-emphasis: #B3261E;
+  --bs-danger-bg-subtle: #FCE9E7;
   --bs-danger-border-subtle: var(--sh-danger-border);
   --bs-info-text-emphasis: #0B6478;
-  --bs-info-bg-subtle: #DDEBEA;
+  --bs-info-bg-subtle: #E1F2F6;
   --bs-info-border-subtle: var(--sh-info-border);
 }
 
 [data-bs-theme="dark"] {
   color-scheme: dark;
 
-  /* Neutros, acento (azul-tinta da direção A "Edição") e foco */
-  --sh-bg: #221E19;
-  --sh-surface: #2B2620;
-  --sh-surface-2: #342E26;
-  --sh-border: #4A4136;
-  --sh-border-strong: #8A7F6D;
-  --sh-text: #EDE6D8;
-  --sh-text-muted: #BDB4A3;
-  --sh-text-subtle: #A89F8F;
-  --sh-accent: #4A6BCC;
-  --sh-accent-hover: #3E5CB4;
-  --sh-accent-text: #8FAAF2;
-  --sh-accent-soft: #2A3150;
-  --sh-focus: #8FAAF2;
+  /* Neutros (frios), acento índigo e foco */
+  --sh-bg: #080B13;
+  --sh-surface: #0E131F;
+  --sh-surface-2: #161D2D;
+  --sh-border: #252E44;
+  --sh-border-strong: #6D788F;
+  --sh-text: #EAEEF7;
+  --sh-text-muted: #AEB7CB;
+  --sh-text-subtle: #8A95AC;
+  --sh-accent: #4A58DD;
+  --sh-accent-hover: #3F4CC4;
+  --sh-accent-text: #A3AEFF;
+  --sh-accent-soft: #171E48;
+  --sh-focus: #A3AEFF;
+  --sh-accent-rgb: 123, 136, 255;
 
   /* Semânticas: texto, fundo tonal e borda decorativa */
-  --sh-success-fg: #86C095;
-  --sh-success-bg: #243424;
-  --sh-success-border: #3F6B4B;
-  --sh-warning-fg: #E3AE4D;
-  --sh-warning-bg: #3A2D12;
-  --sh-warning-border: #7F6221;
-  --sh-danger-fg: #EE8A76;
-  --sh-danger-bg: #40231D;
-  --sh-danger-border: #8F4A3D;
+  --sh-success-fg: #6FD39B;
+  --sh-success-bg: #0E2619;
+  --sh-success-border: #2A6B47;
+  --sh-warning-fg: #F0BE62;
+  --sh-warning-bg: #2A2008;
+  --sh-warning-border: #7A5A1C;
+  --sh-danger-fg: #FF9E94;
+  --sh-danger-bg: #321412;
+  --sh-danger-border: #85332C;
   --sh-info-fg: #7CCDE4;
-  --sh-info-bg: #1E3036;
-  --sh-info-border: #35707F;
+  --sh-info-bg: #0C262E;
+  --sh-info-border: #2A6575;
 
   /* Botões sólidos (texto branco): só para confirmar ação */
-  --sh-danger-solid: #C23B2B;
-  --sh-danger-solid-hover: #AD3425;
-  --sh-success-solid: #2F7A47;
-  --sh-success-solid-hover: #27663B;
+  --sh-danger-solid: #CC3226;
+  --sh-danger-solid-hover: #B82D22;
+  --sh-success-solid: #1A7F45;
+  --sh-success-solid-hover: #156C3A;
 
   /* Medidor de saldo, barra de saúde e gráficos */
-  --sh-meter-track: #4A4136;
-  --sh-meter-normal: #6DB580;
-  --sh-meter-baixo: #E3AE4D;
-  --sh-meter-sem: #EE7B66;
+  --sh-meter-track: #252E44;
+  --sh-meter-normal: #4CC38A;
+  --sh-meter-baixo: #E8A93A;
+  --sh-meter-sem: #F0645A;
 
-  /* Sobreposições: quase sem sombra (a hairline separa); só o que flutua tem sombra */
-  --sh-shadow-1: none;
-  --sh-shadow-card: none;
-  --sh-shadow-pop: 0 0 0 1px rgba(255, 255, 255, .07), 0 2px 4px rgba(0, 0, 0, .4), 0 12px 32px -4px rgba(0, 0, 0, .55);
-  --sh-shadow-modal: 0 0 0 1px rgba(255, 255, 255, .08), 0 4px 8px rgba(0, 0, 0, .4), 0 32px 72px -8px rgba(0, 0, 0, .7);
-  --sh-scrim: rgba(0, 0, 0, .62);
+  /* Elevação em camadas (cartão, flutuante, modal), brilho do acento e véu */
+  --sh-shadow-1: 0 1px 2px rgba(0, 0, 0, .5);
+  --sh-shadow-card: 0 0 0 1px rgba(255, 255, 255, .03), 0 1px 2px rgba(0, 0, 0, .5), 0 12px 28px -12px rgba(0, 0, 0, .7);
+  --sh-shadow-card-hover: 0 0 0 1px rgba(123, 136, 255, .28), 0 2px 4px rgba(0, 0, 0, .5), 0 18px 40px -14px rgba(0, 0, 0, .8);
+  --sh-shadow-pop: 0 0 0 1px rgba(255, 255, 255, .07), 0 2px 4px rgba(0, 0, 0, .45), 0 14px 36px -6px rgba(0, 0, 0, .65);
+  --sh-shadow-modal: 0 0 0 1px rgba(255, 255, 255, .08), 0 4px 8px rgba(0, 0, 0, .45), 0 36px 80px -10px rgba(0, 0, 0, .8);
+  --sh-glow: 0 0 0 4px rgba(123, 136, 255, .28);
+  --sh-glow-forte: 0 6px 26px -4px rgba(91, 108, 255, .55);
+  --sh-scrim: rgba(2, 4, 10, .66);
 
   /* Trios RGB e variáveis que o Bootstrap 5.3 usa em foco, links e utilitários */
-  --bs-primary-rgb: 74, 107, 204;
-  --bs-success-rgb: 47, 122, 71;
-  --bs-warning-rgb: 227, 174, 77;
-  --bs-danger-rgb: 194, 59, 43;
+  --bs-primary-rgb: 74, 88, 221;
+  --bs-success-rgb: 26, 127, 69;
+  --bs-warning-rgb: 232, 169, 58;
+  --bs-danger-rgb: 204, 50, 38;
   --bs-info-rgb: 124, 205, 228;
-  --bs-body-bg-rgb: 34, 30, 25;
-  --bs-body-color-rgb: 237, 230, 216;
-  --bs-link-color-rgb: 143, 170, 242;
-  --bs-link-hover-color-rgb: 143, 170, 242;
-  --bs-success-text-emphasis: #86C095;
-  --bs-success-bg-subtle: #243424;
+  --bs-body-bg-rgb: 8, 11, 19;
+  --bs-body-color-rgb: 234, 238, 247;
+  --bs-link-color-rgb: 163, 174, 255;
+  --bs-link-hover-color-rgb: 163, 174, 255;
+  --bs-success-text-emphasis: #6FD39B;
+  --bs-success-bg-subtle: #0E2619;
   --bs-success-border-subtle: var(--sh-success-border);
-  --bs-warning-text-emphasis: #E3AE4D;
-  --bs-warning-bg-subtle: #3A2D12;
+  --bs-warning-text-emphasis: #F0BE62;
+  --bs-warning-bg-subtle: #2A2008;
   --bs-warning-border-subtle: var(--sh-warning-border);
-  --bs-danger-text-emphasis: #EE8A76;
-  --bs-danger-bg-subtle: #40231D;
+  --bs-danger-text-emphasis: #FF9E94;
+  --bs-danger-bg-subtle: #321412;
   --bs-danger-border-subtle: var(--sh-danger-border);
   --bs-info-text-emphasis: #7CCDE4;
-  --bs-info-bg-subtle: #1E3036;
+  --bs-info-bg-subtle: #0C262E;
   --bs-info-border-subtle: var(--sh-info-border);
 }
 
@@ -339,75 +349,79 @@
   :root:not([data-bs-theme]) {
     color-scheme: dark;
 
-    /* Neutros, acento (azul-tinta da direção A "Edição") e foco */
-    --sh-bg: #221E19;
-    --sh-surface: #2B2620;
-    --sh-surface-2: #342E26;
-    --sh-border: #4A4136;
-    --sh-border-strong: #8A7F6D;
-    --sh-text: #EDE6D8;
-    --sh-text-muted: #BDB4A3;
-    --sh-text-subtle: #A89F8F;
-    --sh-accent: #4A6BCC;
-    --sh-accent-hover: #3E5CB4;
-    --sh-accent-text: #8FAAF2;
-    --sh-accent-soft: #2A3150;
-    --sh-focus: #8FAAF2;
+    /* Neutros (frios), acento índigo e foco */
+    --sh-bg: #080B13;
+    --sh-surface: #0E131F;
+    --sh-surface-2: #161D2D;
+    --sh-border: #252E44;
+    --sh-border-strong: #6D788F;
+    --sh-text: #EAEEF7;
+    --sh-text-muted: #AEB7CB;
+    --sh-text-subtle: #8A95AC;
+    --sh-accent: #4A58DD;
+    --sh-accent-hover: #3F4CC4;
+    --sh-accent-text: #A3AEFF;
+    --sh-accent-soft: #171E48;
+    --sh-focus: #A3AEFF;
+    --sh-accent-rgb: 123, 136, 255;
 
     /* Semânticas: texto, fundo tonal e borda decorativa */
-    --sh-success-fg: #86C095;
-    --sh-success-bg: #243424;
-    --sh-success-border: #3F6B4B;
-    --sh-warning-fg: #E3AE4D;
-    --sh-warning-bg: #3A2D12;
-    --sh-warning-border: #7F6221;
-    --sh-danger-fg: #EE8A76;
-    --sh-danger-bg: #40231D;
-    --sh-danger-border: #8F4A3D;
+    --sh-success-fg: #6FD39B;
+    --sh-success-bg: #0E2619;
+    --sh-success-border: #2A6B47;
+    --sh-warning-fg: #F0BE62;
+    --sh-warning-bg: #2A2008;
+    --sh-warning-border: #7A5A1C;
+    --sh-danger-fg: #FF9E94;
+    --sh-danger-bg: #321412;
+    --sh-danger-border: #85332C;
     --sh-info-fg: #7CCDE4;
-    --sh-info-bg: #1E3036;
-    --sh-info-border: #35707F;
+    --sh-info-bg: #0C262E;
+    --sh-info-border: #2A6575;
 
     /* Botões sólidos (texto branco): só para confirmar ação */
-    --sh-danger-solid: #C23B2B;
-    --sh-danger-solid-hover: #AD3425;
-    --sh-success-solid: #2F7A47;
-    --sh-success-solid-hover: #27663B;
+    --sh-danger-solid: #CC3226;
+    --sh-danger-solid-hover: #B82D22;
+    --sh-success-solid: #1A7F45;
+    --sh-success-solid-hover: #156C3A;
 
     /* Medidor de saldo, barra de saúde e gráficos */
-    --sh-meter-track: #4A4136;
-    --sh-meter-normal: #6DB580;
-    --sh-meter-baixo: #E3AE4D;
-    --sh-meter-sem: #EE7B66;
+    --sh-meter-track: #252E44;
+    --sh-meter-normal: #4CC38A;
+    --sh-meter-baixo: #E8A93A;
+    --sh-meter-sem: #F0645A;
 
-    /* Sobreposições: quase sem sombra (a hairline separa); só o que flutua tem sombra */
-    --sh-shadow-1: none;
-    --sh-shadow-card: none;
-    --sh-shadow-pop: 0 0 0 1px rgba(255, 255, 255, .07), 0 2px 4px rgba(0, 0, 0, .4), 0 12px 32px -4px rgba(0, 0, 0, .55);
-    --sh-shadow-modal: 0 0 0 1px rgba(255, 255, 255, .08), 0 4px 8px rgba(0, 0, 0, .4), 0 32px 72px -8px rgba(0, 0, 0, .7);
-    --sh-scrim: rgba(0, 0, 0, .62);
+    /* Elevação em camadas (cartão, flutuante, modal), brilho do acento e véu */
+    --sh-shadow-1: 0 1px 2px rgba(0, 0, 0, .5);
+    --sh-shadow-card: 0 0 0 1px rgba(255, 255, 255, .03), 0 1px 2px rgba(0, 0, 0, .5), 0 12px 28px -12px rgba(0, 0, 0, .7);
+    --sh-shadow-card-hover: 0 0 0 1px rgba(123, 136, 255, .28), 0 2px 4px rgba(0, 0, 0, .5), 0 18px 40px -14px rgba(0, 0, 0, .8);
+    --sh-shadow-pop: 0 0 0 1px rgba(255, 255, 255, .07), 0 2px 4px rgba(0, 0, 0, .45), 0 14px 36px -6px rgba(0, 0, 0, .65);
+    --sh-shadow-modal: 0 0 0 1px rgba(255, 255, 255, .08), 0 4px 8px rgba(0, 0, 0, .45), 0 36px 80px -10px rgba(0, 0, 0, .8);
+    --sh-glow: 0 0 0 4px rgba(123, 136, 255, .28);
+    --sh-glow-forte: 0 6px 26px -4px rgba(91, 108, 255, .55);
+    --sh-scrim: rgba(2, 4, 10, .66);
 
     /* Trios RGB e variáveis que o Bootstrap 5.3 usa em foco, links e utilitários */
-    --bs-primary-rgb: 74, 107, 204;
-    --bs-success-rgb: 47, 122, 71;
-    --bs-warning-rgb: 227, 174, 77;
-    --bs-danger-rgb: 194, 59, 43;
+    --bs-primary-rgb: 74, 88, 221;
+    --bs-success-rgb: 26, 127, 69;
+    --bs-warning-rgb: 232, 169, 58;
+    --bs-danger-rgb: 204, 50, 38;
     --bs-info-rgb: 124, 205, 228;
-    --bs-body-bg-rgb: 34, 30, 25;
-    --bs-body-color-rgb: 237, 230, 216;
-    --bs-link-color-rgb: 143, 170, 242;
-    --bs-link-hover-color-rgb: 143, 170, 242;
-    --bs-success-text-emphasis: #86C095;
-    --bs-success-bg-subtle: #243424;
+    --bs-body-bg-rgb: 8, 11, 19;
+    --bs-body-color-rgb: 234, 238, 247;
+    --bs-link-color-rgb: 163, 174, 255;
+    --bs-link-hover-color-rgb: 163, 174, 255;
+    --bs-success-text-emphasis: #6FD39B;
+    --bs-success-bg-subtle: #0E2619;
     --bs-success-border-subtle: var(--sh-success-border);
-    --bs-warning-text-emphasis: #E3AE4D;
-    --bs-warning-bg-subtle: #3A2D12;
+    --bs-warning-text-emphasis: #F0BE62;
+    --bs-warning-bg-subtle: #2A2008;
     --bs-warning-border-subtle: var(--sh-warning-border);
-    --bs-danger-text-emphasis: #EE8A76;
-    --bs-danger-bg-subtle: #40231D;
+    --bs-danger-text-emphasis: #FF9E94;
+    --bs-danger-bg-subtle: #321412;
     --bs-danger-border-subtle: var(--sh-danger-border);
     --bs-info-text-emphasis: #7CCDE4;
-    --bs-info-bg-subtle: #1E3036;
+    --bs-info-bg-subtle: #0C262E;
     --bs-info-border-subtle: var(--sh-info-border);
   }
 }
@@ -525,22 +539,19 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: var(--sh-track-titulo);
 }
 
-/* Serifa da direção A: título de página (h1) e de seção de página; h3 a h6 e rótulos continuam na pilha do sistema */
+/* Títulos de página e números de métrica: sem serifa, tracking levemente negativo, algarismos tabulares */
 h1,
 .sh-titulo-pagina,
 .sh-titulo-secao-v3,
-.sh-page-header__titulo,
-.sh-serif {
-  font-family: var(--sh-font-serif);
-  font-weight: 600;
-  font-variant-numeric: lining-nums;
+.sh-page-header__titulo {
+  font-weight: 650;
+  letter-spacing: -0.028em;
 }
 
-/* Números grandes de métrica: serifa com algarismos alinhados */
 .sh-metric__valor {
-  font-family: var(--sh-font-serif);
-  font-weight: 600;
-  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Texto de apoio: cinza, um pouco maior */
@@ -552,7 +563,7 @@ h1,
   text-wrap: pretty;
 }
 
-/* Sobretítulo: caixa-alta pequena, em cinza */
+/* Sobretítulo: texto pequeno em cinza (sem caixa-alta) */
 .sh-eyebrow {
   margin: 0;
   color: var(--sh-text-subtle);
@@ -604,7 +615,7 @@ code.sh-codigo {
 .accordion-button:focus {
   outline: 2px solid var(--sh-focus) !important;
   outline-offset: 2px;
-  box-shadow: none !important;
+  box-shadow: var(--sh-glow) !important;
 }
 
 /* Âncoras com o cabeçalho fixo não escondem o destino */
