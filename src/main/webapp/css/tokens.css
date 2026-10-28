@@ -264,9 +264,9 @@
 
   /* Neutros, acento (azul-tinta da direção A "Edição") e foco */
   --sh-bg: #221E19;
-  --sh-surface: #2A251F;
+  --sh-surface: #2B2620;
   --sh-surface-2: #342E26;
-  --sh-border: #41392F;
+  --sh-border: #4A4136;
   --sh-border-strong: #8A7F6D;
   --sh-text: #EDE6D8;
   --sh-text-muted: #BDB4A3;
@@ -298,7 +298,7 @@
   --sh-success-solid-hover: #27663B;
 
   /* Medidor de saldo, barra de saúde e gráficos */
-  --sh-meter-track: #41392F;
+  --sh-meter-track: #4A4136;
   --sh-meter-normal: #6DB580;
   --sh-meter-baixo: #E3AE4D;
   --sh-meter-sem: #EE7B66;
@@ -341,9 +341,9 @@
 
     /* Neutros, acento (azul-tinta da direção A "Edição") e foco */
     --sh-bg: #221E19;
-    --sh-surface: #2A251F;
+    --sh-surface: #2B2620;
     --sh-surface-2: #342E26;
-    --sh-border: #41392F;
+    --sh-border: #4A4136;
     --sh-border-strong: #8A7F6D;
     --sh-text: #EDE6D8;
     --sh-text-muted: #BDB4A3;
@@ -375,7 +375,7 @@
     --sh-success-solid-hover: #27663B;
 
     /* Medidor de saldo, barra de saúde e gráficos */
-    --sh-meter-track: #41392F;
+    --sh-meter-track: #4A4136;
     --sh-meter-normal: #6DB580;
     --sh-meter-baixo: #E3AE4D;
     --sh-meter-sem: #EE7B66;

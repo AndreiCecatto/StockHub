@@ -963,7 +963,8 @@
 }
 
 .db-grafico__hoje {
-  fill: var(--sh-accent-soft);
+  fill: var(--sh-surface-2);
+  opacity: .7;
 }
 
 .db-grafico__dia {
