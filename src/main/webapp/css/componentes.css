@@ -424,7 +424,7 @@ textarea.form-control {
   gap: 5px;
   padding: 2px 8px;
   border: 1px solid transparent;
-  border-radius: var(--sh-radius-sm);
+  border-radius: var(--sh-radius-pill);
   font-size: var(--sh-text-sm);
   font-weight: 600;
   letter-spacing: -0.003em;
@@ -2137,16 +2137,17 @@ button.sh-metric:hover {
 }
 
 .sh-page-header__titulo {
-  font-size: clamp(1.75rem, 1.35rem + 1.2vw, 2.375rem);
-  line-height: 1.1;
-  letter-spacing: -0.034em;
+  font-size: clamp(1.625rem, 1.4rem + 0.7vw, 2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: var(--sh-track-titulo);
 }
 
 .sh-page-header__desc {
   max-width: 62ch;
   margin-top: var(--sh-space-2);
   color: var(--sh-text-muted);
-  font-size: var(--sh-text-lg);
+  font-size: var(--sh-text-base);
 }
 
 /* ---------- Listas e tabelas: a tabela vive dentro de um cartão ---------- */
@@ -2416,5 +2417,121 @@ code.sh-codigo,
   a.sh-metric:hover,
   button.sh-metric:hover {
     transform: none;
+  }
+}
+
+/* ============================== Etapa 2 do redesign: acabamentos (seção 17 do design-system.md) ============================== */
+/* Cartões de seção empilhados sempre têm respiro entre si */
+.sh-main .sh-card.sh-secao {
+  margin-bottom: var(--sh-space-6);
+}
+
+/* Campo de arquivo: botão interno arredondado, alinhado ao resto dos controles */
+input[type="file"].form-control {
+  padding: 0;
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+input[type="file"].form-control::file-selector-button {
+  height: 100%;
+  margin: 0 var(--sh-space-3) 0 0;
+  padding: 0.6rem var(--sh-space-4);
+  border: 0;
+  border-right: 1px solid var(--sh-border);
+  border-radius: 0;
+  background: var(--sh-surface-2);
+  color: var(--sh-text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--sh-t-2) var(--sh-ease);
+}
+
+input[type="file"].form-control:hover::file-selector-button {
+  background: var(--sh-accent-soft);
+}
+
+input[type="file"].form-control {
+  display: flex;
+  align-items: center;
+}
+
+/* Celular: cada linha da tabela vira um cartão arredondado, separado dos outros */
+@media (max-width: 767.98px) {
+  .sh-table-wrap:has(> .sh-table--cards),
+  .sh-lista .sh-table-wrap:has(> .sh-table--cards) {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .sh-table--cards tbody {
+    display: grid;
+    gap: var(--sh-space-3);
+  }
+
+  .sh-table--cards tr {
+    border: 1px solid var(--sh-border);
+    border-radius: var(--sh-radius-lg);
+    background: var(--sh-surface);
+    box-shadow: var(--sh-shadow-card);
+    overflow: hidden;
+  }
+
+  .sh-table--cards tbody tr:last-child {
+    border-bottom: 1px solid var(--sh-border);
+  }
+
+  .sh-table--cards tr.sh-linha--sem {
+    box-shadow: var(--sh-shadow-card), inset 4px 0 0 var(--sh-danger-fg);
+  }
+
+  .sh-table--cards tr.sh-linha--baixo {
+    box-shadow: var(--sh-shadow-card), inset 4px 0 0 var(--sh-warning-fg);
+  }
+}
+
+/* Estados vazios: ícone discreto em placa arredondada */
+.sh-vazio__icone {
+  display: inline-grid;
+  width: 56px;
+  height: 56px;
+  place-items: center;
+  border-radius: var(--sh-radius-lg);
+  background: var(--sh-accent-soft);
+  color: var(--sh-accent-text);
+  font-size: 1.5rem;
+}
+
+.sh-vazio--sucesso .sh-vazio__icone {
+  background: var(--sh-success-bg);
+}
+
+/* Alertas: cantos de cartão e uma sombra leve, com ícone + texto (a cor só reforça) */
+.sh-alert {
+  border-radius: var(--sh-radius);
+  box-shadow: var(--sh-shadow-1);
+}
+
+/* Modais em vidro: superfície translúcida com desfoque e sombra em camadas */
+.modal-content {
+  border: 1px solid var(--sh-glass-borda);
+  border-radius: var(--sh-radius-lg);
+  background: var(--sh-surface);
+  box-shadow: var(--sh-shadow-modal);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .modal-content {
+    background: color-mix(in srgb, var(--sh-surface) 90%, transparent);
+    -webkit-backdrop-filter: var(--sh-glass-blur);
+    backdrop-filter: var(--sh-glass-blur);
+  }
+
+  .modal-backdrop.show {
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
   }
 }

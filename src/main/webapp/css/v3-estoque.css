@@ -92,7 +92,7 @@
   }
 
   .v3e:not(.v3e--recolhido) .v3e-filtros {
-    grid-template-columns: minmax(0, 2fr) minmax(7rem, 1fr) 9.5rem 9.5rem auto;
+    grid-template-columns: minmax(7rem, 1fr) 9.25rem 9.25rem auto;
     align-items: end;
     padding-block: var(--sh-space-3);
   }
@@ -102,6 +102,11 @@
   .v3e:not(.v3e--recolhido) .v3e-filtros__tipo,
   .v3e:not(.v3e--recolhido) .v3e-filtros__acoes {
     grid-column: auto;
+  }
+
+  /* O produto ocupa a primeira linha inteira; tipo, datas e ação ficam na segunda */
+  .v3e:not(.v3e--recolhido) .v3e-filtros__produto {
+    grid-column: 1 / -1;
   }
 
   .v3e:not(.v3e--recolhido) .v3e-filtros .form-label {
@@ -169,7 +174,8 @@
   padding: var(--sh-space-5);
   border: 1px solid var(--sh-border);
   border-radius: var(--sh-radius-lg);
-  background: var(--sh-surface);
+  background: var(--sh-grad-destaque);
+  box-shadow: var(--sh-shadow-card);
 }
 
 .v3e-console__cab {
@@ -870,7 +876,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--sh-space-3) var(--sh-space-4);
-  padding: var(--sh-space-3) 0 var(--sh-space-4);
+  padding: var(--sh-space-5) var(--sh-space-5) var(--sh-space-4);
 }
 
 .v3e-razao-card__desc {
@@ -889,7 +895,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--sh-space-3);
-  padding: var(--sh-space-3) 0 var(--sh-space-4);
+  padding: var(--sh-space-4) var(--sh-space-5);
   border-top: 1px solid var(--sh-border);
   background: transparent;
 }

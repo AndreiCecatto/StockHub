@@ -1677,3 +1677,31 @@ html[data-v3-densidade="compacta"] .v3-aj__btn {
     padding-right: 8px;
   }
 }
+
+/* ============================== Etapa 2: abas de situação em pílula segmentada ============================== */
+.v3-grupo--chips .sh-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--sh-border);
+  border-radius: calc(var(--sh-radius-sm) + 4px);
+  background: color-mix(in srgb, var(--sh-surface-2) 75%, transparent);
+}
+
+.sh-prod-chip .sh-chip {
+  padding: 0 14px;
+  margin-bottom: 0;
+  border-bottom: 0;
+  border-radius: var(--sh-radius-sm);
+  gap: 6px;
+  min-height: calc(var(--sh-alvo) - 4px);
+  transition: background-color var(--sh-t-2) var(--sh-spring), box-shadow var(--sh-t-3) var(--sh-spring);
+}
+
+.sh-prod-chip__input:checked + .sh-chip {
+  border-bottom: 0;
+  background: var(--sh-surface);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sh-accent) 30%, var(--sh-border)), var(--sh-shadow-1);
+  color: var(--sh-accent-text);
+}
