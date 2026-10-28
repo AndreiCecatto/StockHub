@@ -430,7 +430,8 @@ html[data-v3-densidade="compacta"] .v3-tabela .sh-prod-desc {
 /* Telas médias (com a barra lateral): categoria e preço vão para a linha de baixo do nome */
 @media (min-width: 768px) and (max-width: 1199.98px) {
   .v3-c-cat,
-  .v3-c-preco {
+  .v3-c-preco,
+  .v3-c-ramo {
     display: none;
   }
 
@@ -445,6 +446,20 @@ html[data-v3-densidade="compacta"] .v3-tabela .sh-prod-desc {
   .v3-tabela .v3-prod-meta {
     display: block;
   }
+
+  .v3-tabela .v3-prod-ramo {
+    display: flex;
+  }
+}
+
+/* Valores de ramo (tamanho, cor, lote...) sob o nome: só nas telas médias; no celular vêm como data-label */
+.v3-prod-ramo {
+  display: none;
+  flex-wrap: wrap;
+  gap: 0 var(--sh-space-3);
+  margin-top: 2px;
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
 }
 
 .v3-prod-meta {
