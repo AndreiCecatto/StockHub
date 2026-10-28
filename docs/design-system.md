@@ -1105,7 +1105,7 @@ Feedback: o início tinha "muita cara de dashboard de IA" (quatro cartões iguai
 - **Sem cartões:** seções separadas por fio, listas com divisores; gráfico de 14 dias e últimos produtos mantidos, sem caixa.
 
 
-## 17. Direção A "Edição" (27/10/2026), fatias 1 e 2: tokens e estrutura
+## 17. Direção A "Edição" (27/10/2026), fatias 1 a 4: tokens, estrutura, início e listas
 
 Decisões do dono: manter a barra lateral (adaptada à linguagem A); escuro quente (marrom do protótipo `direcao-a-edicao.html`); raios 8/6 e quase sem sombra no claro; login, início e cadastro acompanham a paleta (composição e animação preservadas, só cor e fonte mudam). **Esta seção substitui os valores de cor, raio e sombra da seção 12.2 e da seção 14**; nomes de tokens, ordem de carregamento e a regra "os três blocos de tema iguais entre si" não mudaram.
 
@@ -1247,3 +1247,34 @@ Decisões do dono: manter a barra lateral (adaptada à linguagem A); escuro quen
 | palco do login: acento e foco / palco (3:1) | `#8FAAF2` sobre `#1A1713` | 7.82:1 | 3 | passa |
 
 **Verificação:** app real na porta 8087 com a loja de teste "Oficina - Mecânica" (dono): `/login`, `/cadastro`, `/` e as telas autenticadas (início, produtos, movimentações, categorias, estoque baixo, unidades, valor do estoque, análises, equipe, clientes, OS, NF-e) responderam 200 e os seis CSS carregaram com os valores novos. O tema escolhido é aplicado só no navegador (`localStorage` + `data-bs-theme`), então claro e escuro servem o mesmo HTML. **Não visto em navegador:** a aparência real (lateral, serifa, palco do login, gráficos, foco), a transição entre páginas e o `color-mix` dos gráficos; as telas das fatias seguintes (início, produtos, formulários) ainda usam CSS próprio e podem ter hex antigos.
+
+
+### 17.1 Fatia 3: início (`dashboard.jsp`, `css/dashboard.css`)
+
+A capa do dia (seção 16) passou para a linguagem A sem mudar de estrutura: manchete em serifa com dateline em caixa-alta e fio de tinta embaixo, botões do protótipo (primário em acento, secundário só com contorno, terciário sublinhado), "A repor hoje" e os totais do livro-caixa como colunas separadas por filete (sem cartões), linha do tempo "Hoje na loja" com a etiqueta de origem em negrito, bloco de OS por tipo de loja, gráfico de 14 dias e últimos produtos sem caixa. Os valores vêm dos tokens da fatia 1; nenhum token novo. Commits: `5cf604f`, `5fb78d8`, `fc17c63`.
+
+### 17.2 Fatia 4: listas e tabelas
+
+Telas: produtos, movimentações (`estoque.jsp`), estoque baixo, clientes, ordens de serviço, compras (NF-e), categorias, unidades e equipe. Regras compartilhadas em `css/componentes.css` (bloco "Direção A: listas e tabelas"); cada tela só acrescenta o que é dela.
+
+| Elemento | Regra |
+|---|---|
+| Cabeçalho de página | Título em serifa, `clamp(2rem, 3.4vw, 2.75rem)`, entrelinha 1,05, tracking -0,02em; subtítulo de 17 px em `--sh-text-muted`, no máximo 54 caracteres de largura. |
+| Tabela | Sem caixa (`.sh-table-wrap` sem borda, fundo ou raio; rolagem horizontal própria). Seções de lista usam `.sh-card.sh-lista`, que tira a caixa do cartão. Cabeçalho em caixa-alta, 11,5 px, peso 700, tracking 0,1em, `--sh-text-muted`; filete `--sh-border` entre as linhas, inclusive depois da última. Recuo de 12 px só na primeira coluna (onde fica o filete de alerta). Regras só a partir de 768 px: o cartão do celular não muda. |
+| Nome | Serifa 1,03 rem, peso 600 (`.v3-prod-nome`, `.cli-nome`, `.os-numero`, `.nfe-nota-link`, `.mb-nome`, `.v3e-prod__nome`). |
+| Números | Fonte monoespaçada (`--sh-font-codigo`, ou seja, `ui-monospace`/Cascadia/Consolas se a Geist Mono não estiver instalada), tabular, peso 600, à direita (`.sh-col-num`, `.text-end`, `.v3-mono` na tabela de produtos, quantidade e saldo do livro-razão). O saldo de produtos também é alinhado à direita, com o cabeçalho (`numerico="true"` em `colunaOrdenavel`). |
+| Linha de alerta | Filete de 3 px à esquerda (`--sh-danger-fg` sem estoque, `--sh-warning-fg` abaixo do mínimo), já existente, mantido; a tag e a mini barra repetem o estado, então a cor nunca é a única pista. |
+| Tag de situação | Na tabela, `.sh-badge--normal/baixo/sem` e `.os-status` perdem fundo e borda e viram texto de 12 px, peso 700, com forma: círculo (normal), triângulo (baixo), octógono (sem estoque). O selo de estoque já tem ícone com essas formas; os sem ícone (Ativa e Desativada da equipe, situação da OS) ganham um marcador `::before` com a mesma forma. |
+| Mini barra de saldo | `.sh-meter` com 4 px dentro de tabelas (era 6), máx. 190 px, alinhada à direita; o marcador do mínimo e o texto "mín. N" continuam. **O estoque mínimo segue em destaque** (regra do projeto): filete + tag + barra + texto. |
+| Abas de filtro | Faixa com filete de tinta (`--sh-text`) embaixo; a aba atual tem sublinhado de acento de 2 px, cor de tinta e peso 700 (não depende só da cor). Componente `.sh-abas` / `.sh-aba` / `.sh-aba__n` (contagem em mono), usado em OS (`aria-current="page"`). Em produtos, os rádios de situação do estoque (`.sh-prod-chip`) e, em clientes, os rádios `.sh-seg` foram apresentados como abas só por CSS; a marcação, os `name`/`id` e o envio continuam iguais. |
+| Faixa de filtros | Sem caixa: busca com largura máxima, abas e selects numa linha com filete de tinta embaixo. |
+| Paginação | Sem caixas: botões transparentes, número da página em mono, página atual em negrito com sublinhado de acento, "Mostrando x-y de z" em texto discreto. |
+| Livro-razão (`estoque.jsp`) | Cartão sem caixa; cabeçalho de colunas como o da tabela; título do dia em caixa-alta com filete; produto em serifa; quantidade e saldo em mono. O painel de lançamento (formulário) é da fatia 5 e não foi tocado. |
+
+Preservado: colunas personalizáveis de produtos (`c:if` por `colunas['COL_*']`, `v3-c-ramo`, `v3-prod-ramo`, traço "—"), atributos `data-*` de `lista-teclado.js`, `peek.js`, `produtos.js` e `v3-prod-ajuste.js`, CSRF, `c:out`, ids e names. Arquivos: `componentes.css`, `lote-produtos.css`, `v3-estoque.css`, `clientes.css`, `os.css`, `nfe.css`, `membros.css`; JSPs: `produtos.jsp` (`numerico` no saldo), `clientes.jsp`, `membros.jsp` (classe `sh-lista`), `os-lista.jsp` (abas). `categorias.jsp`, `unidades.jsp`, `nfe-lista.jsp` e `estoque.jsp` não precisaram mudar: o markup já aceitava as regras.
+
+**Contrastes.** Nenhuma cor nova: tags, contagens, sublinhados e filetes usam os pares da seção 17 (tabela de contrastes). Conferido por script (`scratchpad/contraste.pl`, fora do repositório) para todos os textos de estado (normal, baixo, sem estoque, informação, acento, texto secundário e terciário) contra bg, surface, surface-2 e accent-soft (linha em foco ou selecionada), nos dois temas: o menor valor para texto é 4,98:1 (sem estoque sobre surface-2, claro); filetes e sublinhados (acento, tinta, alerta) passam em 3:1 (o menor é o acento escuro sobre surface, 3,09:1).
+
+**Pedido ao backend (não feito aqui).** As abas de produtos não mostram contagem porque o `ProdutoController` não envia o total por situação (Todos, Normal, Baixo, Sem estoque); com um mapa `contagemNiveis` as abas ganhariam o `sh-aba__n` como as de OS. As abas de clientes também não têm contagem por situação.
+
+**Verificação.** App na porta 8085 com as 21 lojas de teste (estoque, comércio, oficina e misto, todos os ramos): produtos (e `nivelEstoque=baixo`), movimentações, estoque baixo, compras (NF-e), categorias, unidades e equipe responderam 200; clientes e OS 200 nas lojas com o módulo e 404 nas sem (esperado). Conferido no HTML: linhas com `sh-linha--sem/baixo`, colunas de ramo e traço "—" por ramo, token CSRF, abas de OS com `aria-current`, CSS novo servido. **Não visto em navegador:** a aparência real (serifa, mono, tags, abas, mini barra), o escuro, o celular, a barra de alerta nas linhas, a densidade compacta, o ajuste rápido do saldo alinhado à direita e o livro-razão rolando por dentro.
