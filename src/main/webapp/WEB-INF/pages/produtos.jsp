@@ -7,7 +7,10 @@
     (ok, baixo, semEstoque), ordenacao (id, nome, preco, quantidade, categoria), direcao (asc, desc), tamanho, pagina.
     Dados do ProdutoController: produtos, categorias, busca, categoriaId, nivelEstoque, ordenacao, direcao,
     direcaoInversa, paginaAtual, totalPaginas, totalProdutosFiltro, tamanho, parametrosFiltros (que NÃO traz direcao:
-    a paginação acrescenta). Flash: mensagem (toast) e erro (inline), pelo alertas.jsp do layout.
+    a paginação acrescenta), colunas (Map código -> visível, personalização da loja, RN-115 a RN-120; só traz as colunas
+    aplicáveis à loja: chave ausente = a coluna não existe nessa loja e não é desenhada) e camposRamo. Chaves: COL_CATEGORIA,
+    COL_PRECO, COL_SITUACAO, COL_DESCRICAO (todas as lojas) e COL_TAMANHO, COL_COR, COL_LOTE, COL_VALIDADE, COL_NUMERO_SERIE
+    (de ramo). Nome, saldo (ajuste rápido e medidor), ações, seleção e paginação nunca somem. Flash: mensagem (toast) e erro (inline), pelo alertas.jsp do layout.
 
     Funciona sem JavaScript: o filtro é um GET comum, o nome do produto é um link para a página inteira e o saldo é um número.
     Com JavaScript (js/v3-prod-init.js marca a página, js/produtos.js e js/v3-prod-ajuste.js):
@@ -22,6 +25,17 @@
 <fmt:setLocale value="pt_BR" scope="request" />
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="temFiltros" value="${not empty busca or not empty categoriaId or not empty nivelEstoque}" />
+
+<%-- Colunas visíveis (personalização da loja). Chave ausente em "colunas" = coluna que a loja não tem. --%>
+<c:set var="verCategoria" value="${colunas['COL_CATEGORIA'] == true}" />
+<c:set var="verPreco" value="${colunas['COL_PRECO'] == true}" />
+<c:set var="verSituacao" value="${colunas['COL_SITUACAO'] == true}" />
+<c:set var="verDescricao" value="${colunas['COL_DESCRICAO'] == true}" />
+<c:set var="verTamanho" value="${colunas['COL_TAMANHO'] == true}" />
+<c:set var="verCor" value="${colunas['COL_COR'] == true}" />
+<c:set var="verLote" value="${colunas['COL_LOTE'] == true}" />
+<c:set var="verValidade" value="${colunas['COL_VALIDADE'] == true}" />
+<c:set var="verSerie" value="${colunas['COL_NUMERO_SERIE'] == true}" />
 
 <%-- Rótulos dos filtros ativos --%>
 <c:set var="categoriaNome" value="" />
@@ -175,9 +189,9 @@
                         <select id="ordenacao" class="form-select" name="ordenacao">
                             <option value="id" ${ordenacao == 'id' ? 'selected' : ''}>Mais recentes</option>
                             <option value="nome" ${ordenacao == 'nome' ? 'selected' : ''}>Nome</option>
-                            <option value="preco" ${ordenacao == 'preco' ? 'selected' : ''}>Preço</option>
+                            <c:if test="${verPreco or ordenacao == 'preco'}"><option value="preco" ${ordenacao == 'preco' ? 'selected' : ''}>Preço</option></c:if>
                             <option value="quantidade" ${ordenacao == 'quantidade' ? 'selected' : ''}>Saldo</option>
-                            <option value="categoria" ${ordenacao == 'categoria' ? 'selected' : ''}>Categoria</option>
+                            <c:if test="${verCategoria or ordenacao == 'categoria'}"><option value="categoria" ${ordenacao == 'categoria' ? 'selected' : ''}>Categoria</option></c:if>
                         </select>
                     </div>
                     <div class="v3-grupo">
@@ -301,13 +315,22 @@
                                         </th>
                                         <sh:colunaOrdenavel campo="nome" rotulo="Produto" ordenacaoAtual="${ordenacao}"
                                             direcaoAtual="${direcao}" urlBase="${urlOrdem}" classe="v3-c-prod" />
-                                        <sh:colunaOrdenavel campo="categoria" rotulo="Categoria" ordenacaoAtual="${ordenacao}"
-                                            direcaoAtual="${direcao}" urlBase="${urlOrdem}" classe="v3-c-cat" />
-                                        <sh:colunaOrdenavel campo="preco" rotulo="Preço" ordenacaoAtual="${ordenacao}"
-                                            direcaoAtual="${direcao}" urlBase="${urlOrdem}" numerico="true" classe="v3-c-preco" />
+                                        <c:if test="${verCategoria}">
+                                            <sh:colunaOrdenavel campo="categoria" rotulo="Categoria" ordenacaoAtual="${ordenacao}"
+                                                direcaoAtual="${direcao}" urlBase="${urlOrdem}" classe="v3-c-cat" />
+                                        </c:if>
+                                        <c:if test="${verPreco}">
+                                            <sh:colunaOrdenavel campo="preco" rotulo="Preço" ordenacaoAtual="${ordenacao}"
+                                                direcaoAtual="${direcao}" urlBase="${urlOrdem}" numerico="true" classe="v3-c-preco" />
+                                        </c:if>
                                         <sh:colunaOrdenavel campo="quantidade" rotulo="Saldo" ordenacaoAtual="${ordenacao}"
                                             direcaoAtual="${direcao}" urlBase="${urlOrdem}" classe="v3-c-saldo" />
-                                        <th scope="col" role="columnheader" class="v3-c-sit">Situação</th>
+                                        <c:if test="${verSituacao}"><th scope="col" role="columnheader" class="v3-c-sit">Situação</th></c:if>
+                                        <c:if test="${verTamanho}"><th scope="col" role="columnheader">Tamanho</th></c:if>
+                                        <c:if test="${verCor}"><th scope="col" role="columnheader">Cor</th></c:if>
+                                        <c:if test="${verLote}"><th scope="col" role="columnheader">Lote</th></c:if>
+                                        <c:if test="${verValidade}"><th scope="col" role="columnheader">Validade</th></c:if>
+                                        <c:if test="${verSerie}"><th scope="col" role="columnheader">Série</th></c:if>
                                         <th scope="col" role="columnheader" class="v3-c-acoes"><span class="visually-hidden">Ações</span></th>
                                     </tr>
                                 </thead>
@@ -324,15 +347,19 @@
                                             <td role="cell" class="v3-c-prod">
                                                 <a class="v3-prod-nome" href="<c:out value='${ctx}/produtos/${produto.id}'/>"
                                                     data-sh-peek data-sh-linha-link data-sh-peek-titulo="<c:out value='${produto.nome}'/>"><c:out value="${produto.nome}" /></a>
-                                                <span class="v3-prod-meta">
-                                                    <c:out value="${produto.categoria.nome}" /> &middot; <span class="v3-mono">R$ <fmt:formatNumber value="${produto.preco}" pattern="#,##0.00" /></span>
-                                                </span>
-                                                <c:if test="${not empty produto.descricao}">
+                                                <c:if test="${verCategoria or verPreco}">
+                                                    <span class="v3-prod-meta">
+                                                        <c:if test="${verCategoria}"><c:out value="${produto.categoria.nome}" /></c:if>
+                                                        <c:if test="${verCategoria and verPreco}"> &middot; </c:if>
+                                                        <c:if test="${verPreco}"><span class="v3-mono">R$ <fmt:formatNumber value="${produto.preco}" pattern="#,##0.00" /></span></c:if>
+                                                    </span>
+                                                </c:if>
+                                                <c:if test="${verDescricao and not empty produto.descricao}">
                                                     <span class="sh-prod-desc"><c:out value="${produto.descricao}" /></span>
                                                 </c:if>
                                             </td>
-                                            <td role="cell" class="v3-c-cat" data-label="Categoria"><c:out value="${produto.categoria.nome}" /></td>
-                                            <td role="cell" class="v3-c-preco sh-col-num v3-mono" data-label="Preço">R$ <fmt:formatNumber value="${produto.preco}" pattern="#,##0.00" /></td>
+                                            <c:if test="${verCategoria}"><td role="cell" class="v3-c-cat" data-label="Categoria"><c:out value="${produto.categoria.nome}" /></td></c:if>
+                                            <c:if test="${verPreco}"><td role="cell" class="v3-c-preco sh-col-num v3-mono" data-label="Preço">R$ <fmt:formatNumber value="${produto.preco}" pattern="#,##0.00" /></td></c:if>
                                             <td role="cell" class="v3-c-saldo" data-label="Saldo">
                                                 <div class="v3-saldo">
                                                     <span class="v3-saldo-fixo v3-so-semjs"><strong class="v3-mono"><fmt:formatNumber value="${produto.quantidade}" pattern="#,##0" /></strong> un.</span>
@@ -364,7 +391,19 @@
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td role="cell" class="v3-c-sit" data-label="Situação"><span data-v3-selo><sh:badgeEstoque nivel="${produto.nivelEstoque}" /></span></td>
+                                            <c:if test="${verSituacao}"><td role="cell" class="v3-c-sit" data-label="Situação"><span data-v3-selo><sh:badgeEstoque nivel="${produto.nivelEstoque}" /></span></td></c:if>
+                                            <c:if test="${verTamanho}"><td role="cell" data-label="Tamanho"><c:out value="${produto.tamanho}" /></td></c:if>
+                                            <c:if test="${verCor}"><td role="cell" data-label="Cor"><c:out value="${produto.cor}" /></td></c:if>
+                                            <c:if test="${verLote}"><td role="cell" data-label="Lote"><c:out value="${produto.lote}" /></td></c:if>
+                                            <c:if test="${verValidade}">
+                                                <td role="cell" data-label="Validade">
+                                                    <c:if test="${not empty produto.dataValidade}">
+                                                        <fmt:parseDate value="${produto.dataValidade}" pattern="yyyy-MM-dd" var="dataVal" type="date" />
+                                                        <fmt:formatDate value="${dataVal}" pattern="dd/MM/yyyy" />
+                                                    </c:if>
+                                                </td>
+                                            </c:if>
+                                            <c:if test="${verSerie}"><td role="cell" data-label="Série"><c:out value="${produto.numeroSerie}" /></td></c:if>
                                             <td role="cell" class="v3-c-acoes" data-label="">
                                                 <div class="v3-acoes">
                                                     <a class="btn btn-ghost btn-sm v3-icone" href="<c:out value='${ctx}/estoque?movProduto=${produto.id}'/>" title="Movimentar">
