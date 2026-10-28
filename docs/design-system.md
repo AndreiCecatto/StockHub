@@ -1,6 +1,6 @@
 # StockHub: identidade visual e experiência
 
-Registro das decisões de design do front. **A direção vigente é a seção 12 (v3, "central de operações")**; as seções 1 a 11 ficam como histórico das versões anteriores.
+Registro das decisões de design do front. **A direção vigente é a seção 17 (base "limpa, viva e séria") sobre a estrutura da seção 12 (v3)**; as seções 1 a 11 ficam como histórico das versões anteriores.
 Escrito em 26/10/2026, a partir de `docs/mercado-requisitos.md`, `docs/regras-negocio.md`, dos controllers e do front atual.
 
 Legenda usada em todo o texto:
@@ -1105,213 +1105,38 @@ Feedback: o início tinha "muita cara de dashboard de IA" (quatro cartões iguai
 - **Sem cartões:** seções separadas por fio, listas com divisores; gráfico de 14 dias e últimos produtos mantidos, sem caixa.
 
 
-## 17. Direção A "Edição" (27/10/2026), fatias 1 a 4: tokens, estrutura, início e listas
+## 17. Base visual "limpa, viva e séria" (27/10/2026; substitui a direção A "Edição", rejeitada pelo dono)
 
-Decisões do dono: manter a barra lateral (adaptada à linguagem A); escuro quente (marrom do protótipo `direcao-a-edicao.html`); raios 8/6 e quase sem sombra no claro; login, início e cadastro acompanham a paleta (composição e animação preservadas, só cor e fonte mudam). **Esta seção substitui os valores de cor, raio e sombra da seção 12.2 e da seção 14**; nomes de tokens, ordem de carregamento e a regra "os três blocos de tema iguais entre si" não mudaram.
+Brief do dono: limpo, animado, meio futurista (linguagem de produto Apple), com tom sério, nada que lembre caderno. A página inicial, o login e o cadastro continuam como estavam (palco escuro frio); o sistema logado passa a falar a mesma língua. Esta etapa cobre os tokens, a estrutura, os componentes base e o movimento; o redesenho detalhado do início (`dashboard.css`), das listas e dos formulários vem na etapa seguinte.
 
-**Paleta.** Papel quente (`#F5F0E6`) com tinta marrom (`#26221C`) e **um** acento, azul-tinta (`#1D3F8F`). O escuro é marrom quente (`#221E19`), sem cinza azulado. Valores do protótipo (bg, bg2, ink, mut, rule, acc, dan, warn, ok) mantidos; o que o protótipo não tinha foi derivado e calculado: superfície um tom mais clara que o fundo no claro (`#FBF8F2`) para os campos se destacarem, escala de texto em três níveis, fundos tonais quentes, medidores, botões sólidos e informação (ciano-petróleo, para a Saída da movimentação não virar azul de ação). Os três blocos (claro, `[data-bs-theme="dark"]`, `@media` sem JavaScript) foram regenerados da mesma tabela; o escuro dos dois últimos é idêntico (conferido por script).
+**Regras.** Superfícies frias e neutras (claro quase branco com cinzas azulados; escuro grafite azulado profundo, nunca marrom). Um único acento índigo, com brilho sutil só em foco, item ativo e botão primário. Só sans (Inter/SF), pesos 500 a 650, títulos com tracking de -0,03em, números tabulares. Sem serifa (`--sh-font-serif` removido), sem caixa-alta decorativa, sem filetes de tinta. Raios: 7 (detalhes), 10 (controles), 14 (cartões e tabelas), 18 (painéis e diálogos). Sombras em camadas (`--sh-shadow-card`, `-card-hover`, `-pop`, `-modal`), `--sh-glow` (anel luminoso) e `--sh-glow-forte` (brilho do botão primário). Vidro (blur 18px + borda translúcida, `--sh-glass*`) na barra superior, na lateral e nas camadas flutuantes (menu, modal, painel, toast). Gradientes sutis: `--sh-grad-destaque`, `--sh-hairline` (linha que some nas pontas, sob a barra superior) e halos de acento fixos no fundo do app.
+
+**Paleta e contraste (calculados por script; mínimo 4,5:1 para texto, 3:1 para bordas de campo e foco).**
 
 | Papel | Claro | Escuro |
 |---|---|---|
-| `--sh-bg` (fundo da página e da barra lateral) | `#F5F0E6` | `#221E19` |
-| `--sh-surface` (cartões, campos, tabelas) | `#FBF8F2` | `#2A251F` |
-| `--sh-surface-2` | `#EDE6D6` | `#342E26` |
-| `--sh-border` (hairline decorativa) | `#D6CCB8` | `#41392F` |
-| `--sh-border-strong` (borda de campo, 3:1) | `#8A7F6B` | `#8A7F6D` |
-| `--sh-text` | `#26221C` | `#EDE6D8` |
-| `--sh-text-muted` | `#574E41` | `#BDB4A3` |
-| `--sh-text-subtle` | `#6B6254` | `#A89F8F` |
-| `--sh-accent` (botão, marca) | `#1D3F8F` | `#4A6BCC` |
-| `--sh-accent-hover` | `#152F6D` | `#3E5CB4` |
-| `--sh-accent-text` (links, ícones, marcador do menu) | `#1D3F8F` | `#8FAAF2` |
-| `--sh-accent-soft` | `#E3E7F0` | `#2A3150` |
-| `--sh-focus` | `#1D3F8F` | `#8FAAF2` |
-| Normal: texto | `#2F6B3F` | `#86C095` |
-| Normal: fundo | `#E4EBD9` | `#243424` |
-| Baixo: texto | `#7F5200` | `#E3AE4D` |
-| Baixo: fundo | `#F6E8C4` | `#3A2D12` |
-| Sem estoque e erro: texto | `#B3321F` | `#EE8A76` |
-| Sem estoque e erro: fundo | `#F7E1D9` | `#40231D` |
-| Saída e informação: texto | `#0B6478` | `#7CCDE4` |
-| Saída e informação: fundo | `#DDEBEA` | `#1E3036` |
-| Medidor Normal / Baixo / Sem | `#3B7D4C` / `#A8630A` / `#B3321F` | `#6DB580` / `#E3AE4D` / `#EE7B66` |
-| Trilho do medidor | `#DDD3BE` | `#41392F` |
+| `--sh-bg` | `#F4F6FA` | `#080B13` |
+| `--sh-surface` | `#FFFFFF` | `#0E131F` |
+| `--sh-surface-2` | `#ECEFF5` | `#161D2D` |
+| `--sh-border` | `#DDE2EC` | `#252E44` |
+| `--sh-border-strong` (3:1) | `#76809A` (3,65 no fundo) | `#6D788F` (4,43) |
+| `--sh-text` | `#0E1320` (17,1) | `#EAEEF7` (16,9) |
+| `--sh-text-muted` | `#434B5E` (8,1) | `#AEB7CB` (9,8) |
+| `--sh-text-subtle` | `#566078` (5,8) | `#8A95AC` (6,5) |
+| `--sh-accent` (texto branco: 5,4 / 5,6) | `#4A5AE8` | `#4A58DD` |
+| `--sh-accent-hover` (branco: 7,0 / 6,9) | `#3B49CC` | `#3F4CC4` |
+| `--sh-accent-text` (no fundo: 6,5 / 9,4) | `#3B49CC` | `#A3AEFF` |
+| `--sh-accent-soft` | `#E9ECFF` | `#171E48` |
+| `--sh-focus` | `#4A5AE8` (4,95) | `#A3AEFF` (9,4) |
 
-**Tipografia.** Pilha do sistema, sem fonte nova. Serifa (`--sh-font-serif`: Iowan Old Style, Palatino, Georgia) **só** em: marca (barra lateral e barra superior), `h1`, `.sh-titulo-pagina`, `.sh-titulo-secao-v3`, `.sh-page-header__titulo`, `.sh-serif` e números de métrica (`.sh-metric__valor`). Todo o resto continua em `--sh-font`; códigos em `--sh-font-codigo`.
+Semânticas (texto sobre o fundo tonal): sucesso 4,75 / 8,75; alerta 7,12 / 9,36; perigo 5,59 / 8,49; info 5,87 / 8,79. Botões sólidos de perigo e sucesso com texto branco: 5,94 / 5,02 (claro) e 5,18 / 5,04 (escuro). Os três blocos de cor de `css/tokens.css` (claro, `[data-bs-theme="dark"]`, `@media` sem JS) são idênticos entre si.
 
-**Raios e sombra.** `--sh-radius-xs/sm/radius/lg` = **4 / 6 / 8 / 10 px** (teclas e detalhes, controles, cartões e tabelas, painéis e diálogos). `--sh-shadow-1` e `--sh-shadow-card` valem `none` nos dois temas (a hairline `--sh-border` separa); só o que flutua (`--sh-shadow-pop`, `--sh-shadow-modal`) tem sombra, com tinta marrom no claro. Novo token `--sh-backdrop` (`#1A1713`) para o véu de modais e painéis.
+**Estoque.** Continua com forma + texto + cor: selo em pílula tonal com ícone (ou marcador: círculo normal, triângulo baixo, octógono sem estoque) e a palavra; linha de produto abaixo do mínimo com barra lateral colorida.
 
-**Barra lateral (fatia 2, `css/layout.css`; `includes/sh/lateral.jsp` não precisou mudar).** Mesma cor do fundo, hairline à direita. Marca em serifa com filete duplo embaixo (como o cabeçalho do protótipo). Títulos de grupo em caixa-alta pequena com tracking aberto (único uso de caixa-alta no sistema, vindo do menu do protótipo). Item atual: sem cartão e sem sombra; texto em tinta, peso 600, ícone e filete de 3 px em `--sh-accent-text` (`--sh-side-marker`; o filete continua deslizando entre as páginas pela View Transition). `--sh-side-active-bg` passou a `transparent`. Hover só nos itens não atuais.
+**Componentes base (`css/componentes.css`, bloco final; `css/formularios.css`, bloco final).** Botão primário com gradiente sutil, brilho no hover e elevação de 1px; secundário em superfície com hairline; link-ação sem sublinhado fixo. Campos com raio 10, borda hairline e anel luminoso no foco (contorno de 2px + `--sh-glow`). Cartões com sombra em camadas e, quando clicáveis, elevação no hover. Tabela dentro de cartão, cabeçalho em frase (sem caixa-alta), números sans tabulares à direita, hover com tinta de acento. Abas de filtro em controle segmentado (pílula; a atual leva peso, cor e contorno). Paginação em pílula. Item ativo da lateral: pílula com gradiente e brilho que desliza entre itens na transição de página (o marcador é a pílula).
 
-**Telas de entrada e apresentação.** O palco do login (`css/entrar.css`) e as seções escuras da apresentação (`--ap-escuro-bg`) usam o marrom `#1A1713` nos dois temas; texto `#EDE6D8`, secundário `#BDB4A3`, acento `#8FAAF2`. Gráficos de `css/analises.css`: série 1 e classe A = `--sh-accent-text`; B e C = o mesmo azul misturado com a superfície (`color-mix`); série 2 = laranja queimado (`#B4531B` claro, `#E5894F` escuro). Contrastes da rampa: B 4,0:1 e C 2,2:1 (claro), B 4,2:1 e C 2,6:1 (escuro) contra a superfície. **O validador de paleta da skill dataviz não foi reexecutado** (a distância entre as duas séries depende do matiz, não da luminosidade, principalmente no escuro: 1,15:1 de luminosidade entre elas; sempre há legenda e rótulos).
+**Movimento.** Durações de 120 a 400 ms com `--sh-spring` (`cubic-bezier(.2,.8,.2,1)`); só `transform` e `opacity`. Entrada escalonada dos cartões e grades (CSS puro, `css/movimento.css`); `js/movimento.js` (opcional, progressivo) revela ao rolar o que está abaixo da dobra via IntersectionObserver e liga a contagem animada (`js/numeros.js`, `data-contar`) nos números `.sh-metric__valor` inteiros; o início já contava os totais. A transição entre páginas (View Transitions) já existia e foi mantida. Com `prefers-reduced-motion`, o script não roda, as animações são zeradas e o estado final aparece. Sem layout shift: nada anima largura, altura ou posição de fluxo.
 
-**Contrastes** (WCAG 2.x, calculados por script em `scratchpad`, fora do repositório; todos passam). O medidor e o anel de foco foram conferidos contra surface, bg e trilho. A marca no escuro (`#4A6BCC`) foi clareada em relação ao protótipo (`#8FAAF2` com texto escuro) para continuar com texto branco e passar 3:1 contra o fundo.
+**Lista de produtos.** No computador a tabela usa `table-layout: auto`; a coluna do nome absorve o espaço que sobra (mínimo 168px) e quebra em até 2 linhas, sem reticências precoces.
 
-**Tema claro** (mínimo 4,5:1 para texto; 3:1 para bordas de campo, foco, medidores e elementos gráficos)
-
-| Par | Cores | Razão | Mín. | Resultado |
-|---|---|---|---|---|
-| texto / bg | `#26221C` sobre `#F5F0E6` | 13.92:1 | 4,5 | passa |
-| texto / surface | `#26221C` sobre `#FBF8F2` | 14.92:1 | 4,5 | passa |
-| texto / surface2 | `#26221C` sobre `#EDE6D6` | 12.72:1 | 4,5 | passa |
-| texto secundário / bg | `#574E41` sobre `#F5F0E6` | 7.19:1 | 4,5 | passa |
-| texto secundário / surface | `#574E41` sobre `#FBF8F2` | 7.70:1 | 4,5 | passa |
-| texto secundário / surface2 | `#574E41` sobre `#EDE6D6` | 6.57:1 | 4,5 | passa |
-| texto terciário e placeholder / bg | `#6B6254` sobre `#F5F0E6` | 5.28:1 | 4,5 | passa |
-| texto terciário e placeholder / surface | `#6B6254` sobre `#FBF8F2` | 5.66:1 | 4,5 | passa |
-| texto terciário e placeholder / surface2 | `#6B6254` sobre `#EDE6D6` | 4.83:1 | 4,5 | passa |
-| borda de campo / surface (3:1) | `#8A7F6B` sobre `#FBF8F2` | 3.72:1 | 3 | passa |
-| borda de campo / bg (3:1) | `#8A7F6B` sobre `#F5F0E6` | 3.47:1 | 3 | passa |
-| borda de campo / surface2 (3:1) | `#8A7F6B` sobre `#EDE6D6` | 3.17:1 | 3 | passa |
-| marca (quadrado de acento) / bg (3:1) | `#1D3F8F` sobre `#F5F0E6` | 8.56:1 | 3 | passa |
-| marcador do menu (accent-text) / bg (3:1) | `#1D3F8F` sobre `#F5F0E6` | 8.56:1 | 3 | passa |
-| texto branco / botão primário | `#FFFFFF` sobre `#1D3F8F` | 9.72:1 | 4,5 | passa |
-| texto branco / primário hover | `#FFFFFF` sobre `#152F6D` | 12.66:1 | 4,5 | passa |
-| link de acento / surface | `#1D3F8F` sobre `#FBF8F2` | 9.17:1 | 4,5 | passa |
-| link de acento / bg | `#1D3F8F` sobre `#F5F0E6` | 8.56:1 | 4,5 | passa |
-| link de acento / surface2 | `#1D3F8F` sobre `#EDE6D6` | 7.82:1 | 4,5 | passa |
-| link de acento / accent-soft | `#1D3F8F` sobre `#E3E7F0` | 7.85:1 | 4,5 | passa |
-| anel de foco / surface (3:1) | `#1D3F8F` sobre `#FBF8F2` | 9.17:1 | 3 | passa |
-| anel de foco / bg (3:1) | `#1D3F8F` sobre `#F5F0E6` | 8.56:1 | 3 | passa |
-| Normal/sucesso: texto / fundo tonal | `#2F6B3F` sobre `#E4EBD9` | 5.21:1 | 4,5 | passa |
-| Normal/sucesso: texto / surface | `#2F6B3F` sobre `#FBF8F2` | 6.01:1 | 4,5 | passa |
-| Normal/sucesso: texto / bg | `#2F6B3F` sobre `#F5F0E6` | 5.61:1 | 4,5 | passa |
-| Baixo/aviso: texto / fundo tonal | `#7F5200` sobre `#F6E8C4` | 5.55:1 | 4,5 | passa |
-| Baixo/aviso: texto / surface | `#7F5200` sobre `#FBF8F2` | 6.37:1 | 4,5 | passa |
-| Baixo/aviso: texto / bg | `#7F5200` sobre `#F5F0E6` | 5.95:1 | 4,5 | passa |
-| Sem estoque/erro: texto / fundo tonal | `#B3321F` sobre `#F7E1D9` | 4.93:1 | 4,5 | passa |
-| Sem estoque/erro: texto / surface | `#B3321F` sobre `#FBF8F2` | 5.84:1 | 4,5 | passa |
-| Sem estoque/erro: texto / bg | `#B3321F` sobre `#F5F0E6` | 5.45:1 | 4,5 | passa |
-| Saída/info: texto / fundo tonal | `#0B6478` sobre `#DDEBEA` | 5.52:1 | 4,5 | passa |
-| Saída/info: texto / surface | `#0B6478` sobre `#FBF8F2` | 6.37:1 | 4,5 | passa |
-| branco / sucesso sólido | `#FFFFFF` sobre `#2F6B3F` | 6.37:1 | 4,5 | passa |
-| branco / perigo sólido | `#FFFFFF` sobre `#B3321F` | 6.19:1 | 4,5 | passa |
-| branco / sucesso sólido hover | `#FFFFFF` sobre `#245631` | 8.57:1 | 4,5 | passa |
-| branco / perigo sólido hover | `#FFFFFF` sobre `#962A19` | 7.95:1 | 4,5 | passa |
-| medidor Normal / trilho (3:1) | `#3B7D4C` sobre `#DDD3BE` | 3.35:1 | 3 | passa |
-| medidor Baixo / trilho (3:1) | `#A8630A` sobre `#DDD3BE` | 3.17:1 | 3 | passa |
-| medidor Sem estoque / trilho (3:1) | `#B3321F` sobre `#DDD3BE` | 4.17:1 | 3 | passa |
-| medidor Normal / surface (3:1) | `#3B7D4C` sobre `#FBF8F2` | 4.69:1 | 3 | passa |
-| medidor Baixo / surface (3:1) | `#A8630A` sobre `#FBF8F2` | 4.45:1 | 3 | passa |
-| medidor Sem estoque / surface (3:1) | `#B3321F` sobre `#FBF8F2` | 5.84:1 | 3 | passa |
-
-**Tema escuro** (mínimo 4,5:1 para texto; 3:1 para bordas de campo, foco, medidores e elementos gráficos)
-
-| Par | Cores | Razão | Mín. | Resultado |
-|---|---|---|---|---|
-| texto / bg | `#EDE6D8` sobre `#221E19` | 13.34:1 | 4,5 | passa |
-| texto / surface | `#EDE6D8` sobre `#2A251F` | 12.23:1 | 4,5 | passa |
-| texto / surface2 | `#EDE6D8` sobre `#342E26` | 10.81:1 | 4,5 | passa |
-| texto secundário / bg | `#BDB4A3` sobre `#221E19` | 8.06:1 | 4,5 | passa |
-| texto secundário / surface | `#BDB4A3` sobre `#2A251F` | 7.39:1 | 4,5 | passa |
-| texto secundário / surface2 | `#BDB4A3` sobre `#342E26` | 6.53:1 | 4,5 | passa |
-| texto terciário e placeholder / bg | `#A89F8F` sobre `#221E19` | 6.33:1 | 4,5 | passa |
-| texto terciário e placeholder / surface | `#A89F8F` sobre `#2A251F` | 5.80:1 | 4,5 | passa |
-| texto terciário e placeholder / surface2 | `#A89F8F` sobre `#342E26` | 5.13:1 | 4,5 | passa |
-| borda de campo / surface (3:1) | `#8A7F6D` sobre `#2A251F` | 3.86:1 | 3 | passa |
-| borda de campo / bg (3:1) | `#8A7F6D` sobre `#221E19` | 4.21:1 | 3 | passa |
-| borda de campo / surface2 (3:1) | `#8A7F6D` sobre `#342E26` | 3.41:1 | 3 | passa |
-| marca (quadrado de acento) / bg (3:1) | `#4A6BCC` sobre `#221E19` | 3.37:1 | 3 | passa |
-| marcador do menu (accent-text) / bg (3:1) | `#8FAAF2` sobre `#221E19` | 7.26:1 | 3 | passa |
-| texto branco / botão primário | `#FFFFFF` sobre `#4A6BCC` | 4.92:1 | 4,5 | passa |
-| texto branco / primário hover | `#FFFFFF` sobre `#3E5CB4` | 6.19:1 | 4,5 | passa |
-| link de acento / surface | `#8FAAF2` sobre `#2A251F` | 6.65:1 | 4,5 | passa |
-| link de acento / bg | `#8FAAF2` sobre `#221E19` | 7.26:1 | 4,5 | passa |
-| link de acento / surface2 | `#8FAAF2` sobre `#342E26` | 5.88:1 | 4,5 | passa |
-| link de acento / accent-soft | `#8FAAF2` sobre `#2A3150` | 5.56:1 | 4,5 | passa |
-| anel de foco / surface (3:1) | `#8FAAF2` sobre `#2A251F` | 6.65:1 | 3 | passa |
-| anel de foco / bg (3:1) | `#8FAAF2` sobre `#221E19` | 7.26:1 | 3 | passa |
-| Normal/sucesso: texto / fundo tonal | `#86C095` sobre `#243424` | 6.27:1 | 4,5 | passa |
-| Normal/sucesso: texto / surface | `#86C095` sobre `#2A251F` | 7.22:1 | 4,5 | passa |
-| Normal/sucesso: texto / bg | `#86C095` sobre `#221E19` | 7.88:1 | 4,5 | passa |
-| Baixo/aviso: texto / fundo tonal | `#E3AE4D` sobre `#3A2D12` | 6.67:1 | 4,5 | passa |
-| Baixo/aviso: texto / surface | `#E3AE4D` sobre `#2A251F` | 7.54:1 | 4,5 | passa |
-| Baixo/aviso: texto / bg | `#E3AE4D` sobre `#221E19` | 8.23:1 | 4,5 | passa |
-| Sem estoque/erro: texto / fundo tonal | `#EE8A76` sobre `#40231D` | 5.78:1 | 4,5 | passa |
-| Sem estoque/erro: texto / surface | `#EE8A76` sobre `#2A251F` | 6.17:1 | 4,5 | passa |
-| Sem estoque/erro: texto / bg | `#EE8A76` sobre `#221E19` | 6.73:1 | 4,5 | passa |
-| Saída/info: texto / fundo tonal | `#7CCDE4` sobre `#1E3036` | 7.65:1 | 4,5 | passa |
-| Saída/info: texto / surface | `#7CCDE4` sobre `#2A251F` | 8.47:1 | 4,5 | passa |
-| branco / sucesso sólido | `#FFFFFF` sobre `#2F7A47` | 5.26:1 | 4,5 | passa |
-| branco / perigo sólido | `#FFFFFF` sobre `#C23B2B` | 5.31:1 | 4,5 | passa |
-| branco / sucesso sólido hover | `#FFFFFF` sobre `#27663B` | 6.89:1 | 4,5 | passa |
-| branco / perigo sólido hover | `#FFFFFF` sobre `#AD3425` | 6.37:1 | 4,5 | passa |
-| medidor Normal / trilho (3:1) | `#6DB580` sobre `#41392F` | 4.63:1 | 3 | passa |
-| medidor Baixo / trilho (3:1) | `#E3AE4D` sobre `#41392F` | 5.63:1 | 3 | passa |
-| medidor Sem estoque / trilho (3:1) | `#EE7B66` sobre `#41392F` | 4.14:1 | 3 | passa |
-| medidor Normal / surface (3:1) | `#6DB580` sobre `#2A251F` | 6.20:1 | 3 | passa |
-| medidor Baixo / surface (3:1) | `#E3AE4D` sobre `#2A251F` | 7.54:1 | 3 | passa |
-| medidor Sem estoque / surface (3:1) | `#EE7B66` sobre `#2A251F` | 5.54:1 | 3 | passa |
-| palco do login: texto / palco | `#EDE6D8` sobre `#1A1713` | 14.38:1 | 4,5 | passa |
-| palco do login: texto secundário / palco | `#BDB4A3` sobre `#1A1713` | 8.69:1 | 4,5 | passa |
-| palco do login: acento e foco / palco (3:1) | `#8FAAF2` sobre `#1A1713` | 7.82:1 | 3 | passa |
-
-**Verificação:** app real na porta 8087 com a loja de teste "Oficina - Mecânica" (dono): `/login`, `/cadastro`, `/` e as telas autenticadas (início, produtos, movimentações, categorias, estoque baixo, unidades, valor do estoque, análises, equipe, clientes, OS, NF-e) responderam 200 e os seis CSS carregaram com os valores novos. O tema escolhido é aplicado só no navegador (`localStorage` + `data-bs-theme`), então claro e escuro servem o mesmo HTML. **Não visto em navegador:** a aparência real (lateral, serifa, palco do login, gráficos, foco), a transição entre páginas e o `color-mix` dos gráficos; as telas das fatias seguintes (início, produtos, formulários) ainda usam CSS próprio e podem ter hex antigos.
-
-
-### 17.1 Fatia 3: início (`dashboard.jsp`, `css/dashboard.css`)
-
-A capa do dia (seção 16) passou para a linguagem A sem mudar de estrutura: manchete em serifa com dateline em caixa-alta e fio de tinta embaixo, botões do protótipo (primário em acento, secundário só com contorno, terciário sublinhado), "A repor hoje" e os totais do livro-caixa como colunas separadas por filete (sem cartões), linha do tempo "Hoje na loja" com a etiqueta de origem em negrito, bloco de OS por tipo de loja, gráfico de 14 dias e últimos produtos sem caixa. Os valores vêm dos tokens da fatia 1; nenhum token novo. Commits: `5cf604f`, `5fb78d8`, `fc17c63`.
-
-### 17.2 Fatia 4: listas e tabelas
-
-Telas: produtos, movimentações (`estoque.jsp`), estoque baixo, clientes, ordens de serviço, compras (NF-e), categorias, unidades e equipe. Regras compartilhadas em `css/componentes.css` (bloco "Direção A: listas e tabelas"); cada tela só acrescenta o que é dela.
-
-| Elemento | Regra |
-|---|---|
-| Cabeçalho de página | Título em serifa, `clamp(2rem, 3.4vw, 2.75rem)`, entrelinha 1,05, tracking -0,02em; subtítulo de 17 px em `--sh-text-muted`, no máximo 54 caracteres de largura. |
-| Tabela | Sem caixa (`.sh-table-wrap` sem borda, fundo ou raio; rolagem horizontal própria). Seções de lista usam `.sh-card.sh-lista`, que tira a caixa do cartão. Cabeçalho em caixa-alta, 11,5 px, peso 700, tracking 0,1em, `--sh-text-muted`; filete `--sh-border` entre as linhas, inclusive depois da última. Recuo de 12 px só na primeira coluna (onde fica o filete de alerta). Regras só a partir de 768 px: o cartão do celular não muda. |
-| Nome | Serifa 1,03 rem, peso 600 (`.v3-prod-nome`, `.cli-nome`, `.os-numero`, `.nfe-nota-link`, `.mb-nome`, `.v3e-prod__nome`). |
-| Números | Fonte monoespaçada (`--sh-font-codigo`, ou seja, `ui-monospace`/Cascadia/Consolas se a Geist Mono não estiver instalada), tabular, peso 600, à direita (`.sh-col-num`, `.text-end`, `.v3-mono` na tabela de produtos, quantidade e saldo do livro-razão). O saldo de produtos também é alinhado à direita, com o cabeçalho (`numerico="true"` em `colunaOrdenavel`). |
-| Linha de alerta | Filete de 3 px à esquerda (`--sh-danger-fg` sem estoque, `--sh-warning-fg` abaixo do mínimo), já existente, mantido; a tag e a mini barra repetem o estado, então a cor nunca é a única pista. |
-| Tag de situação | Na tabela, `.sh-badge--normal/baixo/sem` e `.os-status` perdem fundo e borda e viram texto de 12 px, peso 700, com forma: círculo (normal), triângulo (baixo), octógono (sem estoque). O selo de estoque já tem ícone com essas formas; os sem ícone (Ativa e Desativada da equipe, situação da OS) ganham um marcador `::before` com a mesma forma. |
-| Mini barra de saldo | `.sh-meter` com 4 px dentro de tabelas (era 6), máx. 190 px, alinhada à direita; o marcador do mínimo e o texto "mín. N" continuam. **O estoque mínimo segue em destaque** (regra do projeto): filete + tag + barra + texto. |
-| Abas de filtro | Faixa com filete de tinta (`--sh-text`) embaixo; a aba atual tem sublinhado de acento de 2 px, cor de tinta e peso 700 (não depende só da cor). Componente `.sh-abas` / `.sh-aba` / `.sh-aba__n` (contagem em mono), usado em OS (`aria-current="page"`). Em produtos, os rádios de situação do estoque (`.sh-prod-chip`) e, em clientes, os rádios `.sh-seg` foram apresentados como abas só por CSS; a marcação, os `name`/`id` e o envio continuam iguais. |
-| Faixa de filtros | Sem caixa: busca com largura máxima, abas e selects numa linha com filete de tinta embaixo. |
-| Paginação | Sem caixas: botões transparentes, número da página em mono, página atual em negrito com sublinhado de acento, "Mostrando x-y de z" em texto discreto. |
-| Livro-razão (`estoque.jsp`) | Cartão sem caixa; cabeçalho de colunas como o da tabela; título do dia em caixa-alta com filete; produto em serifa; quantidade e saldo em mono. O painel de lançamento (formulário) é da fatia 5 e não foi tocado. |
-
-Preservado: colunas personalizáveis de produtos (`c:if` por `colunas['COL_*']`, `v3-c-ramo`, `v3-prod-ramo`, traço "—"), atributos `data-*` de `lista-teclado.js`, `peek.js`, `produtos.js` e `v3-prod-ajuste.js`, CSRF, `c:out`, ids e names. Arquivos: `componentes.css`, `lote-produtos.css`, `v3-estoque.css`, `clientes.css`, `os.css`, `nfe.css`, `membros.css`; JSPs: `produtos.jsp` (`numerico` no saldo), `clientes.jsp`, `membros.jsp` (classe `sh-lista`), `os-lista.jsp` (abas). `categorias.jsp`, `unidades.jsp`, `nfe-lista.jsp` e `estoque.jsp` não precisaram mudar: o markup já aceitava as regras.
-
-**Contrastes.** Nenhuma cor nova: tags, contagens, sublinhados e filetes usam os pares da seção 17 (tabela de contrastes). Conferido por script (`scratchpad/contraste.pl`, fora do repositório) para todos os textos de estado (normal, baixo, sem estoque, informação, acento, texto secundário e terciário) contra bg, surface, surface-2 e accent-soft (linha em foco ou selecionada), nos dois temas: o menor valor para texto é 4,98:1 (sem estoque sobre surface-2, claro); filetes e sublinhados (acento, tinta, alerta) passam em 3:1 (o menor é o acento escuro sobre surface, 3,09:1).
-
-**Pedido ao backend (não feito aqui).** As abas de produtos não mostram contagem porque o `ProdutoController` não envia o total por situação (Todos, Normal, Baixo, Sem estoque); com um mapa `contagemNiveis` as abas ganhariam o `sh-aba__n` como as de OS. As abas de clientes também não têm contagem por situação.
-
-**Verificação.** App na porta 8085 com as 21 lojas de teste (estoque, comércio, oficina e misto, todos os ramos): produtos (e `nivelEstoque=baixo`), movimentações, estoque baixo, compras (NF-e), categorias, unidades e equipe responderam 200; clientes e OS 200 nas lojas com o módulo e 404 nas sem (esperado). Conferido no HTML: linhas com `sh-linha--sem/baixo`, colunas de ramo e traço "—" por ramo, token CSRF, abas de OS com `aria-current`, CSS novo servido. **Não visto em navegador:** a aparência real (serifa, mono, tags, abas, mini barra), o escuro, o celular, a barra de alerta nas linhas, a densidade compacta, o ajuste rápido do saldo alinhado à direita e o livro-razão rolando por dentro.
-
-
-### 17.3 Fatia 5: formulários e personalização
-
-Telas: produto (novo e editar), categoria, cliente, nova OS, revisão da NF-e (confirmação do destinatário), adicionar pessoa à equipe e personalização da loja. Unidades não tem formulário. O painel de lançamento de `estoque.jsp`, o login e o cadastro (`entrar.css`) ficaram de fora desta fatia.
-
-| Elemento | Regra |
-|---|---|
-| Rótulo | `.form-label` em caixa-alta, 12 px, peso 700, tracking 0,09em, `--sh-text-muted`, acima do campo. "(obrigatório)" e "(opcional)" voltam à caixa normal, 13 px, peso 400. Ajuda (`.form-text`) em `--sh-text-muted`. |
-| Campo | Raio 6 (`--f-raio` = `--sh-radius-sm`), altura 44 px, borda `--sh-border-strong` (3:1), fundo `--sh-surface`. Foco: borda e filete de 1 px em `--sh-focus` mais halo de 4 px (2 px de contorno efetivo + sombra suave). Erro: borda `--sh-danger-fg`, `is-invalid`, `aria-invalid` e `aria-describedby` preservados. Placeholder em `--sh-text-subtle`. |
-| Select | Seta desenhada só com tokens (`--f-seta-cor`): dois degradês no select nativo e máscara na lista suspensa própria. **Foram removidos** o `@media (prefers-color-scheme: dark)` e o bloco `[data-bs-theme="dark"]` de `formularios.css`, que repetiam o SVG com hex fixo. Agora claro, escuro e "sem JavaScript" saem dos mesmos tokens. |
-| Botões | Primário sólido em `--sh-accent`; secundário (`.btn`, `.btn-outline-secondary`) só contorno de 1 px em tinta (`--sh-text`), fundo transparente; perigo em contorno `--sh-danger-fg`; link-ação (`.btn-link`, `.btn-ghost`) em `--sh-accent-text`, sublinhado de 1 px com 4 px de distância. Sem sombra e sem brilho. Raio 8 (`--sh-radius`). Altura de 44 px mantida (os `btn-sm` seguem com 32 px só a partir de 992 px, como antes). |
-| Caixa de marcar | Raio 4 (`--sh-radius-xs`), borda `--sh-border-strong`; marcada leva fundo de acento e a marca "✓", então não depende só da cor. |
-| Controle segmentado (`.sh-seg`, tipo de pessoa do cliente) | Virou faixa de abas: filete de tinta embaixo e a opção marcada com sublinhado de acento de 2 px e peso 700. A marcação (rádios, `name`, `id`) não mudou; o `.cli-filtros .sh-seg` da lista de clientes tem regras próprias e continua valendo. |
-| Grupo de campos | Classe nova `.sh-secao-form` sobre `.sh-card.sh-secao`: sem caixa, filete `--sh-border` em cima, título do grupo em serifa (1,375 rem, peso 600). Aplicada em produto, categoria, cliente, OS, equipe (adicionar pessoa), NF-e (confirmação) e personalização. |
-| Mensagens | `.sh-alert` e `.sh-resumo-erros` deixam de ser caixas: fundo tonal, filete de 3 px à esquerda na cor do estado, ícone + texto. O erro de campo (`.sh-erro-campo`) já era ícone + texto; passou a peso 600. Nada depende só da cor. |
-| Personalização | Lista de blocos em linhas (`ul.sh-opcoes` > `li.sh-opcao`): caixa de marcar + nome em negrito (`label`) + descrição embaixo (`aria-describedby`), filete entre as linhas; o rótulo cobre a linha toda (alvo de toque). Mantidos `name="blocos"`, `id`, `value`, `data-sh-bloquear`, `data-sh-enviando` e o CSRF. Um formulário e um botão Salvar por seção, como antes. |
-| Produto e categoria | A prévia ao vivo perdeu a caixa (filete à esquerda no computador), com rótulo em caixa-alta e número/nome em serifa; a zona de perigo virou um filete de alerta com título em serifa. Ids e `data-v3-*` dos scripts não mudaram. |
-| OS | O campo da placa (`data-os-placa`) usa a fonte de código; a máscara em `js/os.js` não mudou. Os "(opcional)" dos rótulos agora usam `.sh-opcional` em vez de `.text-muted`. |
-
-Nenhum token novo. Arquivos: `css/formularios.css` (campos, botões, seta, grupos, lista de blocos), `css/componentes.css` (bloco "mensagens em linha"), `css/lote-produtos.css`, `css/os.css`, `css/nfe.css` (só trechos de formulário); JSPs: `produto-form`, `categoria-form`, `cliente-form`, `os-form`, `nfe-revisao`, `membros` (só a classe da seção "Adicionar pessoa") e `personalizacao`.
-
-**Contrastes** (script `scratchpad/contraste5.pl`, fora do repositório; 0 falhas nos dois temas). Menores valores: placeholder 4,83:1 (sobre surface-2, campo desabilitado, claro) e 5,66:1 sobre surface; rótulo e ajuda em `--sh-text-muted` 7,19:1 (claro, sobre bg) e 7,39:1 (escuro, sobre surface); borda do campo 3,17:1 (claro, sobre surface-2) e 3,47:1 sobre bg; anel de foco 6,65:1; contorno do botão secundário 13,34:1; erro em linha sobre o fundo tonal 4,93:1 (claro) e 5,78:1 (escuro); sucesso 5,21:1; marcador de checkbox marcado (acento escuro sobre surface) 3,09:1.
-
-**Verificação.** App na porta 8087, lojas de teste existentes (Mercado, Mecânica, Vestuário; nenhuma conta nova). 200 em `/produtos/novo` (inclusive os campos tamanho e cor da loja de vestuário), `/categorias/novo`, `/clientes/novo`, `/os/nova` (campo `data-os-placa` presente), `/compras/nfe`, `/membros` e `/conta/personalizacao` (12 linhas `sh-opcao`), CSRF em todos, CSS novo servido e sem bloco `prefers-color-scheme` em `formularios.css`. Envio com erro: `POST /produtos` com nome e categoria vazios e preço negativo voltou 200 com o resumo "Corrija os campos abaixo…", 3 `sh-erro-campo`, `is-invalid`, `aria-invalid="true"` e `aria-describedby="erro-…"`; `POST /categorias` com nome vazio, idem. Nada foi gravado e nenhum dado de teste foi criado. **Não visto em navegador:** a aparência real (rótulo em caixa-alta, anel de foco, seta do select feita com degradês, abas do tipo de pessoa, linhas da personalização, filete dos grupos e das mensagens), o escuro, o celular, a barra de ações fixa sobre as seções sem caixa e a revisão de NF-e com itens (não havia nota pendente de teste); o retorno de erro da OS, do cliente e da equipe não foi provocado. `./mvnw test` não foi relevante para esta fatia (nenhum Java alterado).
-
-### 17.4 Fatia 6: acabamento do tema escuro, visto em capturas reais
-
-**Como foi visto.** Pela primeira vez as telas foram vistas de verdade: Microsoft Edge headless (`--headless=new --remote-debugging-port`), um script que entra com uma loja de teste (login lido de arquivo fora do repositório), emula `prefers-color-scheme` pelo DevTools Protocol (`Emulation.setEmulatedMedia`) e captura com `Page.captureScreenshot`, em 1280 e 390 de largura, claro e escuro. Observação: a flag `--blink-settings=preferredColorScheme=1` não trocou o esquema no Edge usado; a emulação pelo protocolo funciona. Nenhum dado foi criado nem alterado.
-
-**O que as capturas mostraram.** Login, cadastro e página inicial (composição, palco escuro e animação) estão íntegros nos dois temas; só cores e fontes mudaram. Lateral, dashboard, produtos, novo produto, personalização, análises e clientes estão legíveis no escuro: serifa nos títulos, filetes finos, tags com tom claro sobre fundo tonal, medidores verde, âmbar e vermelho, gráficos com tokens. Dois ajustes foram necessários: (1) no gráfico "Ritmo dos últimos 14 dias" a faixa de "hoje" usava `--sh-accent-soft`, que no escuro é um azul-marinho forte e pesado; passou a `--sh-surface-2` com 70% de opacidade (`dashboard.css`); (2) a hierarquia de superfícies estava com degraus pequenos e a borda fina quase invisível.
-
-**Tokens escuros ajustados** (bloco `[data-bs-theme="dark"]` e `@media`, sempre iguais): `--sh-bg #221E19` (sem mudança), `--sh-surface #2A251F` para `#2B2620`, `--sh-surface-2 #342E26` (sem mudança), `--sh-border` e `--sh-meter-track` de `#41392F` para `#4A4136`. Os degraus são bg < surface < surface-2 em passos de cerca de 9 níveis de luminância cada; a fronteira entre painéis também é dada pela borda de 1px.
-
-**Contraste (script, escuro), sobre bg / surface / surface-2:** texto 13,34 / 12,07 / 10,81; muted 8,06 / 7,30 / 6,53; subtle 6,33 / 5,73 / 5,13; accent-text 7,26 / 6,57 / 5,88; sucesso 7,88 / 7,13 / 6,38; aviso 8,23 / 7,44 / 6,66; perigo 6,73 / 6,09 / 5,45; info 9,24 / 8,36 / 7,48; medidor normal 6,76 / 6,12 / 5,48; medidor sem estoque 6,04 / 5,47 / 4,90; borda forte (campos) 4,21 / 3,81 / 3,41 (mínimo 3 para componentes). Tags tonais: sucesso 6,27, aviso 6,67, perigo 5,78, info 7,65, accent-text sobre accent-soft 5,56; branco sobre botão de acento 4,92, perigo 5,31, sucesso 5,26; palco do login: texto 14,38 e mudo 8,69. A borda decorativa (1,3 a 1,7) não carrega informação: o estado sempre tem texto e ícone além da cor.
-
-**Ainda não visto:** impressão (sempre clara por `impressao.css`, não capturada), telas de OS, NF-e e equipe, perfis GERENTE e OPERADOR, estados de erro de formulário, modais e a paleta de comandos. Nas capturas altas (viewport estendido) elementos fixos ou fixos-ao-rodapé (barra de ações da personalização, navegação inferior do celular, cena animada da página inicial) aparecem fora do lugar; é efeito da captura, não bug.
+**Pendente (próxima etapa).** Redesenhar `dashboard.css`/`dashboard.jsp` (ainda no desenho de manchete e linhas de lista da direção A, já sem serifa e caixa-alta), as listas por tela e os formulários em detalhe (grupos com filete, controle segmentado `.sh-seg`).
