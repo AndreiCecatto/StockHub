@@ -36,8 +36,8 @@
                         <c:forEach var="m" items="${membros}">
                             <tr role="row">
                                 <td role="cell">
-                                    <span class="mb-nome"><c:out value="${m.nome}" /><c:if test="${m.id == membroAtualId}"> <span class="mb-voce">(você)</span></c:if></span>
-                                    <span class="mb-email"><c:out value="${m.email}" /></span>
+                                    <span class="mb-pessoa"><span class="mb-avatar" aria-hidden="true"><c:out value="${fn:toUpperCase(fn:substring(m.nome, 0, 1))}" /></span><span class="mb-pessoa__txt"><span class="mb-nome"><c:out value="${m.nome}" /><c:if test="${m.id == membroAtualId}"> <span class="mb-voce">(você)</span></c:if></span>
+                                    <span class="mb-email"><c:out value="${m.email}" /></span></span></span>
                                 </td>
                                 <td role="cell" data-label="Papel"><c:out value="${m.papel.rotulo}" /></td>
                                 <td role="cell" data-label="Situação">

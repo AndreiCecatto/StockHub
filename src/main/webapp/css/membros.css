@@ -44,3 +44,56 @@
   font-size: 1.03rem;
   font-variant-numeric: lining-nums;
 }
+
+/* ============================== Seção 18.x: equipe ==============================
+ * Avatar com a inicial (decorativo), nome sem serifa e rodapé do formulário dentro do cartão. */
+.mb-pessoa {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-space-3);
+  min-width: 0;
+}
+
+.mb-pessoa__txt {
+  min-width: 0;
+}
+
+.mb-avatar {
+  display: inline-flex;
+  flex: 0 0 36px;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--sh-radius-pill);
+  background: var(--sh-accent-soft);
+  color: var(--sh-accent-text);
+  font-size: var(--sh-text-md);
+  font-weight: 650;
+}
+
+.sh-table .mb-nome:not(.cli-fone) {
+  font-size: var(--sh-text-base, 1rem);
+}
+
+/* O rodapé do formulário de cadastro mora dentro de .sh-card__corpo: não é a barra fixa da página */
+.mb-acoes-form.sh-form-actions {
+  position: static;
+  margin: var(--sh-space-5) 0 0;
+  padding: var(--sh-space-4) 0 0;
+  border-top: 1px solid var(--sh-border);
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.mb-pessoa__txt {
+  text-align: left;
+}
+
+/* Cartão do celular: a célula de ações vazia (dono, você mesmo) não ocupa espaço */
+@media (max-width: 767.98px) {
+  .sh-table--cards .mb-acoes:not(:has(form)) {
+    display: none;
+  }
+}
