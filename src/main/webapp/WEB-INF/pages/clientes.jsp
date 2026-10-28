@@ -67,7 +67,7 @@
             </div>
         </form>
 
-        <section class="sh-card sh-secao" aria-labelledby="titulo-clientes">
+        <section class="sh-card sh-secao sh-lista" aria-labelledby="titulo-clientes">
             <div class="sh-card__cab">
                 <h2 class="sh-card__titulo" id="titulo-clientes">
                     <c:out value="${totalClientes}" /> <c:out value="${totalClientes == 1 ? 'cliente' : 'clientes'}" />
