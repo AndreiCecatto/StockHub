@@ -95,7 +95,7 @@ html.v3-js .v3-so-semjs {
   align-items: flex-end;
   gap: var(--sh-space-2) var(--sh-space-4);
   padding-bottom: var(--sh-space-2);
-  border-bottom: 1px solid var(--sh-text);
+  border-bottom: 1px solid var(--sh-border);
 }
 
 .v3-grupo {
@@ -436,7 +436,7 @@ html.v3-js .v3-so-semjs {
   }
 
   .v3-tabela .v3-mono {
-    font-family: var(--sh-font-codigo);
+    font-family: var(--sh-font);
     font-weight: 600;
   }
 }
@@ -560,7 +560,6 @@ html[data-v3-densidade="compacta"] .v3-tabela .sh-prod-desc {
   line-clamp: 2;
   overflow: hidden;
   color: var(--sh-text);
-  font-family: var(--sh-font-serif);
   font-size: 1.03rem;
   font-weight: 600;
   font-variant-numeric: lining-nums;
@@ -1597,17 +1596,15 @@ html[data-v3-densidade="compacta"] .v3-aj__btn {
   color: var(--sh-text-muted);
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .v3-previa__num {
-  font-family: var(--sh-font-serif);
   font-weight: 600;
 }
 
 .v3-previa__cat-nome {
-  font-family: var(--sh-font-serif);
   font-size: 1.375rem;
   font-weight: 600;
 }
@@ -1625,6 +1622,58 @@ html[data-v3-densidade="compacta"] .v3-aj__btn {
 }
 
 .sh-prod-perigo__titulo {
-  font-family: var(--sh-font-serif);
   font-size: 1.375rem;
+}
+
+/* Lista de produtos no computador: a coluna do nome absorve o espaço que sobra (largura mínima de 220 px) em vez de
+   dividir igual com as outras; o nome continua em até 2 linhas, sem reticências precoces. */
+@media (min-width: 768px) {
+  .v3-tabela {
+    table-layout: auto;
+  }
+
+  .v3-tabela .v3-c-prod {
+    width: 100%;
+    min-width: 168px;
+  }
+
+  .v3-tabela .v3-c-cat,
+  .v3-tabela .v3-c-ramo,
+  .v3-tabela .v3-c-preco {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  .v3-tabela .v3-c-saldo {
+    width: 1%;
+    min-width: 200px;
+  }
+
+  .v3-tabela .v3-c-sit,
+  .v3-tabela .v3-c-acoes {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  .v3-tabela th,
+  .v3-tabela td {
+    padding-left: 12px;
+  }
+}
+
+@media (min-width: 768px) {
+  .v3-tabela .v3-c-cat {
+    width: 12%;
+    white-space: normal;
+  }
+
+  .v3-tabela .v3-c-saldo {
+    min-width: 172px;
+  }
+
+  .v3-tabela th,
+  .v3-tabela td {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
 }
