@@ -222,3 +222,55 @@
     stroke-dashoffset: 0;
   }
 }
+
+/* ============================== Entrada escalonada dos cartões (stagger) ==============================
+ * CSS puro para o que já está na tela ao carregar: cada filho direto de uma grade entra com fade + subida curta,
+ * com atraso crescente (só opacity e transform, fill-mode "backwards": nada fica preso depois da animação, e o
+ * hover continua livre). js/movimento.js cuida do que está abaixo da dobra (revela ao rolar, via IntersectionObserver)
+ * e é opcional: sem ele, tudo aparece normalmente. */
+@keyframes sh-chega {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(.992);
+  }
+}
+
+.sh-main .sh-metricas > *,
+.sh-main .sh-grade > *,
+.sh-main .sh-secao > .sh-card,
+.sh-main .sh-secao > .sh-table-wrap,
+.sh-main [data-sh-revela] {
+  animation: sh-chega var(--sh-t-4) var(--sh-spring) backwards;
+}
+
+.sh-main .sh-metricas > :nth-child(2), .sh-main .sh-grade > :nth-child(2) { animation-delay: 50ms; }
+.sh-main .sh-metricas > :nth-child(3), .sh-main .sh-grade > :nth-child(3) { animation-delay: 100ms; }
+.sh-main .sh-metricas > :nth-child(4), .sh-main .sh-grade > :nth-child(4) { animation-delay: 150ms; }
+.sh-main .sh-metricas > :nth-child(5), .sh-main .sh-grade > :nth-child(5) { animation-delay: 200ms; }
+.sh-main .sh-metricas > :nth-child(n+6), .sh-main .sh-grade > :nth-child(n+6) { animation-delay: 240ms; }
+
+/* Abaixo da dobra: o script marca .sh-aguarda (escondido, sem animação) e troca por .sh-chega ao entrar na tela */
+.sh-aguarda {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: none !important;
+}
+
+.sh-chega {
+  animation: sh-chega var(--sh-t-4) var(--sh-spring) backwards !important;
+  animation-delay: calc(var(--sh-i, 0) * 60ms) !important;
+}
+
+@media print {
+  .sh-aguarda {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-aguarda {
+    opacity: 1;
+    transform: none;
+  }
+}
