@@ -81,7 +81,7 @@
             <div class="v3-form-grade">
             <div class="v3-form-grade__campos">
             <%-- ===== Informações ===== --%>
-            <section class="sh-card sh-secao" aria-labelledby="titulo-informacoes">
+            <section class="sh-card sh-secao sh-secao-form" aria-labelledby="titulo-informacoes">
                 <div class="sh-card__cab">
                     <h2 class="sh-card__titulo" id="titulo-informacoes">Informações</h2>
                 </div>
@@ -136,7 +136,7 @@
             </section>
 
             <%-- ===== Estoque e preço ===== --%>
-            <section class="sh-card sh-secao" aria-labelledby="titulo-estoque">
+            <section class="sh-card sh-secao sh-secao-form" aria-labelledby="titulo-estoque">
                 <div class="sh-card__cab">
                     <h2 class="sh-card__titulo" id="titulo-estoque">Estoque e preço</h2>
                 </div>
@@ -214,7 +214,7 @@
 
             <%-- ===== Detalhes do ramo: só os campos que o ramo da loja usa (camposRamo); todos opcionais ===== --%>
             <c:if test="${camposRamo.temAlgum}">
-            <section class="sh-card sh-secao" aria-labelledby="titulo-ramo">
+            <section class="sh-card sh-secao sh-secao-form" aria-labelledby="titulo-ramo">
                 <div class="sh-card__cab">
                     <h2 class="sh-card__titulo" id="titulo-ramo">Detalhes do produto</h2>
                 </div>

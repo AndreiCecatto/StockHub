@@ -43,7 +43,7 @@
 
             <div class="v3-form-grade">
             <div class="v3-form-grade__campos">
-            <section class="sh-card sh-secao" aria-labelledby="titulo-dados">
+            <section class="sh-card sh-secao sh-secao-form" aria-labelledby="titulo-dados">
                 <div class="sh-card__cab">
                     <h2 class="sh-card__titulo" id="titulo-dados">Dados da categoria</h2>
                 </div>

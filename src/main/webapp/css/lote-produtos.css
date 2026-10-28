@@ -1575,3 +1575,56 @@ html[data-v3-densidade="compacta"] .v3-aj__btn {
     width: auto;
   }
 }
+
+/* ============================== Direção A "Edição": formulários de produto e categoria (fatia 5) ==============================
+ * Prévia sem caixa (filete à esquerda no computador), rótulo em caixa-alta, saldo atual em linha e zona de perigo
+ * com título em serifa e filete de alerta. Só tokens; os ids e data-* dos scripts não mudam. */
+.v3-previa {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+@media (min-width: 992px) {
+  .v3-form-grade .v3-previa {
+    padding: var(--sh-space-1) 0 var(--sh-space-1) var(--sh-space-5);
+    border-left: 1px solid var(--sh-border);
+  }
+}
+
+.v3-previa .sh-eyebrow {
+  color: var(--sh-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.v3-previa__num {
+  font-family: var(--sh-font-serif);
+  font-weight: 600;
+}
+
+.v3-previa__cat-nome {
+  font-family: var(--sh-font-serif);
+  font-size: 1.375rem;
+  font-weight: 600;
+}
+
+.sh-prod-saldo-atual {
+  border-radius: var(--sh-radius-sm);
+}
+
+.sh-prod-perigo {
+  border: 0;
+  border-top: 1px solid var(--sh-danger-fg);
+  border-radius: 0;
+  background: transparent;
+  padding: var(--sh-space-4) 0 0;
+}
+
+.sh-prod-perigo__titulo {
+  font-family: var(--sh-font-serif);
+  font-size: 1.375rem;
+}
