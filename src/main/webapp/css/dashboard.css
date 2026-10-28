@@ -1,40 +1,60 @@
 /*
- * StockHub: início ("capa do dia"). Prefixo "db-".
- * Ideia: o início se lê como a primeira página do jornal da loja, não como um painel de cartões.
- *   1. Uma frase grande diz o estado do estoque; o resto do texto da página existe para agir sobre ela.
- *   2. A "prateleira" é uma marca por produto (círculo = em dia,
- *      triângulo = abaixo do mínimo, octógono = sem estoque), problemas à esquerda, e o tamanho da marca
- *      cresce com a gravidade. O estado nunca depende só da cor: forma + legenda em texto.
- *   3. Tudo sem cartão (direção A, "Edição"): filetes de tinta, serifa nos números e na manchete, tags com forma + texto.
- * Cores e medidas só por tokens (css/tokens.css). Movimento: uma única entrada da prateleira (transform e
- * opacity), zerada em prefers-reduced-motion.
+ * StockHub: início. Prefixo "db-". Linguagem de produto moderno (seção 17 de docs/design-system.md):
+ *   1. Capa compacta: data, uma frase em sans de tamanho moderado, primeiro passo e atalhos.
+ *   2. Faixa de cartões de métrica em vidro/gradiente sutil, com contagem animada, ícone e hover com elevação.
+ *   3. Blocos em cartões arredondados com cabeçalho limpo; estado em pílula (forma + texto + cor);
+ *      barras de saldo que enchem ao entrar; linha do tempo com pontos luminosos; gráfico com barras em gradiente.
+ * Estado nunca depende só da cor: forma + texto. Cores e medidas só por tokens (css/tokens.css).
+ * Movimento: só transform/opacity; a entrada escalonada vem de css/movimento.css e js/movimento.js; em
+ * prefers-reduced-motion tudo aparece já no estado final.
  */
 
-/* ============================== Estrutura ============================== */
-/* Sem cartões: cada seção abre com um filete de tinta e um título pequeno em caixa-alta, como as colunas de um jornal */
+/* ============================== Estrutura: cartões ============================== */
 .db-secao {
   min-width: 0;
-  margin-bottom: var(--sh-space-12);
+  margin-bottom: var(--sh-space-6);
+  padding: var(--sh-space-5);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-lg);
+  background: var(--sh-surface);
+  box-shadow: var(--sh-shadow-card);
 }
 
 .db-secao__cab {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
+  flex-wrap: nowrap;
+  align-items: center;
   justify-content: space-between;
   gap: var(--sh-space-1) var(--sh-space-4);
-  padding-top: var(--sh-space-4);
   margin-bottom: var(--sh-space-4);
-  border-top: 1px solid var(--sh-border);
 }
 
 .db-h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--sh-space-2);
   margin: 0;
-  color: var(--sh-text-muted);
-  font-size: var(--sh-text-sm);
-  font-weight: 700;
-  letter-spacing: 0;
-  text-transform: none;
+  color: var(--sh-text);
+  font-size: var(--sh-text-lg);
+  font-weight: 650;
+  letter-spacing: var(--sh-track-titulo);
+}
+
+.db-h2__icone {
+  display: inline-grid;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: var(--sh-radius-sm);
+  background: var(--sh-accent-soft);
+  color: var(--sh-accent-text);
+  font-size: 0.95rem;
+}
+
+.db-h2__icone--alerta {
+  background: var(--sh-warning-bg);
+  color: var(--sh-warning-fg);
 }
 
 .db-sub {
@@ -48,40 +68,48 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Colunas: com dois blocos visíveis, filete vertical entre eles; com um só, ele ocupa a linha inteira */
+.db-secao > .db-sub {
+  margin-bottom: var(--sh-space-3);
+}
+
+.db-personalizar {
+  margin-top: var(--sh-space-2);
+}
+
+/* Colunas: só com os dois blocos visíveis (modificador no JSP); com um só, ele ocupa a linha inteira */
 .db-colunas {
   display: grid;
-  gap: 0;
+  gap: var(--sh-space-6);
+  margin-bottom: var(--sh-space-6);
+}
+
+.db-colunas > .db-secao {
+  margin-bottom: 0;
 }
 
 @media (min-width: 992px) {
   .db-colunas--7-5 { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
-  .db-colunas--8-4 { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); }
-
-  .db-colunas--7-5 > .db-secao:first-child,
-  .db-colunas--8-4 > .db-secao:first-child { padding-right: var(--sh-space-8); }
-
-  .db-colunas--7-5 > .db-secao + .db-secao,
-  .db-colunas--8-4 > .db-secao + .db-secao {
-    padding-left: var(--sh-space-8);
-    border-left: 1px solid var(--sh-border);
-  }
+  .db-colunas--8-4 { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
 }
 
 .db-link {
+  white-space: nowrap;
   color: var(--sh-accent-text);
   font-weight: 600;
   text-underline-offset: 0.25em;
 }
 
-/* Tag de estado: forma + texto, a cor só reforça (octógono = sem estoque, triângulo = abaixo do mínimo, círculo = em dia) */
+/* Pílula de estado: forma (octógono / triângulo / círculo) + texto; a cor só reforça */
 .db-tag {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding: 2px 10px 2px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--sh-radius-pill);
   font-size: var(--sh-text-sm);
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-weight: 650;
+  line-height: 1.5;
   white-space: nowrap;
 }
 
@@ -93,78 +121,71 @@
   background: currentColor;
 }
 
-.db-tag--sem { color: var(--sh-estoque-sem-fg); }
+.db-tag--sem { color: var(--sh-estoque-sem-fg); background: var(--sh-estoque-sem-bg); border-color: var(--sh-estoque-sem-border); }
 .db-tag--sem::before { clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%); }
-.db-tag--baixo { color: var(--sh-estoque-baixo-fg); }
+.db-tag--baixo { color: var(--sh-estoque-baixo-fg); background: var(--sh-estoque-baixo-bg); border-color: var(--sh-estoque-baixo-border); }
 .db-tag--baixo::before { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
-.db-tag--ok { color: var(--sh-estoque-normal-fg); }
+.db-tag--ok { color: var(--sh-estoque-normal-fg); background: var(--sh-estoque-normal-bg); border-color: var(--sh-estoque-normal-border); }
 .db-tag--ok::before { border-radius: 50%; }
 
-/* ============================== Capa: data, frase, ações ============================== */
+/* ============================== Capa compacta ============================== */
 .db-capa {
-  margin-bottom: var(--sh-space-8);
-}
-
-.db-capa__linha {
-  display: block;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sh-space-4) var(--sh-space-8);
+  margin-bottom: var(--sh-space-6);
 }
 
 .db-capa__texto {
   min-width: 0;
+  flex: 1 1 28rem;
 }
 
 .db-data {
-  display: flex;
-  align-items: center;
-  gap: var(--sh-space-4);
   margin: 0;
   color: var(--sh-text-muted);
-  font-size: var(--sh-text-sm);
+  font-size: var(--sh-text-md);
   font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-/* Filete até a borda: o "dateline" de jornal */
-.db-data::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--sh-border-strong);
 }
 
 .db-data:empty {
   display: none;
 }
 
-/* Manchete: serifa; a palavra-chave em itálico na cor do acento */
+.db-data::first-letter {
+  text-transform: uppercase;
+}
+
 .db-titulo {
-  max-width: 17em;
-  margin: var(--sh-space-4) 0 var(--sh-space-3);
-  font-size: clamp(2rem, 1.2rem + 3.4vw, 3.75rem);
-  font-weight: 600;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  max-width: 28em;
+  margin: var(--sh-space-1) 0 var(--sh-space-2);
+  font-size: clamp(1.5rem, 1.2rem + 1.3vw, 2.125rem);
+  font-weight: 700;
+  line-height: var(--sh-lh-titulo);
+  letter-spacing: var(--sh-track-titulo);
   text-wrap: balance;
   overflow-wrap: anywhere;
 }
 
+/* Palavra-chave: cor do acento, sem itálico */
 .db-titulo em {
   color: var(--sh-accent-text);
-  font-style: italic;
+  font-style: normal;
 }
 
 .db-lead {
-  max-width: 38em;
-  margin: 0 0 var(--sh-space-6);
+  max-width: 40em;
+  margin: 0;
   color: var(--sh-text-muted);
-  font-size: var(--sh-fs-lead);
-  line-height: 1.4;
+  font-size: var(--sh-text-lg);
+  line-height: 1.45;
 }
 
 .db-lead strong {
   color: var(--sh-text);
-  font-weight: 600;
+  font-weight: 650;
 }
 
 .db-lead .db-link {
@@ -174,36 +195,130 @@
   text-underline-offset: 0.2em;
 }
 
-/* Botões: primário sólido, secundário com contorno de tinta, "Novo produto" como link sublinhado */
 .db-acoes {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--sh-space-2) var(--sh-space-3);
+  gap: var(--sh-space-2);
 }
 
-.db-acoes .btn-outline-secondary {
-  border-color: var(--sh-text);
+/* ============================== Cartões de métrica ============================== */
+.db-metricas {
+  margin: 0 0 var(--sh-space-6);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 0;
+  list-style: none;
+}
+
+.db-metrica {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  height: 100%;
+  min-height:  120px;
+  overflow: hidden;
+  padding: var(--sh-space-4);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-lg);
+  background: var(--sh-grad-destaque);
+  box-shadow: var(--sh-shadow-card);
   color: var(--sh-text);
+  text-decoration: none;
+  transition: transform var(--sh-t-3) var(--sh-ease-out), box-shadow var(--sh-t-3) var(--sh-ease-out), border-color var(--sh-t-2) var(--sh-ease);
 }
 
-.db-acoes .btn-outline-secondary:hover {
-  background: var(--sh-surface-2);
+/* Fio de luz no topo: some nas pontas */
+.db-metrica::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 12%;
+  left: 12%;
+  height: 1px;
+  background: var(--sh-hairline);
 }
 
-.db-acoes .btn-ghost {
+.db-metrica:hover,
+.db-metrica:focus-visible {
+  border-color: color-mix(in srgb, var(--sh-accent) 40%, var(--sh-border));
+  box-shadow: var(--sh-shadow-card-hover);
+  color: var(--sh-text);
+  transform: translateY(-3px);
+}
+
+.db-metrica__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sh-space-2);
+  margin-bottom: var(--sh-space-2);
+}
+
+.db-metrica__rotulo {
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-md);
+  font-weight: 600;
+}
+
+.db-metrica__icone {
+  display: inline-grid;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: var(--sh-radius-sm);
+  background: var(--sh-accent-soft);
   color: var(--sh-accent-text);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.3em;
+  font-size: 1.05rem;
 }
 
-/* ============================== Marcas (prateleira, legenda, fila) ============================== */
+.db-metrica__valor {
+  font-size: clamp(1.25rem, 0.95rem + 0.9vw, 1.75rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: var(--sh-track-display);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.db-metrica__apoio {
+  margin-top: auto;
+  padding-top: var(--sh-space-1);
+  color: var(--sh-text-muted);
+  font-size: var(--sh-text-sm);
+}
+
+.db-metrica--alerta .db-metrica__icone { background: var(--sh-warning-bg); color: var(--sh-warning-fg); }
+.db-metrica--alerta .db-metrica__valor { color: var(--sh-warning-fg); }
+.db-metrica--ok .db-metrica__icone { background: var(--sh-success-bg); color: var(--sh-success-fg); }
+
+/* Medidor do cartão "A repor": o svg usa viewBox = total de produtos; o traço da cor do cartão faz o vão entre trechos */
+.db-metrica__medidor {
+  display: block;
+  width: 100%;
+  height: 6px;
+  margin-top: var(--sh-space-2);
+  border-radius: var(--sh-radius-pill);
+  background: var(--sh-meter-track);
+}
+
+.db-metrica__medidor rect {
+  stroke: var(--sh-surface);
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+}
+
+.db-segmentos__sem { fill: var(--sh-meter-sem); }
+.db-segmentos__baixo { fill: var(--sh-meter-baixo); }
+.db-segmentos__normal { fill: var(--sh-meter-normal); }
+
+/* ============================== Marcas (situação dos produtos) ============================== */
 .db-marca {
   display: inline-grid;
   flex: none;
-  width: 22px;
-  height: 22px;
+  width:  20px;
+  height: 20px;
   place-items: center;
 }
 
@@ -213,7 +328,6 @@
   background: var(--sh-meter-normal);
 }
 
-/* Em dia: ponto pequeno e calmo */
 .db-marca--normal::before {
   width: 8px;
   height: 8px;
@@ -221,7 +335,6 @@
   opacity: 0.85;
 }
 
-/* Abaixo do mínimo: triângulo médio */
 .db-marca--baixo::before {
   width: 17px;
   height: 17px;
@@ -229,7 +342,6 @@
   clip-path: polygon(50% 5%, 97% 93%, 3% 93%);
 }
 
-/* Sem estoque: octógono, o maior */
 .db-marca--sem::before {
   width: 20px;
   height: 20px;
@@ -237,29 +349,30 @@
   clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
 }
 
-/* ============================== Prateleira ============================== */
-/* Sem cartão: um filete fino em cima e embaixo separa a prateleira da capa */
 .db-prateleira {
-  padding: var(--sh-space-5) 0;
-  border-top: 1px solid var(--sh-border);
-  border-bottom: 1px solid var(--sh-border);
+  margin-bottom: var(--sh-space-6);
+  padding: var(--sh-space-4) var(--sh-space-5);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius-lg);
+  background: var(--sh-surface);
+  box-shadow: var(--sh-shadow-card);
 }
 
 .db-prateleira__marcas {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 22px);
-  gap: 6px;
-  margin: 0 0 var(--sh-space-5);
+  grid-template-columns: repeat(auto-fill, 20px);
+  gap: 5px;
+  justify-content: start;
+  margin: 0 0 var(--sh-space-3);
   padding: 0;
   list-style: none;
-  justify-content: start;
 }
 
 .db-prateleira__marcas .db-marca {
   transition: opacity var(--sh-t-2) var(--sh-ease-out);
 }
 
-/* Passar o mouse ou focar uma linha da legenda apaga as outras marcas (só CSS, sem script) */
+/* Passar o mouse ou focar uma linha da legenda apaga as outras marcas (só CSS) */
 .db-prateleira:has([data-nivel="normal"]:is(:hover, :focus-visible)) .db-marca:not(.db-marca--normal),
 .db-prateleira:has([data-nivel="baixo"]:is(:hover, :focus-visible)) .db-marca:not(.db-marca--baixo),
 .db-prateleira:has([data-nivel="sem"]:is(:hover, :focus-visible)) .db-marca:not(.db-marca--sem) {
@@ -269,7 +382,7 @@
 .db-legenda {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sh-space-2) var(--sh-space-6);
+  gap: var(--sh-space-1) var(--sh-space-6);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -297,12 +410,11 @@
 }
 
 .db-prateleira__nota {
-  margin: var(--sh-space-3) 0 0;
+  margin: 0;
   color: var(--sh-text-subtle);
   font-size: var(--sh-text-sm);
 }
 
-/* Entrada única: as marcas assentam da esquerda para a direita (problemas primeiro). Só transform e opacity. */
 @keyframes db-assenta {
   from { opacity: 0; transform: translateY(6px) scale(0.6); }
   to { opacity: 1; transform: none; }
@@ -310,116 +422,24 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .db-prateleira__marcas .db-marca {
-    animation: db-assenta var(--sh-t-4) var(--sh-ease-out-forte) both;
+    animation: db-assenta var(--sh-t-4) var(--sh-ease-out-forte) 250ms both;
   }
-  .db-prateleira__marcas .db-marca:nth-child(n+11) { animation-delay: 35ms; }
-  .db-prateleira__marcas .db-marca:nth-child(n+21) { animation-delay: 70ms; }
-  .db-prateleira__marcas .db-marca:nth-child(n+31) { animation-delay: 105ms; }
-  .db-prateleira__marcas .db-marca:nth-child(n+41) { animation-delay: 140ms; }
-  .db-prateleira__marcas .db-marca:nth-child(n+51) { animation-delay: 175ms; }
-  .db-prateleira__marcas .db-marca:nth-child(n+61) { animation-delay: 210ms; }
-  .db-prateleira__marcas .db-marca:nth-child(n+71) { animation-delay: 245ms; }
-  .db-prateleira__marcas .db-marca:nth-child(n+81) { animation-delay: 280ms; }
-  .db-prateleira__marcas .db-marca:nth-child(n+91) { animation-delay: 315ms; }
-  .db-prateleira__marcas .db-marca:nth-child(n+101) { animation-delay: 350ms; }
-  .db-prateleira__marcas .db-marca:nth-child(n+111) { animation-delay: 385ms; }
-  .db-prateleira__marcas .db-marca:nth-child(n+121) { animation-delay: 420ms; }
-  .db-prateleira__marcas .db-marca:nth-child(n+131) { animation-delay: 455ms; }
-  .db-prateleira__marcas .db-marca:nth-child(n+141) { animation-delay: 490ms; }
+  .db-prateleira__marcas .db-marca:nth-child(n+11) { animation-delay: 285ms; }
+  .db-prateleira__marcas .db-marca:nth-child(n+21) { animation-delay: 320ms; }
+  .db-prateleira__marcas .db-marca:nth-child(n+31) { animation-delay: 355ms; }
+  .db-prateleira__marcas .db-marca:nth-child(n+41) { animation-delay: 390ms; }
+  .db-prateleira__marcas .db-marca:nth-child(n+61) { animation-delay: 460ms; }
+  .db-prateleira__marcas .db-marca:nth-child(n+81) { animation-delay: 530ms; }
+  .db-prateleira__marcas .db-marca:nth-child(n+101) { animation-delay: 600ms; }
 }
 
-/* ============================== Totais: números grandes em serifa e barra segmentada ============================== */
-.db-livro {
-  display: grid;
-  gap: 0;
-  margin: var(--sh-space-6) 0 0;
-  padding: var(--sh-space-4) 0 0;
-  border-top: 1px solid var(--sh-border);
-  list-style: none;
-}
-
-.db-livro a {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--sh-space-3) 0;
-  border-bottom: 1px solid var(--sh-border);
-  color: var(--sh-text);
-  text-decoration: none;
-}
-
-.db-livro a:hover .db-livro__rotulo {
-  color: var(--sh-text);
-  text-decoration: underline;
-  text-underline-offset: 0.25em;
-}
-
-.db-livro__valor {
-  font-size: clamp(1.75rem, 1.3rem + 1.4vw, 2.4rem);
-  font-weight: 600;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  font-variant-numeric: lining-nums tabular-nums;
-  overflow-wrap: anywhere;
-}
-
-.db-livro__rotulo {
-  color: var(--sh-text-muted);
-  font-size: var(--sh-text-md);
-}
-
-@media (min-width: 768px) {
-  .db-livro {
-    grid-template-columns: repeat(3, auto);
-    justify-content: start;
-    gap: 0 var(--sh-space-12);
-  }
-
-  .db-livro a {
-    padding: 0;
-    border-bottom: 0;
-  }
-}
-
-/* Barra segmentada: o svg usa viewBox = total de produtos; o traço da cor do fundo faz o vão entre os trechos */
-.db-segmentos {
-  max-width: 34rem;
-  margin-top: var(--sh-space-5);
-}
-
-.db-segmentos__barra {
-  display: block;
-  width: 100%;
-  height: 8px;
-  border-radius: 4px;
-  background: var(--sh-meter-track);
-}
-
-.db-segmentos__barra rect {
-  stroke: var(--sh-bg);
-  stroke-width: 2px;
-  vector-effect: non-scaling-stroke;
-}
-
-.db-segmentos__sem { fill: var(--sh-meter-sem); }
-.db-segmentos__baixo { fill: var(--sh-meter-baixo); }
-.db-segmentos__normal { fill: var(--sh-meter-normal); }
-
-.db-segmentos__legenda {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sh-space-1) var(--sh-space-4);
-  margin: var(--sh-space-2) 0 0;
-}
-
-/* ============================== A repor hoje (coluna) ============================== */
+/* ============================== A repor hoje ============================== */
 .db-fila {
-  margin: 0;
+  margin: 0 calc(var(--sh-space-2) * -1);
   padding: 0;
   list-style: none;
 }
 
-/* Linha de livro: nome em serifa, tag de estado, saldo com pontilhado e a reposição */
 .db-item {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -428,12 +448,13 @@
     "acao acao";
   align-items: start;
   gap: var(--sh-space-2) var(--sh-space-3);
-  padding: var(--sh-space-4) 0;
-  border-bottom: 1px solid var(--sh-border);
+  padding: var(--sh-space-3) var(--sh-space-2);
+  border-radius: var(--sh-radius);
+  transition: background-color var(--sh-t-2) var(--sh-ease);
 }
 
-.db-item:last-child {
-  border-bottom: 0;
+.db-item:hover {
+  background: var(--sh-surface-2);
 }
 
 .db-item__corpo {
@@ -447,30 +468,30 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--sh-text);
-  font-size: var(--sh-text-xl);
-  font-weight: 600;
-  line-height: 1.2;
+  font-size: var(--sh-text-lg);
+  font-weight: 650;
+  line-height: 1.25;
   text-decoration: none;
 }
 
 .db-item__nome:hover {
-  text-decoration: underline;
-  text-decoration-color: var(--sh-border-strong);
-  text-underline-offset: 0.25em;
+  color: var(--sh-accent-text);
 }
 
 .db-item__estado {
-  display: block;
-  margin-top: 2px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sh-space-1) var(--sh-space-2);
+  margin-top: 4px;
   color: var(--sh-text-muted);
-  font-size: var(--sh-text-md);
+  font-size: var(--sh-text-sm);
 }
 
 .db-item__saldo {
   grid-area: saldo;
-  font-family: var(--sh-font);
   font-size: var(--sh-text-base);
-  font-weight: 600;
+  font-weight: 650;
   font-variant-numeric: tabular-nums;
   text-align: right;
   white-space: nowrap;
@@ -478,7 +499,7 @@
 
 .db-item .sh-meter {
   display: block;
-  width: min(100%, 220px);
+  width: min(100%, 240px);
   margin-top: var(--sh-space-2);
 }
 
@@ -491,7 +512,7 @@
 }
 
 .db-repor__qtd {
-  width: 84px;
+  width: 80px;
   padding-inline: var(--sh-space-2);
   text-align: center;
 }
@@ -515,7 +536,13 @@
 }
 
 .db-ok {
-  padding: var(--sh-space-5) 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: var(--sh-space-4);
+  border: 1px dashed var(--sh-success-border);
+  border-radius: var(--sh-radius);
+  background: color-mix(in srgb, var(--sh-success-bg) 55%, var(--sh-surface));
 }
 
 .db-ok__titulo {
@@ -539,19 +566,19 @@
 
 .db-evento {
   position: relative;
-  padding: 0 0 var(--sh-space-5) var(--sh-space-6);
+  padding: 0 0 var(--sh-space-4) var(--sh-space-6);
 }
 
-/* Fio vertical que liga os pontos */
 .db-evento::before {
   content: "";
   position: absolute;
-  top: 12px;
+  top: 16px;
   bottom: -2px;
-  left: 4px;
-  width: 1px;
-  background: var(--sh-border-strong);
-  opacity: 0.55;
+  left: 5px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--sh-border-strong), var(--sh-border));
+  opacity: 0.5;
 }
 
 .db-evento:last-child {
@@ -562,23 +589,35 @@
   display: none;
 }
 
-/* Ponto: entrada cheio, saída vazado, ajuste em losango (forma + texto, não só cor) */
+/* Ponto luminoso: entrada cheio, saída vazado, ajuste em losango (forma + texto, não só cor) */
 .db-evento::after {
   content: "";
   position: absolute;
-  top: 5px;
+  top: 4px;
   left: 0;
-  width: 9px;
-  height: 9px;
+  width: 12px;
+  height: 12px;
   box-sizing: border-box;
   border: 2px solid var(--sh-text-muted);
   border-radius: 50%;
-  background: var(--sh-bg);
+  background: var(--sh-surface);
 }
 
-.db-evento--entrada::after { border-color: var(--sh-meter-normal); background: var(--sh-meter-normal); }
-.db-evento--saida::after { border-color: var(--sh-info-fg); }
-.db-evento--ajuste::after { border-radius: 1px; transform: rotate(45deg); }
+.db-evento--entrada::after {
+  border-color: var(--sh-meter-normal);
+  background: var(--sh-meter-normal);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--sh-meter-normal) 22%, transparent), 0 0 10px color-mix(in srgb, var(--sh-meter-normal) 55%, transparent);
+}
+
+.db-evento--saida::after {
+  border-color: var(--sh-info-fg);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--sh-info-fg) 16%, transparent), 0 0 10px color-mix(in srgb, var(--sh-info-fg) 40%, transparent);
+}
+
+.db-evento--ajuste::after {
+  border-radius: 2px;
+  transform: rotate(45deg) scale(0.85);
+}
 
 .db-evento__quando {
   display: flex;
@@ -587,13 +626,12 @@
   gap: var(--sh-space-1) var(--sh-space-2);
   color: var(--sh-text-subtle);
   font-size: var(--sh-text-sm);
-  letter-spacing: 0.04em;
 }
 
 .db-evento__etiqueta {
-  padding: 0 6px;
+  padding: 0 8px;
   border: 1px solid var(--sh-border);
-  border-radius: var(--sh-radius-xs);
+  border-radius: var(--sh-radius-pill);
   color: var(--sh-text-muted);
   font-size: var(--sh-text-sm);
   line-height: 1.5;
@@ -607,14 +645,12 @@
 
 .db-evento__texto a {
   color: var(--sh-text);
-  font-weight: 600;
+  font-weight: 650;
   text-decoration: none;
 }
 
 .db-evento__texto a:hover {
-  text-decoration: underline;
-  text-decoration-color: var(--sh-border-strong);
-  text-underline-offset: 0.25em;
+  color: var(--sh-accent-text);
 }
 
 .db-evento__tipo {
@@ -628,12 +664,15 @@
   display: block;
   margin-top: 1px;
   color: var(--sh-text-muted);
-  font-size: var(--sh-text-md);
+  font-size: var(--sh-text-sm);
   font-variant-numeric: tabular-nums;
 }
 
 .db-vazio {
-  margin: 0;
+  margin: 0 0 var(--sh-space-3);
+  padding: var(--sh-space-4);
+  border: 1px dashed var(--sh-border-strong);
+  border-radius: var(--sh-radius);
   color: var(--sh-text-muted);
 }
 
@@ -641,80 +680,58 @@
 .db-fluxo {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--sh-space-5) var(--sh-space-4);
-  margin: 0 0 var(--sh-space-6);
+  gap: var(--sh-space-3);
+  margin: 0 0 var(--sh-space-4);
   padding: 0;
   list-style: none;
 }
 
 @media (min-width: 768px) {
-  .db-fluxo {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
+  .db-fluxo { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 .db-etapa {
   position: relative;
   display: block;
-  padding-top: var(--sh-space-4);
+  height: 100%;
+  padding: var(--sh-space-3) var(--sh-space-4);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-radius);
+  background: var(--sh-surface-2);
   color: var(--sh-text);
   text-decoration: none;
+  transition: transform var(--sh-t-3) var(--sh-ease-out), border-color var(--sh-t-2) var(--sh-ease);
 }
 
-/* Trilho com um ponto por etapa: a ordem é a do fluxo */
-.db-etapa::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: calc(var(--sh-space-4) * -1);
-  left: 0;
-  height: 2px;
-  background: var(--sh-border-strong);
-  opacity: 0.55;
+.db-etapa:hover {
+  border-color: var(--sh-accent);
+  color: var(--sh-text);
+  transform: translateY(-2px);
 }
 
-.db-fluxo > li:last-child .db-etapa::before {
-  right: 0;
-}
-
-.db-etapa::after {
-  content: "";
-  position: absolute;
-  top: -4px;
-  left: 0;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--sh-text-muted);
-}
-
-.db-etapa--ativa::after {
-  background: var(--sh-accent);
+.db-etapa--ativa {
+  border-color: color-mix(in srgb, var(--sh-accent) 45%, var(--sh-border));
+  background: var(--sh-accent-soft);
 }
 
 .db-etapa__n {
   display: block;
-  font-size: 2rem;
-  font-weight: 600;
-  letter-spacing: -0.03em;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: var(--sh-track-display);
   line-height: 1.1;
-  font-variant-numeric: lining-nums tabular-nums;
+  font-variant-numeric: tabular-nums;
 }
 
 .db-etapa__nome {
   display: block;
-  font-weight: 600;
+  font-weight: 650;
 }
 
 .db-etapa__desc {
   display: block;
   color: var(--sh-text-muted);
-  font-size: var(--sh-text-md);
-}
-
-.db-etapa:hover .db-etapa__nome {
-  text-decoration: underline;
-  text-underline-offset: 0.25em;
+  font-size: var(--sh-text-sm);
 }
 
 .db-os {
@@ -737,14 +754,11 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--sh-text);
-  font-weight: 600;
+  font-weight: 650;
   text-decoration: none;
 }
 
-.db-os__nome:hover {
-  text-decoration: underline;
-  text-underline-offset: 0.25em;
-}
+.db-os__nome:hover { color: var(--sh-accent-text); }
 
 .db-os__sub {
   grid-column: 1;
@@ -755,14 +769,17 @@
 .db-os__status {
   grid-column: 2;
   grid-row: 1 / span 2;
-  color: var(--sh-text);
-  font-size: var(--sh-text-md);
-  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: var(--sh-radius-pill);
+  background: var(--sh-accent-soft);
+  color: var(--sh-accent-text);
+  font-size: var(--sh-text-sm);
+  font-weight: 650;
 }
 
 /* ============================== Cadastrados por último ============================== */
 .db-recentes {
-  margin: 0;
+  margin: 0 calc(var(--sh-space-2) * -1);
   padding: 0;
   list-style: none;
 }
@@ -772,17 +789,14 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--sh-space-3);
-  padding: var(--sh-space-3) 0;
-  border-bottom: 1px solid var(--sh-border);
+  padding: var(--sh-space-2) var(--sh-space-2);
+  border-radius: var(--sh-radius);
+  transition: background-color var(--sh-t-2) var(--sh-ease);
 }
 
-.db-recente:last-child {
-  border-bottom: 0;
-}
+.db-recente:hover { background: var(--sh-surface-2); }
 
-.db-recente__corpo {
-  min-width: 0;
-}
+.db-recente__corpo { min-width: 0; }
 
 .db-recente__nome {
   display: block;
@@ -790,46 +804,33 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--sh-text);
-  font-size: var(--sh-text-lg);
-  font-weight: 600;
+  font-size: var(--sh-text-base);
+  font-weight: 650;
   text-decoration: none;
 }
 
-.db-recente__nome:hover {
-  text-decoration: underline;
-  text-decoration-color: var(--sh-border-strong);
-  text-underline-offset: 0.25em;
-}
+.db-recente__nome:hover { color: var(--sh-accent-text); }
 
 .db-recente__sub {
   display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--sh-text-muted);
-  font-size: var(--sh-text-md);
+  font-size: var(--sh-text-sm);
   font-variant-numeric: tabular-nums;
 }
 
-.db-recente .sh-badge {
-  flex: none;
-}
+.db-recente .sh-badge { flex: none; }
 
-/* ============================== Gráfico de 14 dias (sem caixa) ============================== */
-.db-ritmo {
-  margin-bottom: var(--sh-space-12);
-}
+/* ============================== Gráfico de 14 dias ============================== */
+.db-ritmo { margin-bottom: 0; }
 
-/* O gráfico pronto tem 270 px de altura em telas largas: reservar o espaço evita deslocamento ao carregar */
 @media (min-width: 480px) {
   .db-grafico__area,
-  .db-grafico__estado--msg {
-    min-height: 270px;
-  }
-
-  .db-grafico__esqueleto {
-    height: 270px;
-  }
+  .db-grafico__estado--msg { min-height: 270px; }
+  .db-grafico__esqueleto { height: 270px; }
 }
-
-/* ============================== Movimento de 14 dias ============================== */
 
 .db-grafico__cab {
   display: flex;
@@ -837,7 +838,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--sh-space-2) var(--sh-space-4);
-  margin-bottom: var(--sh-space-4);
+  margin-bottom: var(--sh-space-3);
 }
 
 .db-grafico__resumo {
@@ -854,7 +855,7 @@
 .db-grafico__legenda {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sh-space-4);
+  gap: var(--sh-space-1) var(--sh-space-4);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -871,7 +872,7 @@
 .db-grafico__amostra {
   width: 10px;
   height: 10px;
-  border-radius: 2px;
+  border-radius: 3px;
 }
 
 .db-grafico__amostra--entrada { background: var(--sh-meter-normal); }
@@ -885,9 +886,7 @@
 
 .db-grafico__estado[hidden],
 .db-grafico__quadro[hidden],
-.db-grafico__dica[hidden] {
-  display: none;
-}
+.db-grafico__dica[hidden] { display: none; }
 
 .db-grafico__estado--msg {
   display: flex;
@@ -907,7 +906,6 @@
   color: var(--sh-text-muted);
 }
 
-/* Esqueleto: 14 barras de alturas diferentes */
 .db-grafico__esqueleto {
   display: flex;
   align-items: flex-end;
@@ -918,7 +916,7 @@
 
 .db-grafico__esqueleto .sh-esqueleto {
   flex: 1 1 0;
-  border-radius: 4px 4px 0 0;
+  border-radius: 8px 8px 0 0;
 }
 
 .db-esq-1 { height: 38%; } .db-esq-2 { height: 62%; } .db-esq-3 { height: 30%; } .db-esq-4 { height: 74%; }
@@ -926,9 +924,7 @@
 .db-esq-9 { height: 80%; } .db-esq-10 { height: 36%; } .db-esq-11 { height: 58%; } .db-esq-12 { height: 28%; }
 .db-esq-13 { height: 70%; } .db-esq-14 { height: 44%; }
 
-.db-grafico__quadro {
-  width: 100%;
-}
+.db-grafico__quadro { width: 100%; }
 
 .db-grafico__svg {
   display: block;
@@ -956,11 +952,12 @@
 .db-grafico__base {
   stroke: var(--sh-border-strong);
   stroke-width: 1;
+  opacity: 0.6;
 }
 
 .db-grafico__hoje {
-  fill: var(--sh-surface-2);
-  opacity: .7;
+  fill: var(--sh-accent-soft);
+  opacity: .65;
 }
 
 .db-grafico__dia {
@@ -969,9 +966,7 @@
 }
 
 /* O foco é desenhado pelo contorno da faixa do dia (abaixo), não pela caixa do navegador */
-.db-grafico__dia:focus-visible {
-  outline: none !important;
-}
+.db-grafico__dia:focus-visible { outline: none !important; }
 
 .db-grafico__hit {
   fill: transparent;
@@ -981,16 +976,13 @@
 }
 
 .db-grafico__dia:hover .db-grafico__hit,
-.db-grafico__dia.is-ativo .db-grafico__hit {
-  fill: var(--sh-surface-2);
-}
+.db-grafico__dia.is-ativo .db-grafico__hit { fill: var(--sh-surface-2); }
 
 .db-grafico__dia:focus-visible .db-grafico__hit {
   stroke: var(--sh-focus);
   fill: var(--sh-surface-2);
 }
 
-/* Cruzamento: linha vertical no dia ativo */
 .db-grafico__cruz {
   stroke: var(--sh-text-subtle);
   stroke-width: 1;
@@ -1000,17 +992,21 @@
 }
 
 .db-grafico__dia:hover .db-grafico__cruz,
-.db-grafico__dia.is-ativo .db-grafico__cruz {
-  opacity: 1;
-}
+.db-grafico__dia.is-ativo .db-grafico__cruz { opacity: 1; }
 
-.db-grafico__barra--entrada { fill: var(--sh-meter-normal); }
-.db-grafico__barra--saida { fill: var(--sh-info-fg); }
+/* Barras com gradiente suave (os stops vêm do defs criado em js/dashboard.js) */
+.db-grad-e0 { stop-color: color-mix(in srgb, var(--sh-meter-normal) 72%, #fff); }
+.db-grad-e1 { stop-color: var(--sh-meter-normal); }
+.db-grad-s0 { stop-color: color-mix(in srgb, var(--sh-info-fg) 72%, #fff); }
+.db-grad-s1 { stop-color: var(--sh-info-fg); }
 
-/* Cresce com o kit de rolagem (.sh-desenhar no svg, .sh-barra nas colunas); as saídas descem da linha do meio */
-.db-grafico__svg .sh-barra.db-grafico__barra--saida {
-  transform-origin: center top;
-}
+.db-grafico__barra--entrada { fill: url(#db-grad-entrada); }
+.db-grafico__barra--saida { fill: url(#db-grad-saida); }
+
+.db-grafico__dia:hover .db-grafico__barra,
+.db-grafico__dia.is-ativo .db-grafico__barra { filter: brightness(1.08) saturate(1.1); }
+
+.db-grafico__svg .sh-barra.db-grafico__barra--saida { transform-origin: center top; }
 
 .db-grafico__ajuste {
   fill: var(--sh-surface);
@@ -1023,11 +1019,13 @@
   z-index: 3;
   top: 0;
   left: 0;
-  min-width: 160px;
+  min-width: 168px;
   padding: var(--sh-space-2) var(--sh-space-3);
-  border: 1px solid var(--sh-border);
+  border: 1px solid var(--sh-glass-borda);
   border-radius: var(--sh-radius);
-  background: var(--sh-surface);
+  background: color-mix(in srgb, var(--sh-surface) 88%, transparent);
+  -webkit-backdrop-filter: var(--sh-glass-blur);
+  backdrop-filter: var(--sh-glass-blur);
   box-shadow: var(--sh-shadow-pop);
   color: var(--sh-text);
   font-size: var(--sh-text-sm);
@@ -1052,7 +1050,7 @@
   flex: 0 0 auto;
   width: 9px;
   height: 9px;
-  border-radius: 2px;
+  border-radius: 3px;
 }
 
 .db-grafico__dica-marca--entrada { background: var(--sh-meter-normal); }
@@ -1060,13 +1058,11 @@
 .db-grafico__dica-marca--ajuste { border: 2px solid var(--sh-text-muted); border-radius: 50%; }
 
 .db-grafico__tabela {
-  margin-top: var(--sh-space-4);
+  margin-top: var(--sh-space-3);
   font-size: var(--sh-text-md);
 }
 
-.db-grafico__tabela[hidden] {
-  display: none;
-}
+.db-grafico__tabela[hidden] { display: none; }
 
 .db-grafico__tabela summary {
   display: inline-flex;
@@ -1077,23 +1073,10 @@
   cursor: pointer;
 }
 
+/* Entrada escalonada dos blocos em grade (os que já estão na tela ao carregar; o resto revela ao rolar) */
+.db-colunas > :nth-child(2) { animation-delay: 80ms; }
+.db-colunas > .db-secao:nth-child(2) { animation-delay: 90ms; }
 
-/* Cabeçalho do gráfico com o mesmo fio das outras seções */
-.db-grafico__cab {
-  padding-top: var(--sh-space-4);
-  border-top: 1px solid var(--sh-border);
-}
-
-/* A data vem em minúsculas ("terça-feira, 27 de outubro"): só a primeira letra sobe */
-.db-data::first-letter {
-  text-transform: none;
-}
-
-/* Respiros: a prateleira se afasta dos botões e a frase de apoio se afasta da lista */
-.db-prateleira {
-  margin-top: var(--sh-space-8);
-}
-
-.db-secao > .db-sub {
-  margin-bottom: var(--sh-space-4);
+@media (min-width: 992px) {
+  .db-metricas { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }

@@ -178,6 +178,17 @@
     var porUnidade = ph / 2 / teto;
 
     var svg = el('svg', { viewBox: '0 0 ' + largura + ' ' + altura, width: largura, height: altura, focusable: 'false' }, 'db-grafico__svg sh-desenhar' + (semAnimar ? ' is-visivel' : ''));
+    // gradientes suaves das barras (o desenho em si usa fill:url(#...) no CSS)
+    var defs = el('defs', {});
+    var gE = el('linearGradient', { id: 'db-grad-entrada', x1: 0, y1: 0, x2: 0, y2: 1 });
+    gE.appendChild(el('stop', { offset: '0%' }, 'db-grad-e0'));
+    gE.appendChild(el('stop', { offset: '100%' }, 'db-grad-e1'));
+    var gS = el('linearGradient', { id: 'db-grad-saida', x1: 0, y1: 1, x2: 0, y2: 0 });
+    gS.appendChild(el('stop', { offset: '0%' }, 'db-grad-s0'));
+    gS.appendChild(el('stop', { offset: '100%' }, 'db-grad-s1'));
+    defs.appendChild(gE);
+    defs.appendChild(gS);
+    svg.appendChild(defs);
     svg.setAttribute('role', 'group');
     svg.setAttribute('aria-label', 'Gráfico de entradas e saídas dos últimos 14 dias. Use as setas para percorrer os dias.');
 
@@ -215,12 +226,12 @@
       var hEntrada = item.entradas * porUnidade;
       var hSaida = item.saidas * porUnidade;
       if (item.entradas > 0) {
-        var rE = el('rect', { x: cx - barra / 2, y: meio - Math.max(hEntrada, 2), width: barra, height: Math.max(hEntrada, 2), rx: Math.min(4, barra / 2) }, 'db-grafico__barra db-grafico__barra--entrada sh-barra');
+        var rE = el('rect', { x: cx - barra / 2, y: meio - Math.max(hEntrada, 2), width: barra, height: Math.max(hEntrada, 2), rx: Math.min(7, barra / 2) }, 'db-grafico__barra db-grafico__barra--entrada sh-barra');
         rE.style.setProperty('--sh-i', String(d));
         gDia.appendChild(rE);
       }
       if (item.saidas > 0) {
-        var rS = el('rect', { x: cx - barra / 2, y: meio, width: barra, height: Math.max(hSaida, 2), rx: Math.min(4, barra / 2) }, 'db-grafico__barra db-grafico__barra--saida sh-barra');
+        var rS = el('rect', { x: cx - barra / 2, y: meio, width: barra, height: Math.max(hSaida, 2), rx: Math.min(7, barra / 2) }, 'db-grafico__barra db-grafico__barra--saida sh-barra');
         rS.style.setProperty('--sh-i', String(d));
         gDia.appendChild(rS);
       }

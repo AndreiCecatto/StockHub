@@ -59,135 +59,140 @@
         <script defer src="${ctx}/js/dashboard.js"></script>
     </jsp:attribute>
     <jsp:body>
-        <%-- ===== Capa: a frase do dia, o primeiro passo e as ações ===== --%>
+        <%-- ===== Capa compacta: data, frase do dia, primeiro passo e atalhos ===== --%>
         <header class="db-capa">
-            <div class="db-capa__linha">
-                <div class="db-capa__texto">
-                    <p class="db-data" data-sh-data-hoje></p>
-                    <h1 class="db-titulo" id="titulo-capa">
-                        <c:choose>
-                            <c:when test="${nTotal == 0}">Vamos cadastrar o <em>primeiro produto</em>.</c:when>
-                            <c:when test="${nReposicao == 0}"><em>Tudo em dia</em>, nenhum produto abaixo do mínimo.</c:when>
-                            <c:when test="${nSem > 0 and nBaixo > 0}">
-                                <c:out value="${nSem}" /> <em><c:out value="${nSem == 1 ? 'produto acabou' : 'produtos acabaram'}" /></em>
-                                e <c:out value="${nBaixo}" /> <c:out value="${nBaixo == 1 ? 'está' : 'estão'}" /> abaixo do mínimo.
-                            </c:when>
-                            <c:when test="${nSem > 0}">
-                                <c:out value="${nSem}" /> <em><c:out value="${nSem == 1 ? 'produto acabou' : 'produtos acabaram'}" /></em>.
-                            </c:when>
-                            <c:otherwise>
-                                <c:out value="${nBaixo}" /> <c:out value="${nBaixo == 1 ? 'produto está' : 'produtos estão'}" /> <em>abaixo do mínimo</em>.
-                            </c:otherwise>
-                        </c:choose>
-                    </h1>
-                    <p class="db-lead">
-                        <c:choose>
-                            <c:when test="${nTotal == 0}">Crie uma categoria e o primeiro produto. O resto desta tela se preenche sozinho.</c:when>
-                            <c:when test="${nReposicao == 0}">Todos os <c:out value="${nTotal}" /> produtos estão acima do mínimo. Registre entradas e saídas para manter assim.</c:when>
-                            <c:when test="${primeiro != null and primeiro.quantidade == 0}">
-                                Comece por <a class="db-link" href="<c:out value='${ctx}/produtos/${primeiro.id}'/>"><c:out value="${primeiro.nome}" /></a>, que está sem estoque.
-                            </c:when>
-                            <c:when test="${primeiro != null}">
-                                Comece por <a class="db-link" href="<c:out value='${ctx}/produtos/${primeiro.id}'/>"><c:out value="${primeiro.nome}" /></a>:
-                                restam <strong><c:out value="${primeiro.quantidade}" /></strong> e o mínimo é <c:out value="${primeiro.estoqueMinimo}" />.
-                            </c:when>
-                        </c:choose>
-                    </p>
-                </div>
-                <c:if test="${blocos['ATALHOS']}">
-                <div class="db-acoes">
-                    <sh:modulo nome="OS">
-                        <a class="btn btn-primary" href="${ctx}/os/nova"><i class="bi bi-plus-lg" aria-hidden="true"></i> Nova ordem de serviço</a>
-                    </sh:modulo>
-                    <a class="btn ${modulos['OS'] ? 'btn-outline-secondary' : 'btn-primary'}" href="${ctx}/estoque?movTipo=ENTRADA"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> Registrar entrada</a>
-                    <a class="btn btn-outline-secondary" href="${ctx}/estoque?movTipo=SAIDA">Registrar saída</a>
-                    <sh:modulo nome="VENDAS">
-                        <a class="btn btn-ghost" href="${ctx}/clientes">Clientes</a>
-                    </sh:modulo>
-                    <a class="btn btn-ghost" href="${ctx}/produtos/novo">Novo produto</a>
-                </div>
-                </c:if>
+            <div class="db-capa__texto">
+                <p class="db-data" data-sh-data-hoje></p>
+                <h1 class="db-titulo" id="titulo-capa">
+                    <c:choose>
+                        <c:when test="${nTotal == 0}">Vamos cadastrar o <em>primeiro produto</em>.</c:when>
+                        <c:when test="${nReposicao == 0}"><em>Tudo em dia</em>, nenhum produto abaixo do mínimo.</c:when>
+                        <c:when test="${nSem > 0 and nBaixo > 0}">
+                            <c:out value="${nSem}" /> <em><c:out value="${nSem == 1 ? 'produto acabou' : 'produtos acabaram'}" /></em>
+                            e <c:out value="${nBaixo}" /> <c:out value="${nBaixo == 1 ? 'está' : 'estão'}" /> abaixo do mínimo.
+                        </c:when>
+                        <c:when test="${nSem > 0}">
+                            <c:out value="${nSem}" /> <em><c:out value="${nSem == 1 ? 'produto acabou' : 'produtos acabaram'}" /></em>.
+                        </c:when>
+                        <c:otherwise>
+                            <c:out value="${nBaixo}" /> <c:out value="${nBaixo == 1 ? 'produto está' : 'produtos estão'}" /> <em>abaixo do mínimo</em>.
+                        </c:otherwise>
+                    </c:choose>
+                </h1>
+                <p class="db-lead">
+                    <c:choose>
+                        <c:when test="${nTotal == 0}">Crie uma categoria e o primeiro produto. O resto desta tela se preenche sozinho.</c:when>
+                        <c:when test="${nReposicao == 0}">Todos os <c:out value="${nTotal}" /> produtos estão acima do mínimo. Registre entradas e saídas para manter assim.</c:when>
+                        <c:when test="${primeiro != null and primeiro.quantidade == 0}">
+                            Comece por <a class="db-link" href="<c:out value='${ctx}/produtos/${primeiro.id}'/>"><c:out value="${primeiro.nome}" /></a>, que está sem estoque.
+                        </c:when>
+                        <c:when test="${primeiro != null}">
+                            Comece por <a class="db-link" href="<c:out value='${ctx}/produtos/${primeiro.id}'/>"><c:out value="${primeiro.nome}" /></a>:
+                            restam <strong><c:out value="${primeiro.quantidade}" /></strong> e o mínimo é <c:out value="${primeiro.estoqueMinimo}" />.
+                        </c:when>
+                    </c:choose>
+                </p>
             </div>
-
-            <c:if test="${nTotal > 0}">
-                <c:if test="${blocos['PRATELEIRA']}">
-                <%-- A prateleira: uma marca por produto, problemas primeiro. As marcas são decorativas; a informação está na legenda, em texto. --%>
-                <div class="db-prateleira">
-                    <ul class="db-prateleira__marcas" aria-hidden="true">
-                        <c:forEach begin="1" end="${mSem}"><li class="db-marca db-marca--sem"></li></c:forEach>
-                        <c:forEach begin="1" end="${mBaixo}"><li class="db-marca db-marca--baixo"></li></c:forEach>
-                        <c:forEach begin="1" end="${mNormal}"><li class="db-marca db-marca--normal"></li></c:forEach>
-                    </ul>
-                    <h2 class="visually-hidden">Situação dos produtos</h2>
-                    <ul class="db-legenda">
-                        <c:if test="${nSem > 0}">
-                            <li><a href="${ctx}/produtos?nivelEstoque=semEstoque&amp;tamanho=25" data-nivel="sem">
-                                <span class="db-marca db-marca--sem" aria-hidden="true"></span>
-                                <strong><c:out value="${nSem}" /></strong> sem estoque</a></li>
-                        </c:if>
-                        <c:if test="${nBaixo > 0}">
-                            <li><a href="${ctx}/produtos?nivelEstoque=baixo&amp;tamanho=25" data-nivel="baixo">
-                                <span class="db-marca db-marca--baixo" aria-hidden="true"></span>
-                                <strong><c:out value="${nBaixo}" /></strong> abaixo do mínimo</a></li>
-                        </c:if>
-                        <li><a href="${ctx}/produtos?nivelEstoque=ok&amp;tamanho=25" data-nivel="normal">
-                            <span class="db-marca db-marca--normal" aria-hidden="true"></span>
-                            <strong><c:out value="${nNormal}" /></strong> em dia</a></li>
-                    </ul>
-                    <c:if test="${k > 1}">
-                        <p class="db-prateleira__nota">Cada marca representa até <c:out value="${k}" /> produtos.</p>
-                    </c:if>
-                </div>
-                </c:if>
-
-                <c:if test="${blocos['TOTAIS']}">
-                <h2 class="visually-hidden">Totais da loja</h2>
-                <ul class="db-livro">
-                    <li>
-                        <a href="${ctx}/valor-estoque">
-                            <span class="db-livro__valor" data-contar="<c:out value='${resumo.valorTotalEstoque}'/>" data-formato="moeda">R$ <fmt:formatNumber value="${resumo.valorTotalEstoque}" pattern="#,##0.00" /></span>
-                            <span class="db-livro__rotulo">em estoque</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="${ctx}/unidades">
-                            <span class="db-livro__valor" data-contar="<c:out value='${resumo.quantidadeTotalItens}'/>" data-formato="inteiro"><c:out value="${resumo.quantidadeTotalItens}" /></span>
-                            <span class="db-livro__rotulo"><c:out value="${resumo.quantidadeTotalItens == 1 ? 'unidade guardada' : 'unidades guardadas'}" /></span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="${ctx}/produtos?tamanho=25">
-                            <span class="db-livro__valor" data-contar="<c:out value='${nTotal}'/>" data-formato="inteiro"><c:out value="${nTotal}" /></span>
-                            <span class="db-livro__rotulo"><c:out value="${nTotal == 1 ? 'produto' : 'produtos'}" /> em <c:out value="${resumo.totalCategorias}" /> <c:out value="${resumo.totalCategorias == 1 ? 'categoria' : 'categorias'}" /></span>
-                        </a>
-                    </li>
-                </ul>
-                <%-- Barra segmentada: largura proporcional ao número de produtos (viewBox = total; sem style inline). Forma e texto vêm da legenda abaixo. --%>
-                <div class="db-segmentos">
-                    <svg class="db-segmentos__barra" viewBox="0 0 ${nTotal} 1" preserveAspectRatio="none" role="img"
-                        aria-label="${nSem} sem estoque, ${nBaixo} abaixo do mínimo, ${nNormal} em dia">
-                        <c:set var="xBaixo" value="${nSem}" />
-                        <c:set var="xNormal" value="${nSem + nBaixo}" />
-                        <c:if test="${nSem > 0}"><rect class="db-segmentos__sem" x="0" y="0" width="${nSem}" height="1" /></c:if>
-                        <c:if test="${nBaixo > 0}"><rect class="db-segmentos__baixo" x="${xBaixo}" y="0" width="${nBaixo}" height="1" /></c:if>
-                        <c:if test="${nNormal > 0}"><rect class="db-segmentos__normal" x="${xNormal}" y="0" width="${nNormal}" height="1" /></c:if>
-                    </svg>
-                    <p class="db-segmentos__legenda">
-                        <span class="db-tag db-tag--sem"><c:out value="${nSem}" /> sem estoque</span>
-                        <span class="db-tag db-tag--baixo"><c:out value="${nBaixo}" /> abaixo do mínimo</span>
-                        <span class="db-tag db-tag--ok"><c:out value="${nNormal}" /> em dia</span>
-                    </p>
-                </div>
-                </c:if>
+            <c:if test="${blocos['ATALHOS']}">
+            <div class="db-acoes">
+                <sh:modulo nome="OS">
+                    <a class="btn btn-primary" href="${ctx}/os/nova"><i class="bi bi-plus-lg" aria-hidden="true"></i> Nova ordem de serviço</a>
+                </sh:modulo>
+                <a class="btn ${modulos['OS'] ? 'btn-outline-secondary' : 'btn-primary'}" href="${ctx}/estoque?movTipo=ENTRADA"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> Registrar entrada</a>
+                <a class="btn btn-outline-secondary" href="${ctx}/estoque?movTipo=SAIDA"><i class="bi bi-box-arrow-up" aria-hidden="true"></i> Registrar saída</a>
+                <sh:modulo nome="VENDAS">
+                    <a class="btn btn-ghost" href="${ctx}/clientes">Clientes</a>
+                </sh:modulo>
+                <a class="btn btn-ghost" href="${ctx}/produtos/novo">Novo produto</a>
+            </div>
             </c:if>
         </header>
+
+        <c:if test="${nTotal > 0}">
+            <%-- Faixa de métricas: quatro cartões em vidro, valores com contagem animada (js/numeros.js) --%>
+            <c:if test="${blocos['TOTAIS']}">
+            <h2 class="visually-hidden">Totais da loja</h2>
+            <ul class="sh-metricas db-metricas">
+                <li>
+                    <a class="db-metrica" href="${ctx}/valor-estoque">
+                        <span class="db-metrica__topo"><span class="db-metrica__rotulo">Valor em estoque</span><span class="db-metrica__icone" aria-hidden="true"><i class="bi bi-wallet2"></i></span></span>
+                        <span class="db-metrica__valor" data-contar="<c:out value='${resumo.valorTotalEstoque}'/>" data-formato="moeda">R$ <fmt:formatNumber value="${resumo.valorTotalEstoque}" pattern="#,##0.00" /></span>
+                        <span class="db-metrica__apoio">ver o valor por produto</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="db-metrica" href="${ctx}/unidades">
+                        <span class="db-metrica__topo"><span class="db-metrica__rotulo">Unidades</span><span class="db-metrica__icone" aria-hidden="true"><i class="bi bi-stack"></i></span></span>
+                        <span class="db-metrica__valor" data-contar="<c:out value='${resumo.quantidadeTotalItens}'/>" data-formato="inteiro"><fmt:formatNumber value="${resumo.quantidadeTotalItens}" pattern="#,##0" /></span>
+                        <span class="db-metrica__apoio"><c:out value="${resumo.quantidadeTotalItens == 1 ? 'unidade guardada' : 'unidades guardadas'}" /></span>
+                    </a>
+                </li>
+                <li>
+                    <a class="db-metrica" href="${ctx}/produtos?tamanho=25">
+                        <span class="db-metrica__topo"><span class="db-metrica__rotulo">Produtos</span><span class="db-metrica__icone" aria-hidden="true"><i class="bi bi-box-seam"></i></span></span>
+                        <span class="db-metrica__valor" data-contar="<c:out value='${nTotal}'/>" data-formato="inteiro"><c:out value="${nTotal}" /></span>
+                        <span class="db-metrica__apoio">em <c:out value="${resumo.totalCategorias}" /> <c:out value="${resumo.totalCategorias == 1 ? 'categoria' : 'categorias'}" /></span>
+                    </a>
+                </li>
+                <li>
+                    <a class="db-metrica ${nReposicao > 0 ? 'db-metrica--alerta' : 'db-metrica--ok'}" href="${ctx}/estoque-baixo">
+                        <span class="db-metrica__topo"><span class="db-metrica__rotulo">A repor</span><span class="db-metrica__icone" aria-hidden="true"><i class="bi ${nReposicao > 0 ? 'bi-exclamation-triangle' : 'bi-check2-circle'}"></i></span></span>
+                        <span class="db-metrica__valor" data-contar="<c:out value='${nReposicao}'/>" data-formato="inteiro"><c:out value="${nReposicao}" /></span>
+                        <%-- Medidor: largura proporcional ao número de produtos (viewBox = total). O texto abaixo diz o mesmo. --%>
+                        <svg class="db-metrica__medidor" viewBox="0 0 ${nTotal} 1" preserveAspectRatio="none" role="img"
+                            aria-label="${nSem} sem estoque, ${nBaixo} abaixo do mínimo, ${nNormal} em dia">
+                            <c:if test="${nSem > 0}"><rect class="db-segmentos__sem" x="0" y="0" width="${nSem}" height="1" /></c:if>
+                            <c:if test="${nBaixo > 0}"><rect class="db-segmentos__baixo" x="${nSem}" y="0" width="${nBaixo}" height="1" /></c:if>
+                            <c:if test="${nNormal > 0}"><rect class="db-segmentos__normal" x="${nSem + nBaixo}" y="0" width="${nNormal}" height="1" /></c:if>
+                        </svg>
+                        <span class="db-metrica__apoio">
+                            <c:choose>
+                                <c:when test="${nReposicao == 0}">tudo acima do mínimo</c:when>
+                                <c:otherwise><c:out value="${nSem}" /> sem estoque, <c:out value="${nBaixo}" /> abaixo do mínimo</c:otherwise>
+                            </c:choose>
+                        </span>
+                    </a>
+                </li>
+            </ul>
+            </c:if>
+
+            <c:if test="${blocos['PRATELEIRA']}">
+            <%-- Situação dos produtos: uma marca por produto, problemas primeiro. As marcas são decorativas; a informação está na legenda, em texto. --%>
+            <div class="db-prateleira" data-sh-revela>
+                <ul class="db-prateleira__marcas" aria-hidden="true">
+                    <c:forEach begin="1" end="${mSem}"><li class="db-marca db-marca--sem"></li></c:forEach>
+                    <c:forEach begin="1" end="${mBaixo}"><li class="db-marca db-marca--baixo"></li></c:forEach>
+                    <c:forEach begin="1" end="${mNormal}"><li class="db-marca db-marca--normal"></li></c:forEach>
+                </ul>
+                <h2 class="visually-hidden">Situação dos produtos</h2>
+                <ul class="db-legenda">
+                    <c:if test="${nSem > 0}">
+                        <li><a href="${ctx}/produtos?nivelEstoque=semEstoque&amp;tamanho=25" data-nivel="sem">
+                            <span class="db-marca db-marca--sem" aria-hidden="true"></span>
+                            <strong><c:out value="${nSem}" /></strong> sem estoque</a></li>
+                    </c:if>
+                    <c:if test="${nBaixo > 0}">
+                        <li><a href="${ctx}/produtos?nivelEstoque=baixo&amp;tamanho=25" data-nivel="baixo">
+                            <span class="db-marca db-marca--baixo" aria-hidden="true"></span>
+                            <strong><c:out value="${nBaixo}" /></strong> abaixo do mínimo</a></li>
+                    </c:if>
+                    <li><a href="${ctx}/produtos?nivelEstoque=ok&amp;tamanho=25" data-nivel="normal">
+                        <span class="db-marca db-marca--normal" aria-hidden="true"></span>
+                        <strong><c:out value="${nNormal}" /></strong> em dia</a></li>
+                </ul>
+                <c:if test="${k > 1}">
+                    <p class="db-prateleira__nota">Cada marca representa até <c:out value="${k}" /> produtos.</p>
+                </c:if>
+            </div>
+            </c:if>
+        </c:if>
 
         <c:choose>
             <%-- ===== Loja nova: primeiros passos ===== --%>
             <c:when test="${nTotal == 0}">
-                <section class="db-secao" aria-labelledby="titulo-passos">
+                <section class="db-secao" data-sh-revela aria-labelledby="titulo-passos">
                     <div class="db-secao__cab">
-                        <h2 class="db-h2" id="titulo-passos">Primeiros passos</h2>
+                        <h2 class="db-h2" id="titulo-passos"><span class="db-h2__icone" aria-hidden="true"><i class="bi bi-rocket-takeoff"></i></span>Primeiros passos</h2>
                         <p class="db-sub">Em três etapas a sua loja está pronta para usar.</p>
                     </div>
                     <ol class="sh-passos">
@@ -227,9 +232,9 @@
                 <div class="db-colunas ${blocos['FAZER_AGORA'] and blocos['HOJE_NA_LOJA'] ? 'db-colunas--7-5' : ''}">
                     <%-- ===== Fazer agora ===== --%>
                     <c:if test="${blocos['FAZER_AGORA']}">
-                    <section class="db-secao" aria-labelledby="titulo-fazer">
+                    <section class="db-secao" data-sh-revela aria-labelledby="titulo-fazer">
                         <div class="db-secao__cab">
-                            <h2 class="db-h2" id="titulo-fazer">A repor hoje</h2>
+                            <h2 class="db-h2" id="titulo-fazer"><span class="db-h2__icone db-h2__icone--alerta" aria-hidden="true"><i class="bi bi-arrow-repeat"></i></span>A repor hoje</h2>
                             <c:if test="${nReposicao > 0}">
                                 <a class="db-link" href="${ctx}/estoque-baixo">Ver estoque baixo</a>
                             </c:if>
@@ -256,8 +261,8 @@
                                                 <span class="db-item__estado">
                                                     <%-- Tag de estado: forma (octógono ou triângulo) + texto; a cor só reforça --%>
                                                     <span class="db-tag db-tag--${nivel}"><c:out value="${nivel == 'sem' ? 'Sem estoque' : 'Abaixo do mínimo'}" /></span>
-                                                    &middot; mínimo <span class="sh-mono"><c:out value="${produto.estoqueMinimo}" /></span>
-                                                    &middot; <c:out value="${produto.categoria.nome}" />
+                                                    <span>mínimo <span class="sh-mono"><c:out value="${produto.estoqueMinimo}" /></span></span>
+                                                    <span><c:out value="${produto.categoria.nome}" /></span>
                                                 </span>
                                                 <sh:medidorEstoque saldo="${produto.quantidade}" minimo="${produto.estoqueMinimo}" />
                                             </div>
@@ -289,9 +294,9 @@
 
                     <%-- ===== Hoje na loja: linha do tempo ===== --%>
                     <c:if test="${blocos['HOJE_NA_LOJA']}">
-                    <section class="db-secao" aria-labelledby="titulo-hoje">
+                    <section class="db-secao" data-sh-revela aria-labelledby="titulo-hoje">
                         <div class="db-secao__cab">
-                            <h2 class="db-h2" id="titulo-hoje">Hoje na loja</h2>
+                            <h2 class="db-h2" id="titulo-hoje"><span class="db-h2__icone" aria-hidden="true"><i class="bi bi-activity"></i></span>Hoje na loja</h2>
                             <a class="db-link" href="${ctx}/estoque">Ver todas</a>
                         </div>
                         <sh:modulo nome="VENDAS">
@@ -342,9 +347,9 @@
                 <%-- ===== Oficina: fluxo das ordens de serviço (só com o módulo OS e o bloco visível) ===== --%>
                 <c:if test="${blocos['OS_FLUXO']}">
                 <sh:modulo nome="OS">
-                    <section class="db-secao" aria-labelledby="titulo-os">
+                    <section class="db-secao" data-sh-revela aria-labelledby="titulo-os">
                         <div class="db-secao__cab">
-                            <h2 class="db-h2" id="titulo-os">Ordens de serviço</h2>
+                            <h2 class="db-h2" id="titulo-os"><span class="db-h2__icone" aria-hidden="true"><i class="bi bi-tools"></i></span>Ordens de serviço</h2>
                             <a class="db-link" href="${ctx}/os">Ver todas</a>
                         </div>
                         <ol class="db-fluxo">
@@ -384,11 +389,11 @@
                 <div class="db-colunas ${blocos['GRAFICO_14_DIAS'] and blocos['CADASTRADOS_ULTIMO'] ? 'db-colunas--8-4' : ''}">
                     <%-- ===== Ritmo de 14 dias (SVG feito à mão, dados por fetch) ===== --%>
                     <c:if test="${blocos['GRAFICO_14_DIAS']}">
-                    <section class="db-secao db-ritmo" aria-labelledby="titulo-grafico" data-sh-grafico
+                    <section class="db-secao db-ritmo" data-sh-revela aria-labelledby="titulo-grafico" data-sh-grafico
                         data-url="<c:out value='${ctx}/api/dashboard/movimentos?dias=14'/>">
                         <div class="db-grafico__cab">
                             <div>
-                                <h2 class="db-h2" id="titulo-grafico">Ritmo dos últimos 14 dias</h2>
+                                <h2 class="db-h2" id="titulo-grafico"><span class="db-h2__icone" aria-hidden="true"><i class="bi bi-bar-chart-line"></i></span>Ritmo dos últimos 14 dias</h2>
                                 <p class="db-grafico__resumo" data-grafico-resumo>Carregando os movimentos&hellip;</p>
                             </div>
                             <ul class="db-grafico__legenda" aria-hidden="true">
@@ -443,9 +448,9 @@
 
                     <%-- ===== Cadastrados por último ===== --%>
                     <c:if test="${blocos['CADASTRADOS_ULTIMO']}">
-                    <section class="db-secao" aria-labelledby="titulo-recentes">
+                    <section class="db-secao" data-sh-revela aria-labelledby="titulo-recentes">
                         <div class="db-secao__cab">
-                            <h2 class="db-h2" id="titulo-recentes">Cadastrados por último</h2>
+                            <h2 class="db-h2" id="titulo-recentes"><span class="db-h2__icone" aria-hidden="true"><i class="bi bi-clock-history"></i></span>Cadastrados por último</h2>
                             <a class="db-link" href="${ctx}/produtos?tamanho=25">Ver todos</a>
                         </div>
                         <ul class="db-recentes">
@@ -468,7 +473,7 @@
         </c:choose>
 
         <c:if test="${podeGerenciar}">
-            <p class="db-sub mt-4"><a class="db-link" href="${ctx}/conta/personalizacao"><i class="bi bi-sliders" aria-hidden="true"></i> Personalizar início</a></p>
+            <p class="db-sub db-personalizar"><a class="db-link" href="${ctx}/conta/personalizacao"><i class="bi bi-sliders" aria-hidden="true"></i> Personalizar início</a></p>
         </c:if>
     </jsp:body>
 </sh:layout>
