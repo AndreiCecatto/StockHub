@@ -57,12 +57,12 @@
                 </c:when>
                 <c:otherwise>
                     <h3 class="an-sub">Por categoria</h3>
-                    <figure class="an-fig" data-grafico="barras" data-tabela="an-t-valor" data-formato="moeda" data-coluna="3"
+                    <figure class="an-fig" data-grafico="composicao" data-ordenar="desc" data-tabela="an-t-valor" data-formato="moeda" data-coluna="3"
                             data-rotulo-acessivel="Dinheiro parado por categoria">
                         <div class="an-fig__area"></div>
                     </figure>
                     <details class="an-tabela" open>
-                        <summary>Ver como tabela</summary>
+                        <summary>Ver os números em tabela</summary>
                         <div class="sh-table-wrap">
                             <table class="sh-table" id="an-t-valor">
                                 <caption class="visually-hidden">Dinheiro parado no estoque por categoria</caption>
@@ -112,12 +112,12 @@
                     </dl>
 
                     <h3 class="an-sub">Saídas por dia</h3>
-                    <figure class="an-fig" data-grafico="colunas" data-tabela="an-t-dia" data-formato="inteiro" data-coluna="1"
+                    <figure class="an-fig" data-grafico="linha" data-dias="${p}" data-tabela="an-t-dia" data-formato="inteiro" data-coluna="1"
                             data-unidade="unidades" data-rotulo-acessivel="Unidades que saíram por dia">
                         <div class="an-fig__area"></div>
                     </figure>
                     <details class="an-tabela" open>
-                        <summary>Ver como tabela (<c:out value="${fn:length(painel.saidasPorDia)}" /> dias)</summary>
+                        <summary>Ver os números em tabela (<c:out value="${fn:length(painel.saidasPorDia)}" /> dias)</summary>
                         <div class="sh-table-wrap an-tabela__rolagem">
                             <table class="sh-table" id="an-t-dia">
                                 <caption class="visually-hidden">Saídas por dia <c:out value="${rotuloPeriodo}" /></caption>
@@ -148,7 +148,7 @@
                                 <div class="an-fig__area"></div>
                             </figure>
                             <details class="an-tabela" open>
-                                <summary>Ver como tabela</summary>
+                                <summary>Ver os números em tabela</summary>
                                 <div class="sh-table-wrap">
                                     <table class="sh-table" id="an-t-top">
                                         <caption class="visually-hidden">Produtos que mais saem <c:out value="${rotuloPeriodo}" /></caption>
@@ -172,12 +172,12 @@
                         </div>
                         <div>
                             <h3 class="an-sub">Por categoria</h3>
-                            <figure class="an-fig" data-grafico="barras" data-tabela="an-t-scat" data-formato="moeda" data-coluna="2"
+                            <figure class="an-fig" data-grafico="composicao" data-ordenar="desc" data-tabela="an-t-scat" data-formato="moeda" data-coluna="2"
                                     data-rotulo-acessivel="Valor que saiu por categoria">
                                 <div class="an-fig__area"></div>
                             </figure>
                             <details class="an-tabela" open>
-                                <summary>Ver como tabela</summary>
+                                <summary>Ver os números em tabela</summary>
                                 <div class="sh-table-wrap">
                                     <table class="sh-table" id="an-t-scat">
                                         <caption class="visually-hidden">Saídas por categoria <c:out value="${rotuloPeriodo}" /></caption>
@@ -219,12 +219,12 @@
                     <p class="an-vazio">Sem compras nem saídas nesses meses.</p>
                 </c:when>
                 <c:otherwise>
-                    <figure class="an-fig" data-grafico="duplas" data-tabela="an-t-caixa" data-formato="moeda" data-colunas="1,2"
+                    <figure class="an-fig" data-grafico="linhas" data-tabela="an-t-caixa" data-formato="moeda" data-colunas="1,2"
                             data-rotulo-acessivel="Compras e saídas por mês">
                         <div class="an-fig__area"></div>
                     </figure>
                     <details class="an-tabela" open>
-                        <summary>Ver como tabela</summary>
+                        <summary>Ver os números em tabela</summary>
                         <div class="sh-table-wrap">
                             <table class="sh-table" id="an-t-caixa">
                                 <caption class="visually-hidden">Compras e saídas por mês</caption>
@@ -282,7 +282,7 @@
                     </figure>
                     <p class="an-legenda">A linha marca 7 dias. As barras terminam em 60 dias, mesmo que o saldo dure mais.</p>
                     <details class="an-tabela" open>
-                        <summary>Ver como tabela</summary>
+                        <summary>Ver os números em tabela</summary>
                         <div class="sh-table-wrap">
                             <table class="sh-table" id="an-t-cobertura">
                                 <caption class="visually-hidden">Dias de cobertura por produto, dos que acabam primeiro aos que duram mais</caption>
@@ -389,12 +389,12 @@
                         <c:out value="${painel.produtosClasseA == 1 ? 'produto responde' : 'produtos respondem'}" />
                         por <strong class="sh-mono"><fmt:formatNumber value="${painel.percentualClasseA}" pattern="#,##0" />%</strong> do valor que saiu.
                     </p>
-                    <figure class="an-fig" data-grafico="pilha" data-tabela="an-t-abc" data-coluna="3" data-classe="1"
-                            data-rotulo-acessivel="Parte do valor de saída em cada classe da curva ABC">
+                    <figure class="an-fig" data-grafico="pareto" data-tabela="an-t-abc" data-colunas="3,4" data-classe="1"
+                            data-rotulo-acessivel="Curva ABC: parte de cada produto no valor que saiu e soma acumulada">
                         <div class="an-fig__area"></div>
                     </figure>
                     <details class="an-tabela">
-                        <summary>Ver como tabela (<c:out value="${fn:length(painel.curvaAbc)}" /> produtos)</summary>
+                        <summary>Ver os números em tabela (<c:out value="${fn:length(painel.curvaAbc)}" /> produtos)</summary>
                         <div class="sh-table-wrap an-tabela__rolagem">
                             <table class="sh-table" id="an-t-abc">
                                 <caption class="visually-hidden">Curva ABC por valor de saída em 90 dias</caption>

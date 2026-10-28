@@ -3,40 +3,60 @@
  * Só tokens --sh-*; as cores dos gráficos são tokens --an-* definidos aqui, nos mesmos três blocos de tema do
  * tokens.css (claro, escuro por data-bs-theme e escuro do sistema sem atributo).
  *
- * Cores dos gráficos (validadas com o validador de paleta da skill dataviz, contra a superfície do tema):
- *   direção A: duas séries (compras x saídas) = azul-tinta do acento e laranja queimado (#B4531B claro, #E5894F escuro,
- *   4,7:1 e 5,8:1 contra a superfície); o validador da skill dataviz NÃO foi reexecutado nesta troca de matiz.
- *   classes A, B e C: o azul do acento misturado com a superfície (da mais escura para a mais clara no claro e o inverso
- *   no escuro); contrastes calculados contra a superfície: B 4,0:1 e C 2,2:1 no claro; B 4,2:1 e C 2,6:1 no escuro.
+ * Prefixo: an.
+ */
+
+/* Cores dos gráficos (validadas com scripts/validate_palette.py da skill dataviz, 2 séries, contra a superfície):
+ *   claro  #3B49CC + #B4531B sobre #FFFFFF: todas as checagens passam (CVD adjacente dE 28, visão normal dE 33).
+ *   escuro #7684EE + #D9733A sobre #0E131F: todas passam (CVD dE 26, normal dE 28); o escuro é passo próprio
+ *   (o --sh-accent-text escuro, #A3AEFF, fica claro demais para a faixa de marcas).
+ *   Sequencial (classes A/B/C e ranking da composição): o mesmo azul misturado com a superfície, do mais forte ao mais
+ *   leve; A/B/C ficam a partir de 3,3:1 contra a superfície nos dois temas; "Outras" é cinza neutro.
  *   Alerta: o vermelho de status do sistema, sempre com ícone e texto (nunca só cor).
  * Prefixo: an.
  */
 
 :root,
 [data-bs-theme="light"] {
-  --an-s1: var(--sh-accent-text);
+  --an-s1: #3B49CC;
   --an-s2: #B4531B;
-  --an-a: var(--sh-accent-text);
-  --an-b: color-mix(in srgb, var(--sh-accent-text) 68%, var(--sh-surface));
-  --an-c: color-mix(in srgb, var(--sh-accent-text) 42%, var(--sh-surface));
+  --an-a: #3B49CC;
+  --an-b: color-mix(in srgb, #3B49CC 85%, var(--sh-surface));
+  --an-c: color-mix(in srgb, #3B49CC 68%, var(--sh-surface));
+  --an-r1: #3B49CC;
+  --an-r2: color-mix(in srgb, #3B49CC 86%, var(--sh-surface));
+  --an-r3: color-mix(in srgb, #3B49CC 72%, var(--sh-surface));
+  --an-r4: color-mix(in srgb, #3B49CC 60%, var(--sh-surface));
+  --an-r5: color-mix(in srgb, #3B49CC 50%, var(--sh-surface));
+  --an-r0: var(--sh-border-strong);
   --an-alerta: var(--sh-danger-solid);
 }
 
 [data-bs-theme="dark"] {
-  --an-s1: var(--sh-accent-text);
-  --an-s2: #E5894F;
-  --an-a: var(--sh-accent-text);
-  --an-b: color-mix(in srgb, var(--sh-accent-text) 72%, var(--sh-surface));
-  --an-c: color-mix(in srgb, var(--sh-accent-text) 48%, var(--sh-surface));
+  --an-s1: #7684EE;
+  --an-s2: #D9733A;
+  --an-a: #7684EE;
+  --an-b: color-mix(in srgb, #7684EE 85%, var(--sh-surface));
+  --an-c: color-mix(in srgb, #7684EE 70%, var(--sh-surface));
+  --an-r1: #7684EE;
+  --an-r2: color-mix(in srgb, #7684EE 86%, var(--sh-surface));
+  --an-r3: color-mix(in srgb, #7684EE 72%, var(--sh-surface));
+  --an-r4: color-mix(in srgb, #7684EE 68%, var(--sh-surface));
+  --an-r5: color-mix(in srgb, #7684EE 62%, var(--sh-surface));
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-bs-theme]) {
-    --an-s1: var(--sh-accent-text);
-    --an-s2: #E5894F;
-    --an-a: var(--sh-accent-text);
-    --an-b: color-mix(in srgb, var(--sh-accent-text) 72%, var(--sh-surface));
-    --an-c: color-mix(in srgb, var(--sh-accent-text) 48%, var(--sh-surface));
+    --an-s1: #7684EE;
+    --an-s2: #D9733A;
+    --an-a: #7684EE;
+    --an-b: color-mix(in srgb, #7684EE 85%, var(--sh-surface));
+    --an-c: color-mix(in srgb, #7684EE 70%, var(--sh-surface));
+    --an-r1: #7684EE;
+    --an-r2: color-mix(in srgb, #7684EE 86%, var(--sh-surface));
+    --an-r3: color-mix(in srgb, #7684EE 72%, var(--sh-surface));
+    --an-r4: color-mix(in srgb, #7684EE 68%, var(--sh-surface));
+    --an-r5: color-mix(in srgb, #7684EE 62%, var(--sh-surface));
   }
 }
 
@@ -269,6 +289,12 @@
 .an-m1 { fill: var(--an-s1); }
 .an-m2 { fill: var(--an-s2); }
 .an-mA { fill: var(--an-a); }
+.an-r0 { fill: var(--an-r0); }
+.an-r1 { fill: var(--an-r1); }
+.an-r2 { fill: var(--an-r2); }
+.an-r3 { fill: var(--an-r3); }
+.an-r4 { fill: var(--an-r4); }
+.an-r5 { fill: var(--an-r5); }
 .an-mB { fill: var(--an-b); }
 .an-mC { fill: var(--an-c); }
 .an-m-alerta { fill: var(--an-alerta); }
@@ -330,6 +356,7 @@
 .an-leg__cor--A { background: var(--an-a); }
 .an-leg__cor--B { background: var(--an-b); }
 .an-leg__cor--C { background: var(--an-c); }
+.an-leg__cor--linha { height: 3px; border-radius: 2px; background: var(--an-s2); }
 
 /* ---------- Dica ao passar o mouse ---------- */
 .an-dica {
@@ -337,9 +364,11 @@
   z-index: 3;
   max-width: min(260px, 90%);
   padding: var(--sh-space-2) var(--sh-space-3);
-  border: 1px solid var(--sh-border);
+  border: 1px solid var(--sh-glass-borda, var(--sh-border));
   border-radius: var(--sh-radius);
-  background: var(--sh-surface);
+  background: var(--sh-glass, var(--sh-surface));
+  -webkit-backdrop-filter: var(--sh-glass-blur, none);
+  backdrop-filter: var(--sh-glass-blur, none);
   box-shadow: var(--sh-shadow-pop, 0 6px 20px rgba(16, 24, 40, .12));
   font-size: var(--sh-text-sm);
   pointer-events: none;
@@ -416,6 +445,105 @@
 
 .an-secao .sh-table th[scope="row"] {
   font-weight: 500;
+}
+
+/* ---------- Gráficos no tempo, pareto e composição ---------- */
+.an-faixa {
+  display: block;
+  width: 100%;
+  height: 16px;
+  overflow: visible;
+}
+
+.an-faixa-espaco {
+  height: var(--sh-space-4);
+}
+
+.an-linha {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.an-l1 { stroke: var(--an-s1); }
+.an-l2 { stroke: var(--an-s2); }
+
+.an-gr-topo { stop-color: var(--an-s1); stop-opacity: 0.28; }
+.an-gr-base { stop-color: var(--an-s1); stop-opacity: 0; }
+
+.an-ponto {
+  stroke: var(--sh-surface);
+  stroke-width: 2;
+}
+
+.an-p1 { fill: var(--an-s1); }
+.an-p2 { fill: var(--an-s2); }
+
+.an-ponto-ativo {
+  stroke: var(--sh-surface);
+  stroke-width: 2;
+  pointer-events: none;
+}
+
+.an-guia {
+  stroke: var(--sh-border-strong);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  pointer-events: none;
+}
+
+.an-limite--ref {
+  stroke: var(--sh-text-subtle);
+}
+
+.an-t--pico,
+.an-t--serie {
+  fill: var(--sh-text);
+  font-weight: 600;
+}
+
+.an-t--ref {
+  fill: var(--sh-text-subtle);
+  font-size: 11px;
+}
+
+.an-alvo--varre {
+  cursor: crosshair;
+}
+
+.an-alvo--varre:focus-visible {
+  outline: 2px solid var(--sh-focus);
+  outline-offset: 2px;
+}
+
+/* ---------- Animação de desenho (só na primeira vez; desligada com prefers-reduced-motion) ---------- */
+@keyframes an-desenha { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes an-h { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes an-v { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes an-surge { from { opacity: 0; } to { opacity: 1; } }
+
+@media (prefers-reduced-motion: no-preference) {
+  .an-anim .an-desenha {
+    stroke-dasharray: 1;
+    animation: an-desenha 900ms var(--sh-ease, ease-out) both;
+  }
+
+  .an-anim .an-cresce-h {
+    transform-box: fill-box;
+    transform-origin: left center;
+    animation: an-h 650ms var(--sh-ease, ease-out) both;
+  }
+
+  .an-anim .an-cresce-v {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: an-v 650ms var(--sh-ease, ease-out) both;
+  }
+
+  .an-anim .an-surge {
+    animation: an-surge 600ms ease-out 500ms both;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

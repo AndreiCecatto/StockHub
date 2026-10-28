@@ -1151,3 +1151,17 @@ Grade sem buraco: `db-colunas--7-5` (e `--8-4`, agora 7/5) só quando os dois bl
 **Contraste (script, pares novos).** Claro / escuro: acento sobre acento-suave 5,95 / 7,64; acento sobre o fundo 6,45 / 9,42; texto mudo sobre superfície-2 (hover) 7,58 / 8,36; texto sutil sobre superfície 6,29 / 6,16; alerta sobre tom de alerta 7,12 / 9,36. Todos acima de 4,5.
 
 **Pendente.** Detalhe de cliente, OS e NF-e (revisão/detalhe) só herdam a base; falta um passe de refino fino nelas (hoje coerentes, não ajustadas uma a uma).
+
+## 19. Gráficos da tela Análises (27/10/2026)
+
+Cada dado ganhou a forma do seu trabalho (skill `dataviz`; SVG próprio em `js/analises.js`, cores em `css/analises.css`):
+
+| Dado | Antes | Agora |
+|---|---|---|
+| Valor parado por categoria; saída por categoria | barras horizontais | **composição**: faixa 100% (5 maiores + "Outras") e ranking abaixo com valor e parte (%) |
+| Saídas por dia | colunas finas (30 a 365) | **linha suave com área**, dias sem saída em zero, rótulo do pico |
+| Compras x saídas por mês | colunas duplas | **duas linhas sobrepostas**, legenda e nome no fim da linha |
+| Curva ABC | uma barra empilhada A/B/C | **Pareto**: barras da parte de cada produto (cor = classe) + linha da soma acumulada, mesmo eixo 0 a 100%, referências em 80% e 95% |
+| Top 10 produtos; cobertura (dias) | barras horizontais | mantidas (ranking), agora crescem ao entrar |
+
+Regras: um só eixo (nunca dois); cores validadas por `validate_palette.py` (claro `#3B49CC` + `#B4531B`; escuro `#7684EE` + `#D9733A`, passo próprio porque o acento escuro é claro demais para marcas; todas as checagens passam); azul em rampa só para magnitude (classes, ranking), "Outras" em cinza; alerta vermelho sempre com texto. Toda figura nasce de uma tabela ("Ver os números em tabela"); gráficos no tempo têm um único tab stop (setas, Home, End, Esc) e dica em vidro (`--sh-glass`). Desenho por `stroke-dashoffset` e crescimento de barras só na primeira vez, desligado por `prefers-reduced-motion`. Sem histograma: falta dado (ver pedidos ao backend no relatório da etapa).
